@@ -16,7 +16,7 @@
  * Uses react-hook-form + zodResolver for validation.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     View,
     Text,
@@ -37,7 +37,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
-import { Picker } from '@react-native-picker/picker';
 
 import {
     KGBVFormSchema,
@@ -252,6 +251,7 @@ export default function KGBVFormScreen() {
     });
 
     const [showTable, setShowTable] = React.useState(false);
+    const [activityDropdownOpen, setActivityDropdownOpen] = useState(false);
 
     const pickPhoto = useCallback(async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -344,17 +344,98 @@ export default function KGBVFormScreen() {
                 control={control}
                 name="activity"
                 render={({ field: { onChange, value } }) => (
-                    <View className="bg-gray-50 rounded-xl border border-gray-200 mb-1 overflow-hidden">
-                        <Picker
-                            selectedValue={value}
-                            onValueChange={onChange}
-                            style={{ height: 52 }}
+                    <View className="mb-1">
+                        {/* Dropdown trigger */}
+                        <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() => setActivityDropdownOpen((prev) => !prev)}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                backgroundColor: '#f9fafb',
+                                borderRadius: 12,
+                                borderWidth: 1,
+                                borderColor: activityDropdownOpen ? '#1565C0' : '#e5e7eb',
+                                paddingHorizontal: 16,
+                                paddingVertical: 14,
+                            }}
                         >
-                            <Picker.Item label="Select option" value="" />
-                            {KGBV_ACTIVITY_OPTIONS.map((opt) => (
-                                <Picker.Item key={opt} label={opt} value={opt} />
-                            ))}
-                        </Picker>
+                            <Text
+                                style={{
+                                    fontSize: 15,
+                                    color: value ? '#1a1a1a' : '#9ca3af',
+                                    flex: 1,
+                                }}
+                                numberOfLines={1}
+                            >
+                                {value || 'Select option'}
+                            </Text>
+                            <Ionicons
+                                name={activityDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                                size={20}
+                                color="#6b7280"
+                            />
+                        </TouchableOpacity>
+
+                        {/* Dropdown options list */}
+                        {activityDropdownOpen && (
+                            <View
+                                style={{
+                                    backgroundColor: '#fff',
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    borderColor: '#e5e7eb',
+                                    marginTop: 4,
+                                    maxHeight: 220,
+                                    overflow: 'hidden',
+                                    elevation: 4,
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 4,
+                                }}
+                            >
+                                <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                                    {KGBV_ACTIVITY_OPTIONS.map((opt) => {
+                                        const isSelected = value === opt;
+                                        return (
+                                            <TouchableOpacity
+                                                key={opt}
+                                                activeOpacity={0.7}
+                                                onPress={() => {
+                                                    onChange(opt);
+                                                    setActivityDropdownOpen(false);
+                                                }}
+                                                style={{
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 12,
+                                                    backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                                                    borderBottomWidth: 0.5,
+                                                    borderBottomColor: '#f3f4f6',
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        fontSize: 14,
+                                                        color: isSelected ? '#1565C0' : '#374151',
+                                                        fontWeight: isSelected ? '600' : '400',
+                                                        flex: 1,
+                                                    }}
+                                                >
+                                                    {opt}
+                                                </Text>
+                                                {isSelected && (
+                                                    <Ionicons name="checkmark" size={18} color="#1565C0" />
+                                                )}
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </ScrollView>
+                            </View>
+                        )}
                     </View>
                 )}
             />
