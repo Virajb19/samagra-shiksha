@@ -172,6 +172,20 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ── IE School Visit Data (submitted by IE Resource Persons) ──
+    match /ie_school_visit_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── IE Home Visit Data (submitted by IE Resource Persons) ──
+    match /ie_home_visit_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
     // ── Deny everything else by default ──
     match /{document=**} {
       allow read, write: if false;

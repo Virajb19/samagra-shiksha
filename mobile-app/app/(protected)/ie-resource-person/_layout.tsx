@@ -1,6 +1,6 @@
 /**
  * IE Resource Person Routes Layout
- * Stack nav: Tabs + Complete Profile.
+ * Stack nav: Tabs + Complete Profile + Visit Forms.
  */
 import { Stack } from 'expo-router';
 
@@ -17,6 +17,8 @@ export default function IEResourcePersonLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="complete-profile" options={{ title: 'Complete Profile', headerBackTitle: 'Back' }} />
             <Stack.Screen name="view-profile" options={{ headerShown: false }} />
+            <Stack.Screen name="school-visit-form" options={{ title: 'IE School Visit', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="home-visit-form" options={{ title: 'IE Home Visit', headerBackTitle: 'Back' }} />
         </Stack>
     );
 }

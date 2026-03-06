@@ -24,7 +24,7 @@ import {
     FilterX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchScienceLabFormDataPage, clearScienceLabFormDataCursorCache, fetchAllScienceLabFormData, type ScienceLabFormDataRow } from '@/services/firebase/science-lab-form-data.client';
+import { scienceLabFormDataFirestore, type ScienceLabFormDataRow } from '@/services/firebase/science-lab-form-data.firestore';
 import { downloadXlsx } from '@/lib/download-xlsx';
 import { Input } from '@/components/ui/input';
 import {
@@ -168,13 +168,13 @@ export default function ScienceLabFormDataPage() {
     const hasFilters = district !== 'all' || !!date;
 
     // Reset page & cursor cache when filters change
-    useEffect(() => { clearScienceLabFormDataCursorCache(); setCurrentPage(1); }, [district, date]);
+    useEffect(() => { scienceLabFormDataFirestore.clearCursorCache(); setCurrentPage(1); }, [district, date]);
 
     const {
         data, isLoading, isFetching, isError, refetch, isPlaceholderData,
     } = useQuery({
         queryKey: ['science-lab-form-data', currentPage, activeDistrict, activeDate],
-        queryFn: () => fetchScienceLabFormDataPage(currentPage, activeDistrict, activeDate),
+        queryFn: () => scienceLabFormDataFirestore.fetchPage(currentPage, activeDistrict, activeDate),
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -198,7 +198,7 @@ export default function ScienceLabFormDataPage() {
         if (currentPage < totalPages) {
             queryClient.prefetchQuery({
                 queryKey: ['science-lab-form-data', currentPage + 1, activeDistrict, activeDate],
-                queryFn: () => fetchScienceLabFormDataPage(currentPage + 1, activeDistrict, activeDate),
+                queryFn: () => scienceLabFormDataFirestore.fetchPage(currentPage + 1, activeDistrict, activeDate),
             });
         }
     }, [currentPage, totalPages, activeDistrict, activeDate, queryClient]);
@@ -223,7 +223,7 @@ export default function ScienceLabFormDataPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <RefreshTableButton queryKey={['science-lab-form-data', currentPage, activeDistrict, activeDate]} isFetching={isFetching} />
-                    <DownloadXlsxButton onDownload={async () => { const rows = await fetchAllScienceLabFormData(activeDistrict, activeDate); downloadXlsx(rows, SCIENCE_LAB_COLUMNS, 'Science_Lab_Form_Data'); }} disabled={!hasData} />
+                    <DownloadXlsxButton onDownload={async () => { const rows = await scienceLabFormDataFirestore.fetchAll(activeDistrict, activeDate); downloadXlsx(rows, SCIENCE_LAB_COLUMNS, 'Science_Lab_Form_Data'); }} disabled={!hasData} />
                 </div>
             </motion.div>
 

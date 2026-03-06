@@ -17,6 +17,7 @@ import { User } from "@/types";
 import { UserFilterParams } from "@/services/contracts";
 import { getUsersFromFirestore } from "@/services/firebase/users.firestore";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
+import { devDelay } from "@/lib/dev-delay";
 
 type CreateUserInput = {
   name: string;
@@ -99,6 +100,7 @@ export const firebaseUsersAdminApi = {
 
   async toggleStatus(userId: string, isActive: boolean): Promise<void> {
     await waitForAuthReady();
+    await devDelay('write', 'toggling user status');
     const db = getFirebaseFirestore();
     await updateDoc(doc(db, "users", userId), {
       is_active: isActive,

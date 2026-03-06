@@ -1,6 +1,6 @@
 /**
  * IE Resource Person Home Tab Screen
- * 3-state profile flow with AccessBlockedModal.
+ * 3-state profile flow with AccessBlockedModal + Visit Type Picker.
  */
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Modal, Animated } from 'react-native';
@@ -67,10 +67,66 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: { visible: b
     );
 }
 
+function VisitTypePickerModal({ visible, onClose, onSelectSchool, onSelectHome }: { visible: boolean; onClose: () => void; onSelectSchool: () => void; onSelectHome: () => void }) {
+    const [internalVisible, setInternalVisible] = useState(false);
+    const translateY = useRef(new Animated.Value(300)).current;
+    const opacity = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (visible) {
+            setInternalVisible(true); translateY.setValue(300); opacity.setValue(0);
+            Animated.parallel([
+                Animated.timing(translateY, { toValue: 0, duration: 280, useNativeDriver: true }),
+                Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+            ]).start();
+        } else if (internalVisible) {
+            Animated.parallel([
+                Animated.timing(translateY, { toValue: 300, duration: 220, useNativeDriver: true }),
+                Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }),
+            ]).start(() => setInternalVisible(false));
+        }
+    }, [visible]);
+    if (!internalVisible) return null;
+
+    return (
+        <Modal visible={internalVisible} transparent statusBarTranslucent onRequestClose={onClose}>
+            <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, opacity }}>
+                <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} activeOpacity={1} onPress={onClose} />
+                <Animated.View style={{ transform: [{ translateY }], backgroundColor: '#fff', borderRadius: 24, width: '100%', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 24 }}>
+                    <Text style={{ fontSize: 20, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 24 }}>Select Visit Type</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                        <TouchableOpacity
+                            style={{ alignItems: 'center', width: '40%' }}
+                            activeOpacity={0.7}
+                            onPress={() => { onClose(); onSelectSchool(); }}
+                        >
+                            <View style={{ width: 100, height: 100, borderRadius: 20, backgroundColor: '#e8f4fd', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+                                <Ionicons name="school-outline" size={48} color={BLUE} />
+                            </View>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: '#1a1a2e' }}>School Visit</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={{ alignItems: 'center', width: '40%' }}
+                            activeOpacity={0.7}
+                            onPress={() => { onClose(); onSelectHome(); }}
+                        >
+                            <View style={{ width: 100, height: 100, borderRadius: 20, backgroundColor: '#e8f4fd', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+                                <Ionicons name="home-outline" size={48} color={BLUE} />
+                            </View>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: '#1a1a2e' }}>Home Visit</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+            </Animated.View>
+        </Modal>
+    );
+}
+
 export default function IEResourcePersonHomeTabScreen() {
     const { user } = useAuthStore();
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [modalMode, setModalMode] = useState<'complete' | 'verification'>('complete');
+    const [showVisitPicker, setShowVisitPicker] = useState(false);
 
     const { data: profileStatus, isLoading: loadingProfile, refetch: refetchProfile } = useQuery({
         queryKey: ['profile-status', user?.id],
@@ -120,7 +176,7 @@ export default function IEResourcePersonHomeTabScreen() {
                         else router.push('/(protected)/ie-resource-person/view-profile');
                     }} />
                     <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } Alert.alert('Coming Soon', 'Notices will be available soon.'); }} disabled={!hasCompletedProfile || !isActive} />
-                    <ActionCard title="Activities Forms" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/activity-forms' as any); }} disabled={!hasCompletedProfile || !isActive} />
+                    <ActionCard title="Home / School Visits" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } setShowVisitPicker(true); }} disabled={!hasCompletedProfile || !isActive} />
                 </View>
             </View>
 
@@ -136,6 +192,12 @@ export default function IEResourcePersonHomeTabScreen() {
             )}
 
             <AccessBlockedModal visible={showProfileModal} mode={modalMode} onClose={() => setShowProfileModal(false)} onComplete={() => { setShowProfileModal(false); router.push('/(protected)/ie-resource-person/complete-profile'); }} />
+            <VisitTypePickerModal
+                visible={showVisitPicker}
+                onClose={() => setShowVisitPicker(false)}
+                onSelectSchool={() => router.push('/(protected)/ie-resource-person/school-visit-form' as any)}
+                onSelectHome={() => router.push('/(protected)/ie-resource-person/home-visit-form' as any)}
+            />
         </ScrollView>
     );
 }

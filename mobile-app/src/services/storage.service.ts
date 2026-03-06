@@ -309,3 +309,32 @@ export async function uploadNSCBAVFormFile(
         return { success: false, error: errorMessage };
     }
 }
+
+/**
+ * Upload an IE visit form file (image) to Firebase Storage.
+ *
+ * Path: `ie-visit-form-files/<userId>/<subfolder>/<timestamp>_<filename>`
+ */
+export async function uploadIEVisitFormFile(
+    fileUri: string,
+    userId: string,
+    subfolder: string = 'photos',
+): Promise<UploadResult> {
+    try {
+        console.log('[Storage] Uploading IE visit form file...');
+        const storage = getFirebaseStorage();
+        const uriParts = fileUri.split('/');
+        const fileName = uriParts[uriParts.length - 1] || `ie_visit_${Date.now()}.jpg`;
+        const storagePath = `ie-visit-form-files/${userId}/${subfolder}/${Date.now()}_${fileName}`;
+        const blob = await uriToBlob(fileUri);
+        const storageRef = ref(storage, storagePath);
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+        console.log('[Storage] IE visit form file upload successful:', downloadURL);
+        return { success: true, fileUrl: downloadURL };
+    } catch (error) {
+        console.error('[Storage] IE visit form file upload failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';
+        return { success: false, error: errorMessage };
+    }
+}

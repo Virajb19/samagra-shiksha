@@ -17,7 +17,7 @@ import {
     RefreshControl,
     TextInput,
     Alert,
-    Switch,
+    Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -136,24 +136,27 @@ function StaffCard({ staff, expanded, onToggle, onToggleActive, isUpdating, isCu
                         </View>
                     ) : null}
 
-                    {/* Activate/Deactivate toggle — only for teachers, not self */}
+                    {/* Activate/Deactivate button — only for teachers, not self */}
                     {staff.user.role === 'TEACHER' && !isCurrentUser && (
-                        <View style={styles.toggleRow}>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.toggleLabel}>Account Status</Text>
-                                <Text style={styles.toggleHint}>
-                                    {isActive ? 'User can access all features' : 'User is deactivated'}
-                                </Text>
-                            </View>
+                        <View style={{ marginTop: 12 }}>
                             {isUpdating ? (
                                 <ActivityIndicator size="small" color={BLUE} />
+                            ) : isActive ? (
+                                <TouchableOpacity
+                                    style={styles.deactivateButton}
+                                    onPress={() => onToggleActive(false)}
+                                >
+                                    <Ionicons name="close-circle" size={18} color="#ffffff" />
+                                    <Text style={styles.deactivateButtonText}>Deactivate</Text>
+                                </TouchableOpacity>
                             ) : (
-                                <Switch
-                                    value={isActive}
-                                    onValueChange={onToggleActive}
-                                    trackColor={{ false: '#d1d5db', true: '#93c5fd' }}
-                                    thumbColor={isActive ? BLUE : '#9ca3af'}
-                                />
+                                <TouchableOpacity
+                                    style={styles.activateButton}
+                                    onPress={() => onToggleActive(true)}
+                                >
+                                    <Ionicons name="checkmark-circle" size={18} color="#ffffff" />
+                                    <Text style={styles.activateButtonText}>Activate</Text>
+                                </TouchableOpacity>
                             )}
                         </View>
                     )}
@@ -366,6 +369,10 @@ const styles = StyleSheet.create({
     toggleRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 12, padding: 14, marginTop: 12 },
     toggleLabel: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
     toggleHint: { fontSize: 11, color: '#9ca3af', marginTop: 2 },
+    activateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#22c55e', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, gap: 6 },
+    activateButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
+    deactivateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ef4444', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, gap: 6 },
+    deactivateButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f2f8' },
     loadingText: { marginTop: 12, fontSize: 16, color: '#6b7280' },
     emptyContainer: { alignItems: 'center', paddingVertical: 40 },

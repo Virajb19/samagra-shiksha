@@ -553,6 +553,53 @@ export const NSCBAVFormDataDocSchema = z.object({
   created_at: dateTimeLike,
 });
 
+// ── IE School Visit Data (submitted by IE Resource Persons from mobile app) ──
+
+export const IESchoolVisitDataDocSchema = z.object({
+  id: uuid,
+  submitted_by: uuid,
+  submitted_by_name: z.string().min(1),
+  rci_number: z.string().min(1),
+  ebrc: z.string().min(1),
+  district: z.string().min(1),
+  district_id: uuid,
+  school: z.string().min(1),
+  school_id: uuid,
+  name_of_cwsn: z.string().min(1),
+  type_of_disability: z.string().min(1),
+  gender: GenderSchema,
+  age: z.number().int(),
+  activities_topics: z.string().min(1),
+  therapy_type: z.string().nullable().optional(),
+  therapy_brief: z.string().min(1),
+  expected_outcome: z.string().min(1),
+  was_goal_achieved: z.enum(["Yes", "No"]),
+  photos: z.array(z.string()),
+  created_at: dateTimeLike,
+});
+
+// ── IE Home Visit Data (submitted by IE Resource Persons from mobile app) ──
+
+export const IEHomeVisitDataDocSchema = z.object({
+  id: uuid,
+  submitted_by: uuid,
+  submitted_by_name: z.string().min(1),
+  rci_number: z.string().min(1),
+  ebrc: z.string().min(1),
+  district: z.string().min(1),
+  name_of_cwsn: z.string().min(1),
+  type_of_disability: z.string().min(1),
+  gender: GenderSchema,
+  age: z.number().int(),
+  activities_topics: z.string().min(1),
+  therapy_type: z.string().nullable().optional(),
+  therapy_brief: z.string().min(1),
+  expected_outcome: z.string().min(1),
+  was_goal_achieved: z.enum(["Yes", "No"]),
+  photos: z.array(z.string()),
+  created_at: dateTimeLike,
+});
+
 export const CollectionSchemas = {
   users: UserDocSchema,
   audit_logs: AuditLogDocSchema,
@@ -579,6 +626,8 @@ export const CollectionSchemas = {
   self_defense_form_data: SelfDefenseFormDataDocSchema,
   kgbv_form_data: KGBVFormDataDocSchema,
   nscbav_form_data: NSCBAVFormDataDocSchema,
+  ie_school_visit_data: IESchoolVisitDataDocSchema,
+  ie_home_visit_data: IEHomeVisitDataDocSchema,
 } as const;
 
 type RelationType = "one-to-one" | "one-to-many" | "many-to-many";
@@ -623,6 +672,10 @@ export const Relations: RelationDef[] = [
   { from: "self_defense_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
   { from: "kgbv_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
   { from: "nscbav_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
+  { from: "ie_school_visit_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
+  { from: "ie_school_visit_data", to: "schools", type: "one-to-many", foreignKey: "school_id" },
+  { from: "ie_school_visit_data", to: "districts", type: "one-to-many", foreignKey: "district_id" },
+  { from: "ie_home_visit_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
 ];
 
 export function parseDoc<K extends keyof typeof CollectionSchemas>(

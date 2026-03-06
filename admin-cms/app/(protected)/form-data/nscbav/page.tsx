@@ -23,7 +23,7 @@ import {
     FilterX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchNSCBAVFormDataPage, clearNSCBAVFormDataCursorCache, fetchAllNSCBAVFormData, type NSCBAVFormDataRow } from '@/services/firebase/nscbav-form-data.client';
+import { nscbavFormDataFirestore, type NSCBAVFormDataRow } from '@/services/firebase/nscbav-form-data.firestore';
 import { downloadXlsx } from '@/lib/download-xlsx';
 import { Input } from '@/components/ui/input';
 import {
@@ -171,13 +171,13 @@ export default function NSCBAVFormDataPage() {
     const activeDate = date || undefined;
     const hasFilters = district !== 'all' || !!date;
 
-    useEffect(() => { clearNSCBAVFormDataCursorCache(); setCurrentPage(1); }, [district, date]);
+    useEffect(() => { nscbavFormDataFirestore.clearCursorCache(); setCurrentPage(1); }, [district, date]);
 
     const {
         data, isLoading, isFetching, isError, refetch, isPlaceholderData,
     } = useQuery({
         queryKey: ['nscbav-form-data', currentPage, activeDistrict, activeDate],
-        queryFn: () => fetchNSCBAVFormDataPage(currentPage, activeDistrict, activeDate),
+        queryFn: () => nscbavFormDataFirestore.fetchPage(currentPage, activeDistrict, activeDate),
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -200,7 +200,7 @@ export default function NSCBAVFormDataPage() {
         if (currentPage < totalPages) {
             queryClient.prefetchQuery({
                 queryKey: ['nscbav-form-data', currentPage + 1, activeDistrict, activeDate],
-                queryFn: () => fetchNSCBAVFormDataPage(currentPage + 1, activeDistrict, activeDate),
+                queryFn: () => nscbavFormDataFirestore.fetchPage(currentPage + 1, activeDistrict, activeDate),
             });
         }
     }, [currentPage, totalPages, activeDistrict, activeDate, queryClient]);
@@ -225,7 +225,7 @@ export default function NSCBAVFormDataPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <RefreshTableButton queryKey={['nscbav-form-data', currentPage, activeDistrict, activeDate]} isFetching={isFetching} />
-                    <DownloadXlsxButton onDownload={async () => { const rows = await fetchAllNSCBAVFormData(activeDistrict, activeDate); downloadXlsx(rows, NSCBAV_COLUMNS, 'NSCBAV_Form_Data'); }} disabled={!hasData} />
+                    <DownloadXlsxButton onDownload={async () => { const rows = await nscbavFormDataFirestore.fetchAll(activeDistrict, activeDate); downloadXlsx(rows, NSCBAV_COLUMNS, 'NSCBAV_Form_Data'); }} disabled={!hasData} />
                 </div>
             </motion.div>
 

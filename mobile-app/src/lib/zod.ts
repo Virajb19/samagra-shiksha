@@ -562,3 +562,84 @@ export const NSCBAVFormSchema = z.object({
 });
 
 export type NSCBAVFormData = z.infer<typeof NSCBAVFormSchema>;
+
+// ── IE School Visit Form Schema ──────────────────────────────
+
+/**
+ * IE School Visit Form — Single page form.
+ *
+ * Fields based on the screenshots:
+ * - Name of CwSN
+ * - Type of Disability
+ * - District (dropdown)
+ * - School (dropdown, filtered by district)
+ * - Gender (radio)
+ * - Age
+ * - Activities / Topics covered
+ * - Type of Therapy (optional)
+ * - Explain Activities / Therapy (in brief)
+ * - Expected Outcome (for the child)
+ * - Was the desired goal for the child achieved? (radio Yes/No)
+ * - Geo-tagged Photos (at least 1 image)
+ */
+export const IESchoolVisitFormSchema = z.object({
+    nameOfCwSN: z.string().min(1, 'Please enter name of CwSN'),
+    typeOfDisability: z.string().min(1, 'Please enter type of disability'),
+    districtId: z.string().min(1, 'Please select a district'),
+    schoolId: z.string().min(1, 'Please select a school'),
+    gender: GenderEnum,
+    age: z
+        .string()
+        .min(1, 'Please enter age')
+        .refine((v) => {
+            const n = parseInt(v, 10);
+            return !isNaN(n) && n >= 1 && n <= 100;
+        }, 'Age must be between 1 and 100'),
+    activitiesTopics: z.string().min(1, 'Please enter activities / topics covered'),
+    therapyType: z.string().optional(),
+    therapyBrief: z.string().min(1, 'Please explain activities / therapy'),
+    expectedOutcome: z.string().min(1, 'Please enter expected outcome'),
+    wasGoalAchieved: z.enum(['Yes', 'No'], { message: 'Please select whether the goal was achieved' }),
+    geoTaggedPhotos: z.array(z.string()).min(1, 'Please upload at least 1 geo-tagged photo').max(10, 'Maximum 10 photos allowed'),
+});
+
+export type IESchoolVisitFormData = z.infer<typeof IESchoolVisitFormSchema>;
+
+// ── IE Home Visit Form Schema ──────────────────────────────
+
+/**
+ * IE Home Visit Form — Single page form.
+ *
+ * Similar to School Visit but without School/District fields.
+ * Fields:
+ * - Name of CwSN
+ * - Type of Disability
+ * - Gender (radio)
+ * - Age
+ * - Activities / Topics covered
+ * - Type of Therapy (optional)
+ * - Explain Activities / Therapy (in brief)
+ * - Expected Outcome (for the child)
+ * - Was the desired goal for the child achieved? (radio Yes/No)
+ * - Geo-tagged Photos (at least 1 image)
+ */
+export const IEHomeVisitFormSchema = z.object({
+    nameOfCwSN: z.string().min(1, 'Please enter name of CwSN'),
+    typeOfDisability: z.string().min(1, 'Please enter type of disability'),
+    gender: GenderEnum,
+    age: z
+        .string()
+        .min(1, 'Please enter age')
+        .refine((v) => {
+            const n = parseInt(v, 10);
+            return !isNaN(n) && n >= 1 && n <= 100;
+        }, 'Age must be between 1 and 100'),
+    activitiesTopics: z.string().min(1, 'Please enter activities / topics covered'),
+    therapyType: z.string().optional(),
+    therapyBrief: z.string().min(1, 'Please explain activities / therapy'),
+    expectedOutcome: z.string().min(1, 'Please enter expected outcome'),
+    wasGoalAchieved: z.enum(['Yes', 'No'], { message: 'Please select whether the goal was achieved' }),
+    geoTaggedPhotos: z.array(z.string()).min(1, 'Please upload at least 1 geo-tagged photo').max(10, 'Maximum 10 photos allowed'),
+});
+
+export type IEHomeVisitFormData = z.infer<typeof IEHomeVisitFormSchema>;

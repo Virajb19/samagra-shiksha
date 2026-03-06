@@ -23,7 +23,7 @@ import {
     FilterX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchSelfDefenseFormDataPage, clearSelfDefenseFormDataCursorCache, fetchAllSelfDefenseFormData, type SelfDefenseFormDataRow } from '@/services/firebase/self-defense-form-data.client';
+import { selfDefenseFormDataFirestore, type SelfDefenseFormDataRow } from '@/services/firebase/self-defense-form-data.firestore';
 import { downloadXlsx } from '@/lib/download-xlsx';
 import { Input } from '@/components/ui/input';
 import {
@@ -174,13 +174,13 @@ export default function SelfDefenceFormDataPage() {
     const hasFilters = district !== 'all' || !!date;
 
     // Reset page & cursor cache when filters change
-    useEffect(() => { clearSelfDefenseFormDataCursorCache(); setCurrentPage(1); }, [district, date]);
+    useEffect(() => { selfDefenseFormDataFirestore.clearCursorCache(); setCurrentPage(1); }, [district, date]);
 
     const {
         data, isLoading, isFetching, isError, refetch, isPlaceholderData,
     } = useQuery({
         queryKey: ['self-defense-form-data', currentPage, activeDistrict, activeDate],
-        queryFn: () => fetchSelfDefenseFormDataPage(currentPage, activeDistrict, activeDate),
+        queryFn: () => selfDefenseFormDataFirestore.fetchPage(currentPage, activeDistrict, activeDate),
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -204,7 +204,7 @@ export default function SelfDefenceFormDataPage() {
         if (currentPage < totalPages) {
             queryClient.prefetchQuery({
                 queryKey: ['self-defense-form-data', currentPage + 1, activeDistrict, activeDate],
-                queryFn: () => fetchSelfDefenseFormDataPage(currentPage + 1, activeDistrict, activeDate),
+                queryFn: () => selfDefenseFormDataFirestore.fetchPage(currentPage + 1, activeDistrict, activeDate),
             });
         }
     }, [currentPage, totalPages, activeDistrict, activeDate, queryClient]);
@@ -229,7 +229,7 @@ export default function SelfDefenceFormDataPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <RefreshTableButton queryKey={['self-defense-form-data', currentPage, activeDistrict, activeDate]} isFetching={isFetching} />
-                    <DownloadXlsxButton onDownload={async () => { const rows = await fetchAllSelfDefenseFormData(activeDistrict, activeDate); downloadXlsx(rows, SELF_DEFENSE_COLUMNS, 'Self_Defence_Form_Data'); }} disabled={!hasData} />
+                    <DownloadXlsxButton onDownload={async () => { const rows = await selfDefenseFormDataFirestore.fetchAll(activeDistrict, activeDate); downloadXlsx(rows, SELF_DEFENSE_COLUMNS, 'Self_Defence_Form_Data'); }} disabled={!hasData} />
                 </div>
             </motion.div>
 

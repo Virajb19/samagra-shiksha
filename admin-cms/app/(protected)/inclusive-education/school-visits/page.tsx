@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { Download, Search, FilterX, GraduationCap, Eye, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Search, GraduationCap, Eye } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import {
     Select,
@@ -11,6 +12,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { ClearFiltersButton } from '@/components/ClearFiltersButton';
+import { DownloadXlsxButton } from '@/components/DownLoadXlxsButton';
+import { downloadXlsx } from '@/lib/download-xlsx';
+import {
+    ieSchoolVisitDataFirestore,
+    type IESchoolVisitResponse,
+} from '@/services/firebase/ie-school-visit-data.firestore';
+import { masterDataFirestore } from '@/services/firebase/master-data.firestore';
+import { RetryButton } from '@/components/RetryButton';
 
 // ─── Animation Variants ────────────────────────────────────────────────
 const containerVariants = {
@@ -26,214 +37,121 @@ const cardVariants = {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
 };
 
-// ─── Dummy Data ────────────────────────────────────────────────────────
-const SCHOOL_VISITS_DATA = [
-    {
-        id: 1,
-        school: 'GPS Tokishe',
-        district: 'Dimapur',
-        ebrc: 'Dhansaripar',
-        photos: 3,
-        submittedBy: 'IE',
-        rciNumber: 'Sjh273',
-        nameOfCwSN: 'Ehd',
-        disabilityType: 'Locomotor',
-        gender: 'Male',
-        activitiesTopics: 'Hebjw',
-        therapyType: 'Jenebd',
-        therapyBrief: 'Expressed, discussed',
-        expectedOutcome: 'Improve personality',
-        wasGoalAchieved: 'Yes',
-    },
-    {
-        id: 2,
-        school: 'GPS Tokishe',
-        district: 'Dimapur',
-        ebrc: 'Dhansaripar',
-        photos: 2,
-        submittedBy: 'Ramesh',
-        rciNumber: 'rgdsdsg',
-        nameOfCwSN: 'Bonoto',
-        disabilityType: 'Type C',
-        gender: 'Male',
-        activitiesTopics: 'Basic Intro to Sign Language',
-        therapyType: 'Verbal',
-        therapyBrief: 'Explaining use of sign language',
-        expectedOutcome: 'Using Sign Language to talk',
-        wasGoalAchieved: 'Yes',
-    },
-    {
-        id: 3,
-        school: 'Riverine Public Higher Secondary School',
-        district: 'Dimapur',
-        ebrc: 'Dhansaripar',
-        photos: 4,
-        submittedBy: 'Inclusive Demo',
-        rciNumber: 'Hsh7272737',
-        nameOfCwSN: 'Rishav Sethi',
-        disabilityType: 'Dyslexia',
-        gender: 'Male',
-        activitiesTopics: 'Taught',
-        therapyType: 'Sjsb',
-        therapyBrief: 'Hshaha',
-        expectedOutcome: 'Benefittee',
-        wasGoalAchieved: 'Yes',
-    },
-    {
-        id: 4,
-        school: 'GMS Chumukedima',
-        district: 'Dimapur',
-        ebrc: 'Chumukedima',
-        photos: 1,
-        submittedBy: 'Anita',
-        rciNumber: 'Rci4421',
-        nameOfCwSN: 'Limaso',
-        disabilityType: 'Hearing Impairment',
-        gender: 'Female',
-        activitiesTopics: 'Sign Language Basics',
-        therapyType: 'Speech',
-        therapyBrief: 'Practiced lip reading exercises',
-        expectedOutcome: 'Better communication',
-        wasGoalAchieved: 'No',
-    },
-    {
-        id: 5,
-        school: 'GPS Sovima',
-        district: 'Dimapur',
-        ebrc: 'Dhansaripar',
-        photos: 5,
-        submittedBy: 'IE',
-        rciNumber: 'Sjh980',
-        nameOfCwSN: 'Temsunaro',
-        disabilityType: 'Visual Impairment',
-        gender: 'Female',
-        activitiesTopics: 'Braille Reading',
-        therapyType: 'Occupational',
-        therapyBrief: 'Introduced Braille characters',
-        expectedOutcome: 'Read basic Braille',
-        wasGoalAchieved: 'Yes',
-    },
-    {
-        id: 6,
-        school: 'GHS Kohima Village',
-        district: 'Kohima',
-        ebrc: 'Kohima Town',
-        photos: 2,
-        submittedBy: 'Meren',
-        rciNumber: 'Koh3392',
-        nameOfCwSN: 'Visato',
-        disabilityType: 'Cerebral Palsy',
-        gender: 'Male',
-        activitiesTopics: 'Motor Skills Training',
-        therapyType: 'Physical',
-        therapyBrief: 'Fine motor coordination drills',
-        expectedOutcome: 'Improved hand control',
-        wasGoalAchieved: 'Yes',
-    },
-    {
-        id: 7,
-        school: 'GMS Tseminyu',
-        district: 'Kohima',
-        ebrc: 'Tseminyu',
-        photos: 3,
-        submittedBy: 'Kevi',
-        rciNumber: 'Koh5501',
-        nameOfCwSN: 'Zhaleo',
-        disabilityType: 'Autism',
-        gender: 'Male',
-        activitiesTopics: 'Social Skills',
-        therapyType: 'Behavioral',
-        therapyBrief: 'Group interaction games',
-        expectedOutcome: 'Better peer interaction',
-        wasGoalAchieved: 'Partially',
-    },
-    {
-        id: 8,
-        school: 'GPS Mon Town',
-        district: 'Mon',
-        ebrc: 'Mon Town',
-        photos: 1,
-        submittedBy: 'Longwa',
-        rciNumber: 'Mon2211',
-        nameOfCwSN: 'Wangpan',
-        disabilityType: 'Intellectual Disability',
-        gender: 'Male',
-        activitiesTopics: 'Daily Living Skills',
-        therapyType: 'Occupational',
-        therapyBrief: 'Self-care routines practice',
-        expectedOutcome: 'Independence in daily tasks',
-        wasGoalAchieved: 'No',
-    },
+// ─── XLSX columns ──────────────────────────────────────────────────────
+const XLSX_COLUMNS = [
+    { key: 'school', label: 'School' },
+    { key: 'district', label: 'District' },
+    { key: 'ebrc', label: 'EBRC' },
+    { key: 'submitted_by_name', label: 'Submitted By' },
+    { key: 'rci_number', label: 'RCI Number' },
+    { key: 'name_of_cwsn', label: 'Name of CwSN' },
+    { key: 'type_of_disability', label: 'Disability Type' },
+    { key: 'gender', label: 'Gender' },
+    { key: 'age', label: 'Age' },
+    { key: 'activities_topics', label: 'Activities / Topics' },
+    { key: 'therapy_type', label: 'Therapy Type' },
+    { key: 'therapy_brief', label: 'Therapy (in brief)' },
+    { key: 'expected_outcome', label: 'Expected Outcome' },
+    { key: 'was_goal_achieved', label: 'Was Goal Achieved?' },
+    { key: 'photos', label: 'Photos' },
+    { key: 'created_at', label: 'Date' },
 ];
-
-// ─── Export to XLSX (CSV fallback) ─────────────────────────────────────
-function exportToXLSX(data: typeof SCHOOL_VISITS_DATA) {
-    const headers = [
-        'Sl.', 'School', 'District', 'EBRC', 'Submitted By', 'RCI Number',
-        'Name of CwSN', 'Disability Type', 'Gender', 'Activities / Topics',
-        'Therapy Type', 'Therapy (in brief)', 'Expected Outcome', 'Was Goal Achieved?',
-    ];
-    const rows = data.map((row, i) => [
-        i + 1, `"${row.school}"`, row.district, row.ebrc, row.submittedBy,
-        row.rciNumber, row.nameOfCwSN, row.disabilityType, row.gender,
-        `"${row.activitiesTopics}"`, row.therapyType, `"${row.therapyBrief}"`,
-        `"${row.expectedOutcome}"`, row.wasGoalAchieved,
-    ].join(','));
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'ie_school_visits.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-}
 
 // ═══════════════════════════════════════════════════════════════════════
 export default function SchoolVisitsPage() {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     const [districtFilter, setDistrictFilter] = useState<string>('all');
     const [schoolFilter, setSchoolFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const handleRefresh = useCallback(() => {
-        setIsRefreshing(true);
-        setTimeout(() => setIsRefreshing(false), 800);
-    }, []);
+    const { data: districts = [] } = useQuery({ queryKey: ['districts'], queryFn: masterDataFirestore.getDistricts });
 
-    const districts = useMemo(() => {
-        const set = new Set<string>();
-        SCHOOL_VISITS_DATA.forEach((r) => set.add(r.district));
-        return Array.from(set).sort();
-    }, []);
+    // Derive unique schools from loaded data
+    const {
+        data,
+        isLoading,
+        isFetching,
+        isFetchingNextPage,
+        isError,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery<IESchoolVisitResponse>({
+        queryKey: ['ieSchoolVisits', districtFilter, schoolFilter],
+        queryFn: ({ pageParam }) =>
+            ieSchoolVisitDataFirestore.fetchPage(
+                pageParam as string | undefined,
+                districtFilter !== 'all' ? districtFilter : undefined,
+                schoolFilter !== 'all' ? schoolFilter : undefined,
+            ),
+        getNextPageParam: (lastPage) => {
+            if (!lastPage.hasMore) return undefined;
+            return lastPage.nextCursor ?? undefined;
+        },
+        initialPageParam: undefined as string | undefined,
+    });
 
+    // Flatten pages
+    const allRows = useMemo(() => data?.pages.flatMap(p => p.data) ?? [], [data]);
+    const total = data?.pages[0]?.total ?? 0;
+
+    // Client-side search filter
+    const filteredRows = useMemo(() => {
+        if (!searchQuery.trim()) return allRows;
+        const q = searchQuery.toLowerCase();
+        return allRows.filter(
+            (r) =>
+                r.school.toLowerCase().includes(q) ||
+                r.name_of_cwsn.toLowerCase().includes(q) ||
+                r.submitted_by_name.toLowerCase().includes(q) ||
+                r.activities_topics.toLowerCase().includes(q),
+        );
+    }, [allRows, searchQuery]);
+
+    // Schools derived from loaded data
     const schools = useMemo(() => {
         const set = new Set<string>();
-        const source = districtFilter !== 'all'
-            ? SCHOOL_VISITS_DATA.filter((r) => r.district === districtFilter)
-            : SCHOOL_VISITS_DATA;
-        source.forEach((r) => set.add(r.school));
+        allRows.forEach((r) => { if (r.school) set.add(r.school); });
         return Array.from(set).sort();
-    }, [districtFilter]);
-
-    const filteredData = useMemo(() => {
-        let data = SCHOOL_VISITS_DATA;
-        if (districtFilter !== 'all') data = data.filter((r) => r.district === districtFilter);
-        if (schoolFilter !== 'all') data = data.filter((r) => r.school === schoolFilter);
-        if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
-            data = data.filter(
-                (r) =>
-                    r.school.toLowerCase().includes(q) ||
-                    r.nameOfCwSN.toLowerCase().includes(q) ||
-                    r.submittedBy.toLowerCase().includes(q) ||
-                    r.activitiesTopics.toLowerCase().includes(q),
-            );
-        }
-        return data;
-    }, [districtFilter, schoolFilter, searchQuery]);
+    }, [allRows]);
 
     const hasFilters = districtFilter !== 'all' || schoolFilter !== 'all' || searchQuery.trim() !== '';
+
+    // Load more
+    const loadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    // Infinite scroll
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            if (scrollHeight - scrollTop - clientHeight < 300) loadMore();
+        };
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, [loadMore]);
+
+    // Auto-load if not scrollable
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container || allRows.length === 0) return;
+        const timer = setTimeout(() => {
+            if (container.scrollHeight <= container.clientHeight && hasNextPage && !isFetchingNextPage) loadMore();
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [data, hasNextPage, isFetchingNextPage, loadMore, allRows.length]);
+
+    // XLSX export
+    const handleDownloadXlsx = async () => {
+        const all = await ieSchoolVisitDataFirestore.fetchAll(
+            districtFilter !== 'all' ? districtFilter : undefined,
+            schoolFilter !== 'all' ? schoolFilter : undefined,
+        );
+        downloadXlsx(all, XLSX_COLUMNS, 'ie_school_visits');
+    };
 
     return (
         <motion.div className="space-y-6 p-2" variants={containerVariants} initial={false} animate="visible">
@@ -255,29 +173,10 @@ export default function SchoolVisitsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         <Badge className="bg-slate-700/50 text-slate-300 hover:bg-slate-700/50 px-3 py-1">
-                            {filteredData.length} Records
+                            {total} Records
                         </Badge>
-                        <motion.button
-                            onClick={() => exportToXLSX(filteredData)}
-                            disabled={filteredData.length === 0}
-                            className="group flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-semibold text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <span className="shimmer-effect" />
-                            <Download className="h-4 w-4" />
-                            Download XLSX
-                        </motion.button>
-                        <motion.button
-                            onClick={handleRefresh}
-                            disabled={isRefreshing}
-                            className="flex items-center gap-2 px-4 py-2.5 text-blue-600 dark:text-blue-400 border-2 border-blue-300 dark:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl font-semibold text-sm transition-all disabled:cursor-not-allowed"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                        </motion.button>
+                        <DownloadXlsxButton onDownload={handleDownloadXlsx} disabled={total === 0} />
+                        <RefreshTableButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter]} isFetching={isFetching && !isFetchingNextPage} />
                     </div>
                 </div>
             </motion.div>
@@ -296,7 +195,7 @@ export default function SchoolVisitsPage() {
                             <SelectContent>
                                 <SelectItem value="all">All Districts</SelectItem>
                                 {districts.map((d) => (
-                                    <SelectItem key={d} value={d}>{d}</SelectItem>
+                                    <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -325,24 +224,10 @@ export default function SchoolVisitsPage() {
                             className="w-full h-12 pl-10 pr-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all placeholder:text-slate-400"
                         />
                     </div>
-                    <AnimatePresence>
-                        {hasFilters && (
-                            <motion.button
-                                key="clear-btn"
-                                initial={{ opacity: 0, scale: 0.8, x: -10 }}
-                                animate={{ opacity: 1, scale: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.8, x: -10 }}
-                                transition={{ duration: 0.2, ease: 'easeOut' }}
-                                onClick={() => { setDistrictFilter('all'); setSchoolFilter('all'); setSearchQuery(''); }}
-                                className="flex items-center gap-2 px-5 py-3 h-12 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors text-sm"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                <FilterX className="h-4 w-4" />
-                                Clear
-                            </motion.button>
-                        )}
-                    </AnimatePresence>
+                    <ClearFiltersButton
+                        hasActiveFilters={hasFilters}
+                        onClear={() => { setDistrictFilter('all'); setSchoolFilter('all'); setSearchQuery(''); }}
+                    />
                 </div>
             </motion.div>
 
@@ -351,94 +236,126 @@ export default function SchoolVisitsPage() {
                 className="bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-xl"
                 variants={cardVariants}
             >
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1400px]">
-                        <thead className="sticky top-0 z-10">
-                            <tr className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-800 dark:to-blue-700 text-white">
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap w-14">Sl.</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[180px]">School</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">District</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">EBRC</th>
-                                <th className="text-center py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Photos</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Submitted By</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">RCI Number</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Name of CwSN</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Disability Type</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Gender</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[180px]">Activities / Topics</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Therapy Type</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[200px]">Therapy (in brief)</th>
-                                <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[200px]">Expected Outcome</th>
-                                <th className="text-center py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Was Goal Achieved?</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredData.length > 0 ? (
-                                filteredData.map((row, index) => (
-                                    <motion.tr
-                                        key={row.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
-                                        className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
-                                    >
-                                        <td className="py-3.5 px-4">
-                                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-full text-xs font-mono">
-                                                {index + 1}
-                                            </span>
-                                        </td>
-                                        <td className="py-3.5 px-4">
-                                            <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">{row.school}</span>
-                                        </td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.district}</td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.ebrc}</td>
-                                        <td className="py-3.5 px-4 text-center">
-                                            <motion.button
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <Eye className="h-3.5 w-3.5" />
-                                                View
-                                            </motion.button>
-                                        </td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.submittedBy}</td>
-                                        <td className="py-3.5 px-4 text-sm font-mono text-slate-600 dark:text-slate-400">{row.rciNumber}</td>
-                                        <td className="py-3.5 px-4 text-sm font-medium text-slate-800 dark:text-slate-200">{row.nameOfCwSN}</td>
-                                        <td className="py-3.5 px-4">
-                                            <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0 text-xs">
-                                                {row.disabilityType}
-                                            </Badge>
-                                        </td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.gender}</td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.activitiesTopics}</td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.therapyType}</td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.therapyBrief}</td>
-                                        <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.expectedOutcome}</td>
-                                        <td className="py-3.5 px-4 text-center">
-                                            <Badge className={`border-0 text-xs ${row.wasGoalAchieved === 'Yes'
-                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                : row.wasGoalAchieved === 'No'
-                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                                }`}>
-                                                {row.wasGoalAchieved}
-                                            </Badge>
-                                        </td>
-                                    </motion.tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={15} className="py-16 text-center bg-white dark:bg-transparent">
-                                        <GraduationCap className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
-                                        <div className="text-slate-600 dark:text-slate-400 text-lg">No school visit records found</div>
-                                        <p className="text-slate-500 text-sm mt-2">Adjust your filters or search query</p>
-                                    </td>
+                {isError ? (
+                    <div className="text-center py-16 bg-white dark:bg-transparent">
+                        <GraduationCap className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
+                        <div className="text-slate-600 dark:text-slate-400 text-lg mb-2">Failed to load school visit data</div>
+                        <RetryButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter]} />
+                    </div>
+                ) : filteredRows.length === 0 && !isLoading ? (
+                    <div className="text-center py-16 bg-white dark:bg-transparent">
+                        <GraduationCap className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
+                        <div className="text-slate-600 dark:text-slate-400 text-lg">No school visit records found</div>
+                        <p className="text-slate-500 text-sm mt-2">Adjust your filters or search query</p>
+                    </div>
+                ) : (
+                    <div ref={scrollContainerRef} className="max-h-[70vh] overflow-y-auto overflow-x-auto relative">
+                        {/* Inline refreshing overlay */}
+                        {isFetching && !isFetchingNextPage && allRows.length > 0 && (
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700">
+                                    <div className='size-5 border-2 border-t-[3px] border-slate-300 dark:border-white/20 border-t-teal-400 rounded-full animate-spin' />
+                                    <span className="text-slate-700 dark:text-slate-300 text-sm font-medium">Refreshing...</span>
+                                </div>
+                            </div>
+                        )}
+                        <table className="w-full min-w-[1400px]">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-800 dark:to-blue-700 text-white">
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap w-14">Sl.</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[180px]">School</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">District</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">EBRC</th>
+                                    <th className="text-center py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Photos</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Submitted By</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">RCI Number</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Name of CwSN</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Disability Type</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Gender</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[180px]">Activities / Topics</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Therapy Type</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[200px]">Therapy (in brief)</th>
+                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[200px]">Expected Outcome</th>
+                                    <th className="text-center py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Was Goal Achieved?</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {isLoading ? (
+                                    Array.from({ length: 8 }).map((_, i) => (
+                                        <tr key={i} className="border-b border-slate-200 dark:border-slate-700 animate-pulse">
+                                            {Array.from({ length: 15 }).map((_, j) => (
+                                                <td key={j} className="py-4 px-4"><div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full" /></td>
+                                            ))}
+                                        </tr>
+                                    ))
+                                ) : (
+                                    filteredRows.map((row, index) => (
+                                        <motion.tr
+                                            key={row.id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
+                                            className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                                        >
+                                            <td className="py-3.5 px-4">
+                                                <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-full text-xs font-mono">
+                                                    {index + 1}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 px-4">
+                                                <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">{row.school}</span>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.district}</td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.ebrc}</td>
+                                            <td className="py-3.5 px-4 text-center">
+                                                <Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-0 text-xs">
+                                                    <Eye className="h-3 w-3 mr-1" />
+                                                    {row.photos.length}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.submitted_by_name}</td>
+                                            <td className="py-3.5 px-4 text-sm font-mono text-slate-600 dark:text-slate-400">{row.rci_number}</td>
+                                            <td className="py-3.5 px-4 text-sm font-medium text-slate-800 dark:text-slate-200">{row.name_of_cwsn}</td>
+                                            <td className="py-3.5 px-4">
+                                                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0 text-xs">
+                                                    {row.type_of_disability}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.gender}</td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.activities_topics}</td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.therapy_type}</td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.therapy_brief}</td>
+                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.expected_outcome}</td>
+                                            <td className="py-3.5 px-4 text-center">
+                                                <Badge className={`border-0 text-xs ${row.was_goal_achieved === 'Yes'
+                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                                    : row.was_goal_achieved === 'No'
+                                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                    }`}>
+                                                    {row.was_goal_achieved}
+                                                </Badge>
+                                            </td>
+                                        </motion.tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+
+                        {/* Load more / loading indicator */}
+                        {isFetchingNextPage && (
+                            <div className="flex items-center justify-center py-6 gap-3">
+                                <div className='size-5 border-2 border-t-[3px] border-slate-300 dark:border-white/20 border-t-teal-400 rounded-full animate-spin' />
+                                <span className="text-slate-500 dark:text-slate-400 text-sm">Loading more...</span>
+                            </div>
+                        )}
+                        {!hasNextPage && allRows.length > 0 && !isFetchingNextPage && (
+                            <div className="text-center py-4 text-slate-400 dark:text-slate-500 text-sm">
+                                All {total} records loaded
+                            </div>
+                        )}
+                    </div>
+                )}
             </motion.div>
         </motion.div>
     );

@@ -87,6 +87,13 @@ service firebase.storage {
       allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
     }
 
+    // ── IE Visit Form Files ──
+    // Any authenticated user can read/write; max 10 MB per file
+    match /ie-visit-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+    }
+
     // ── Deny everything else by default ──
     match /{allPaths=**} {
       allow read, write: if false;

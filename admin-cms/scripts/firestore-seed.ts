@@ -336,6 +336,8 @@ const ALL_COLLECTIONS = [
   'self_defense_form_data',
   'kgbv_form_data',
   'nscbav_form_data',
+  'ie_school_visit_data',
+  'ie_home_visit_data',
 ] as const;
 
 async function clearCollection(name: string): Promise<void> {
@@ -1677,6 +1679,149 @@ function seedNSCBAVFormData(): void {
   console.log(`✅ ${count} NSCBAV form submissions`);
 }
 
+// ── IE School Visit Data ──
+
+const IE_SCHOOL_VISIT_COUNT = Number(process.env.SEED_IE_SCHOOL_VISITS || 50);
+const IE_DISABILITY_TYPES = [
+  'Visual Impairment', 'Hearing Impairment', 'Locomotor Disability',
+  'Intellectual Disability', 'Cerebral Palsy', 'Autism Spectrum Disorder',
+  'Multiple Disabilities', 'Speech & Language Disability', 'Learning Disability',
+  'Down Syndrome',
+];
+const IE_ACTIVITIES_TOPICS = [
+  'Braille Reading Session', 'Sign Language Training', 'Physiotherapy Exercise',
+  'Occupational Therapy', 'Speech Therapy Session', 'Sensory Integration Activity',
+  'Behavioral Therapy', 'Mobility & Orientation Training', 'Inclusive Sports Activity',
+  'Art & Craft Therapy', 'Music Therapy', 'Life Skills Training',
+  'Assistive Technology Demonstration', 'Parent Counselling Session',
+];
+const IE_THERAPY_TYPES = [
+  'Physiotherapy', 'Occupational Therapy', 'Speech Therapy',
+  'Behavioral Therapy', 'Art Therapy', 'Music Therapy',
+  'Play Therapy', 'Cognitive Behavioral Therapy',
+];
+const IE_EXPECTED_OUTCOMES = [
+  'Improved motor skills and coordination',
+  'Better communication and social interaction',
+  'Enhanced academic performance',
+  'Increased independence in daily activities',
+  'Improved behavioral responses',
+  'Better sensory processing',
+  'Enhanced confidence and self-esteem',
+  'Improved reading and writing skills',
+];
+const IE_PHOTO_URLS = [
+  'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&q=80',
+  'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80',
+  'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&q=80',
+  'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+  'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&q=80',
+];
+
+function seedIESchoolVisitData(): void {
+  console.log(`🏫 Creating ${IE_SCHOOL_VISIT_COUNT} IE school visit submissions...`);
+  let count = 0;
+  const pool = ids.ieResourcePersonIds;
+  if (!pool.length) {
+    console.log('⚠️  No IE Resource Persons found, skipping IE school visit data');
+    return;
+  }
+
+  for (let i = 0; i < IE_SCHOOL_VISIT_COUNT; i++) {
+    const userId = randomElement(pool);
+    const districtId = getWeightedDistrictId();
+    const districtName = nagalandDistricts.find((_, idx) => ids.districtIds[idx] === districtId)?.name ?? 'Nagaland';
+    const schoolId = randomElement(ids.schoolIds);
+    const gender = randomElement([GENDER.MALE, GENDER.FEMALE]);
+    const photoCount = randomInt(1, 4);
+    const photos = Array.from({ length: photoCount }, () => randomElement(IE_PHOTO_URLS));
+
+    const id = newId('ie_school_visit_data');
+    writer.set(db.collection('ie_school_visit_data').doc(id), {
+      id,
+      submitted_by: userId,
+      submitted_by_name: generateName(),
+      rci_number: `RCI${String(randomInt(10000, 99999))}`,
+      ebrc: randomElement(ebrcNames),
+      district: districtName,
+      district_id: districtId,
+      school: generateSchoolName(districtName, randomInt(0, 999)),
+      school_id: schoolId,
+      name_of_cwsn: generateName(),
+      type_of_disability: randomElement(IE_DISABILITY_TYPES),
+      gender,
+      age: randomInt(5, 18),
+      activities_topics: randomElement(IE_ACTIVITIES_TOPICS),
+      therapy_type: randomBool(0.7) ? randomElement(IE_THERAPY_TYPES) : '',
+      therapy_brief: randomElement([
+        'Conducted individual therapy focusing on motor skill development',
+        'Group session for communication enhancement and peer interaction',
+        'One-on-one session addressing behavioral challenges and coping',
+        'Assisted learning session with focus on reading comprehension',
+        'Sensory integration activities in a controlled environment',
+      ]),
+      expected_outcome: randomElement(IE_EXPECTED_OUTCOMES),
+      was_goal_achieved: randomElement(['Yes', 'No']),
+      photos,
+      created_at: admin.firestore.Timestamp.fromDate(generateDate(2025, 2026)),
+    });
+    count++;
+  }
+  console.log(`✅ ${count} IE school visit submissions`);
+}
+
+// ── IE Home Visit Data ──
+
+const IE_HOME_VISIT_COUNT = Number(process.env.SEED_IE_HOME_VISITS || 50);
+
+function seedIEHomeVisitData(): void {
+  console.log(`🏠 Creating ${IE_HOME_VISIT_COUNT} IE home visit submissions...`);
+  let count = 0;
+  const pool = ids.ieResourcePersonIds;
+  if (!pool.length) {
+    console.log('⚠️  No IE Resource Persons found, skipping IE home visit data');
+    return;
+  }
+
+  for (let i = 0; i < IE_HOME_VISIT_COUNT; i++) {
+    const userId = randomElement(pool);
+    const districtId = getWeightedDistrictId();
+    const districtName = nagalandDistricts.find((_, idx) => ids.districtIds[idx] === districtId)?.name ?? 'Nagaland';
+    const gender = randomElement([GENDER.MALE, GENDER.FEMALE]);
+    const photoCount = randomInt(1, 4);
+    const photos = Array.from({ length: photoCount }, () => randomElement(IE_PHOTO_URLS));
+
+    const id = newId('ie_home_visit_data');
+    writer.set(db.collection('ie_home_visit_data').doc(id), {
+      id,
+      submitted_by: userId,
+      submitted_by_name: generateName(),
+      rci_number: `RCI${String(randomInt(10000, 99999))}`,
+      ebrc: randomElement(ebrcNames),
+      district: districtName,
+      name_of_cwsn: generateName(),
+      type_of_disability: randomElement(IE_DISABILITY_TYPES),
+      gender,
+      age: randomInt(5, 18),
+      activities_topics: randomElement(IE_ACTIVITIES_TOPICS),
+      therapy_type: randomBool(0.7) ? randomElement(IE_THERAPY_TYPES) : '',
+      therapy_brief: randomElement([
+        'Home-based therapy session focusing on daily living skills',
+        'Parent-guided activities for speech and language development',
+        'Motor skill exercises adapted for home environment',
+        'Behavioral management techniques demonstrated to family',
+        'Sensory activities using household materials for stimulation',
+      ]),
+      expected_outcome: randomElement(IE_EXPECTED_OUTCOMES),
+      was_goal_achieved: randomElement(['Yes', 'No']),
+      photos,
+      created_at: admin.firestore.Timestamp.fromDate(generateDate(2025, 2026)),
+    });
+    count++;
+  }
+  console.log(`✅ ${count} IE home visit submissions`);
+}
+
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ MAIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1732,6 +1877,8 @@ async function main(): Promise<void> {
   seedSelfDefenseFormData();
   seedKGBVFormData();
   seedNSCBAVFormData();
+  seedIESchoolVisitData();
+  seedIEHomeVisitData();
 
   // â”€â”€ Flush all buffered writes â”€â”€
   await writer.close();
@@ -1770,6 +1917,8 @@ async function main(): Promise<void> {
   console.log(`🥋 Self Defense Submissions: ${SELF_DEFENSE_FORM_COUNT}`);
   console.log(`🏫 KGBV Form Submissions:    ${KGBV_FORM_COUNT}`);
   console.log(`🏠 NSCBAV Form Submissions:  ${NSCBAV_FORM_COUNT}`);
+  console.log(`🏫 IE School Visit Forms:    ${IE_SCHOOL_VISIT_COUNT}`);
+  console.log(`🏠 IE Home Visit Forms:      ${IE_HOME_VISIT_COUNT}`);
   console.log('â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•');
   console.log('\nðŸŽ‰ Firestore seeding completed successfully!');
   console.log('ðŸ“ Default password for all users: 12345678\n');

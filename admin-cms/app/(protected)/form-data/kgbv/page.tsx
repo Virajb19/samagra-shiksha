@@ -23,7 +23,7 @@ import {
     FilterX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchKGBVFormDataPage, clearKGBVFormDataCursorCache, fetchAllKGBVFormData, type KGBVFormDataRow } from '@/services/firebase/kgbv-form-data.client';
+import { kgbvFormDataFirestore, type KGBVFormDataRow } from '@/services/firebase/kgbv-form-data.firestore';
 import { downloadXlsx } from '@/lib/download-xlsx';
 import { Input } from '@/components/ui/input';
 import {
@@ -174,13 +174,13 @@ export default function KGBVFormDataPage() {
     const activeDate = date || undefined;
     const hasFilters = district !== 'all' || !!date;
 
-    useEffect(() => { clearKGBVFormDataCursorCache(); setCurrentPage(1); }, [district, date]);
+    useEffect(() => { kgbvFormDataFirestore.clearCursorCache(); setCurrentPage(1); }, [district, date]);
 
     const {
         data, isLoading, isFetching, isError, refetch, isPlaceholderData,
     } = useQuery({
         queryKey: ['kgbv-form-data', currentPage, activeDistrict, activeDate],
-        queryFn: () => fetchKGBVFormDataPage(currentPage, activeDistrict, activeDate),
+        queryFn: () => kgbvFormDataFirestore.fetchPage(currentPage, activeDistrict, activeDate),
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -203,7 +203,7 @@ export default function KGBVFormDataPage() {
         if (currentPage < totalPages) {
             queryClient.prefetchQuery({
                 queryKey: ['kgbv-form-data', currentPage + 1, activeDistrict, activeDate],
-                queryFn: () => fetchKGBVFormDataPage(currentPage + 1, activeDistrict, activeDate),
+                queryFn: () => kgbvFormDataFirestore.fetchPage(currentPage + 1, activeDistrict, activeDate),
             });
         }
     }, [currentPage, totalPages, activeDistrict, activeDate, queryClient]);
@@ -228,7 +228,7 @@ export default function KGBVFormDataPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <RefreshTableButton queryKey={['kgbv-form-data', currentPage, activeDistrict, activeDate]} isFetching={isFetching} />
-                    <DownloadXlsxButton onDownload={async () => { const rows = await fetchAllKGBVFormData(activeDistrict, activeDate); downloadXlsx(rows, KGBV_COLUMNS, 'KGBV_Form_Data'); }} disabled={!hasData} />
+                    <DownloadXlsxButton onDownload={async () => { const rows = await kgbvFormDataFirestore.fetchAll(activeDistrict, activeDate); downloadXlsx(rows, KGBV_COLUMNS, 'KGBV_Form_Data'); }} disabled={!hasData} />
                 </div>
             </motion.div>
 

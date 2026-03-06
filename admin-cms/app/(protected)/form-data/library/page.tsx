@@ -24,7 +24,7 @@ import {
     FilterX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchLibraryFormDataPage, clearLibraryFormDataCursorCache, fetchAllLibraryFormData, type LibraryFormDataRow } from '@/services/firebase/library-form-data.client';
+import { libraryFormDataFirestore, type LibraryFormDataRow } from '@/services/firebase/library-form-data.firestore';
 import { downloadXlsx } from '@/lib/download-xlsx';
 import { Input } from '@/components/ui/input';
 import {
@@ -184,13 +184,13 @@ export default function LibraryFormDataPage() {
     const hasFilters = district !== 'all' || !!date;
 
     // Reset page & cursor cache when filters change
-    useEffect(() => { clearLibraryFormDataCursorCache(); setCurrentPage(1); }, [district, date]);
+    useEffect(() => { libraryFormDataFirestore.clearCursorCache(); setCurrentPage(1); }, [district, date]);
 
     const {
         data, isLoading, isFetching, isError, refetch, isPlaceholderData,
     } = useQuery({
         queryKey: ['library-form-data', currentPage, activeDistrict, activeDate],
-        queryFn: () => fetchLibraryFormDataPage(currentPage, activeDistrict, activeDate),
+        queryFn: () => libraryFormDataFirestore.fetchPage(currentPage, activeDistrict, activeDate),
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -214,7 +214,7 @@ export default function LibraryFormDataPage() {
         if (currentPage < totalPages) {
             queryClient.prefetchQuery({
                 queryKey: ['library-form-data', currentPage + 1, activeDistrict, activeDate],
-                queryFn: () => fetchLibraryFormDataPage(currentPage + 1, activeDistrict, activeDate),
+                queryFn: () => libraryFormDataFirestore.fetchPage(currentPage + 1, activeDistrict, activeDate),
             });
         }
     }, [currentPage, totalPages, activeDistrict, activeDate, queryClient]);
@@ -239,7 +239,7 @@ export default function LibraryFormDataPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <RefreshTableButton queryKey={['library-form-data', currentPage, activeDistrict, activeDate]} isFetching={isFetching} />
-                    <DownloadXlsxButton onDownload={async () => { const rows = await fetchAllLibraryFormData(activeDistrict, activeDate); downloadXlsx(rows, LIBRARY_COLUMNS, 'Library_Form_Data'); }} disabled={!hasData} />
+                    <DownloadXlsxButton onDownload={async () => { const rows = await libraryFormDataFirestore.fetchAll(activeDistrict, activeDate); downloadXlsx(rows, LIBRARY_COLUMNS, 'Library_Form_Data'); }} disabled={!hasData} />
                 </div>
             </motion.div>
 
