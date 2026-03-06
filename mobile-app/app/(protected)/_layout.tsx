@@ -11,36 +11,36 @@
  * - Shows user info
  */
 // import 'react-native-get-random-values';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Stack, router, useSegments } from 'expo-router';
 import { useAuthStore } from '../../src/lib/store';
 import { Ionicons } from '@expo/vector-icons';
-import { notificationService } from '../../src/services/notification.service';
+// import { notificationService } from '../../src/services/notification.service';
 
 export default function ProtectedLayout() {
     const { isAuthenticated, isLoading, user, logout } = useAuthStore();
     const segments = useSegments();
-    const [unreadCount, setUnreadCount] = useState(0);
+    // const [unreadCount, setUnreadCount] = useState(0);
 
-    // Fetch unread notification count
-    const fetchUnreadCount = useCallback(async () => {
-        try {
-            const count = await notificationService.getUnreadCount(user?.id ?? '');
-            setUnreadCount(count);
-        } catch (error) {
-            console.log('Failed to fetch notification count');
-        }
-    }, []);
+    // // Fetch unread notification count
+    // const fetchUnreadCount = useCallback(async () => {
+    //     try {
+    //         const count = await notificationService.getUnreadCount(user?.id ?? '');
+    //         setUnreadCount(count);
+    //     } catch (error) {
+    //         console.log('Failed to fetch notification count');
+    //     }
+    // }, []);
 
-    // Refresh unread count periodically
-    useEffect(() => {
-        if (isAuthenticated) {
-            fetchUnreadCount();
-            const interval = setInterval(fetchUnreadCount, 30000); // Every 30 seconds
-            return () => clearInterval(interval);
-        }
-    }, [isAuthenticated, fetchUnreadCount]);
+    // // Refresh unread count periodically
+    // useEffect(() => {
+    //     if (isAuthenticated) {
+    //         fetchUnreadCount();
+    //         const interval = setInterval(fetchUnreadCount, 30000); // Every 30 seconds
+    //         return () => clearInterval(interval);
+    //     }
+    // }, [isAuthenticated, fetchUnreadCount]);
 
     // Redirect to login if not authenticated
     // Redirect to pending-approval if not active AND profile is completed
@@ -121,19 +121,19 @@ export default function ProtectedLayout() {
                     <View className="flex-row items-center gap-2">
                         <TouchableOpacity
                             onPress={() => {
-                                setUnreadCount(0);
+                                // setUnreadCount(0);
                                 router.push('/(protected)/notifications' as any);
                             }}
                             className="px-2 py-1.5 relative"
                         >
                             <Ionicons name="notifications-outline" size={24} color="#ffffff" />
-                            {unreadCount > 0 && (
+                            {/* {unreadCount > 0 && (
                                 <View className="absolute top-0 right-0.5 bg-[#ef4444] rounded-[10px] min-w-[18px] h-[18px] justify-center items-center px-1">
                                     <Text className="text-white text-[10px] font-bold">
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </Text>
                                 </View>
-                            )}
+                            )} */}
                         </TouchableOpacity>
                         <TouchableOpacity onPress={handleLogout} className="px-3 py-1.5">
                             <Text className="text-[#ef4444] text-sm font-medium">Logout</Text>

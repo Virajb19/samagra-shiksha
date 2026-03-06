@@ -9,7 +9,6 @@ import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     Image,
@@ -17,7 +16,6 @@ import {
     RefreshControl,
     TextInput,
     Alert,
-    Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -45,7 +43,6 @@ interface Staff {
 }
 
 const BLUE = '#1565C0';
-const NAVY = '#2c3e6b';
 
 interface StaffCardProps {
     staff: Staff;
@@ -75,28 +72,32 @@ function StaffCard({ staff, expanded, onToggle, onToggleActive, isUpdating, isCu
     };
 
     return (
-        <View style={styles.staffCard}>
-            <TouchableOpacity style={styles.staffHeader} onPress={onToggle}>
-                <View style={styles.avatarContainer}>
+        <View className="bg-white rounded-[14px] mb-3 overflow-hidden border border-[#e8ecf4]">
+            <TouchableOpacity className="flex-row items-center p-3" onPress={onToggle}>
+                <View className="relative mr-3">
                     {staff.user.profile_image_url ? (
                         <Image
                             source={{ uri: staff.user.profile_image_url }}
-                            style={styles.avatar}
+                            className="w-[50px] h-[50px] rounded-[10px]"
+                            style={{ borderWidth: 2.5, borderColor: isActive ? '#22c55e' : '#ef4444' }}
                         />
                     ) : (
-                        <View style={styles.avatarPlaceholder}>
-                            <Text style={styles.avatarText}>
+                        <View className="w-[50px] h-[50px] rounded-[10px] bg-[#e8ecf4] justify-center items-center" style={{ borderWidth: 2.5, borderColor: isActive ? '#22c55e' : '#ef4444' }}>
+                            <Text className="text-xl font-semibold text-[#2c3e6b]">
                                 {staff.user.name.charAt(0).toUpperCase()}
                             </Text>
                         </View>
                     )}
-                    <View style={[styles.statusBadge, { backgroundColor: badge.color }]}>
+                    <View
+                        className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full justify-center items-center border-2 border-white"
+                        style={{ backgroundColor: badge.color }}
+                    >
                         <Ionicons name={badge.icon} size={16} color="#ffffff" />
                     </View>
                 </View>
-                <View style={styles.staffInfo}>
-                    <Text style={styles.staffName}>{staff.user.name}</Text>
-                    <Text style={styles.staffRole}>{getRoleDisplay()}</Text>
+                <View className="flex-1">
+                    <Text className="text-base font-semibold text-[#1a1a2e]">{staff.user.name}</Text>
+                    <Text className="text-[13px] text-[#2c3e6b]">{getRoleDisplay()}</Text>
                 </View>
                 <Ionicons
                     name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -106,56 +107,56 @@ function StaffCard({ staff, expanded, onToggle, onToggleActive, isUpdating, isCu
             </TouchableOpacity>
 
             {expanded && (
-                <View style={styles.expandedContent}>
+                <View className="px-4 pb-4 pt-2 border-t border-[#f0f2f8]">
                     {staff.user.phone ? (
-                        <View style={styles.detailRow}>
+                        <View className="flex-row items-center mb-2">
                             <Ionicons name="call-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text style={styles.detailLabel}>Phone:</Text>
-                            <Text style={styles.detailValue}>{staff.user.phone}</Text>
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Phone:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.user.phone}</Text>
                         </View>
                     ) : null}
                     {staff.user.email ? (
-                        <View style={styles.detailRow}>
+                        <View className="flex-row items-center mb-2">
                             <Ionicons name="mail-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text style={styles.detailLabel}>Email:</Text>
-                            <Text style={styles.detailValue} numberOfLines={1}>{staff.user.email}</Text>
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Email:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1" numberOfLines={1}>{staff.user.email}</Text>
                         </View>
                     ) : null}
                     {staff.years_of_experience != null && (
-                        <View style={styles.detailRow}>
+                        <View className="flex-row items-center mb-2">
                             <Ionicons name="briefcase-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text style={styles.detailLabel}>Experience:</Text>
-                            <Text style={styles.detailValue}>{staff.years_of_experience} years</Text>
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Experience:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.years_of_experience} years</Text>
                         </View>
                     )}
                     {staff.designation ? (
-                        <View style={styles.detailRow}>
+                        <View className="flex-row items-center mb-2">
                             <Ionicons name="ribbon-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text style={styles.detailLabel}>Designation:</Text>
-                            <Text style={styles.detailValue}>{staff.designation}</Text>
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Designation:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.designation}</Text>
                         </View>
                     ) : null}
 
                     {/* Activate/Deactivate button — only for teachers, not self */}
                     {staff.user.role === 'TEACHER' && !isCurrentUser && (
-                        <View style={{ marginTop: 12 }}>
+                        <View className="mt-3">
                             {isUpdating ? (
                                 <ActivityIndicator size="small" color={BLUE} />
                             ) : isActive ? (
                                 <TouchableOpacity
-                                    style={styles.deactivateButton}
+                                    className="flex-row items-center justify-center bg-[#ef4444] rounded-[10px] py-[10px] px-4 gap-[6px]"
                                     onPress={() => onToggleActive(false)}
                                 >
                                     <Ionicons name="close-circle" size={18} color="#ffffff" />
-                                    <Text style={styles.deactivateButtonText}>Deactivate</Text>
+                                    <Text className="text-white text-sm font-semibold">Deactivate</Text>
                                 </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity
-                                    style={styles.activateButton}
+                                    className="flex-row items-center justify-center bg-[#22c55e] rounded-[10px] py-[10px] px-4 gap-[6px]"
                                     onPress={() => onToggleActive(true)}
                                 >
                                     <Ionicons name="checkmark-circle" size={18} color="#ffffff" />
-                                    <Text style={styles.activateButtonText}>Activate</Text>
+                                    <Text className="text-white text-sm font-semibold">Activate</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -248,45 +249,45 @@ export default function ViewStaffsScreen() {
 
     if (isLoading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={NAVY} />
-                <Text style={styles.loadingText}>Loading staff...</Text>
+            <View className="flex-1 justify-center items-center bg-[#f0f2f8]">
+                <ActivityIndicator size="large" color="#2c3e6b" />
+                <Text className="mt-3 text-base text-[#6b7280]">Loading staff...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 bg-[#f0f2f8]">
             {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+            <View className="bg-[#2c3e6b] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    className="p-2 mr-2"
                     onPress={() => router.back()}
                 >
                     <Ionicons name="arrow-back" size={24} color="#ffffff" />
                 </TouchableOpacity>
-                <View style={styles.headerContent}>
-                    <Text style={styles.headerTitle}>View Staffs</Text>
-                    <Text style={styles.headerSubtitle}>{schoolName}</Text>
+                <View className="flex-1">
+                    <Text className="text-[32px] font-bold text-white mb-1">View Staffs</Text>
+                    <Text className="text-sm text-white/70">{schoolName}</Text>
                 </View>
             </View>
 
             {/* Content */}
-            <View style={styles.cardContainer}>
+            <View className="flex-1 bg-white -mt-6 rounded-t-[28px] overflow-hidden">
                 <ScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
+                    className="flex-1"
+                    contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
                     refreshControl={
                         <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
                     }
                 >
-                    <Text style={styles.sectionTitle}>Find your colleagues</Text>
+                    <Text className="text-lg font-bold text-[#1a1a2e] mb-3">Find your colleagues</Text>
 
                     {/* Search Input */}
-                    <View style={styles.searchContainer}>
+                    <View className="flex-row items-center bg-[#e8ecf4] rounded-[10px] px-3 mb-3">
                         <Ionicons name="search" size={20} color="#9ca3af" />
                         <TextInput
-                            style={styles.searchInput}
+                            className="flex-1 py-3 px-2 text-[15px] text-[#1a1a2e]"
                             placeholder="Search by name..."
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -294,18 +295,18 @@ export default function ViewStaffsScreen() {
                     </View>
 
                     {/* Stats */}
-                    <View style={styles.statsRow}>
-                        <View style={styles.statBadge}>
-                            <Text style={styles.statNumber}>{filteredStaff.length}</Text>
-                            <Text style={styles.statLabel}>Total</Text>
+                    <View className="flex-row gap-[10px] mb-4">
+                        <View className="flex-1 bg-[#eff6ff] rounded-[10px] py-[10px] items-center">
+                            <Text className="text-xl font-bold text-[#1565C0]">{filteredStaff.length}</Text>
+                            <Text className="text-[11px] font-medium text-[#3b82f6] mt-[2px]">Total</Text>
                         </View>
-                        <View style={[styles.statBadge, { backgroundColor: '#dcfce7' }]}>
-                            <Text style={[styles.statNumber, { color: '#22c55e' }]}>{filteredStaff.filter(s => s.user.is_active).length}</Text>
-                            <Text style={[styles.statLabel, { color: '#16a34a' }]}>Active</Text>
+                        <View className="flex-1 bg-[#dcfce7] rounded-[10px] py-[10px] items-center">
+                            <Text className="text-xl font-bold text-[#22c55e]">{filteredStaff.filter(s => s.user.is_active).length}</Text>
+                            <Text className="text-[11px] font-medium text-[#16a34a] mt-[2px]">Active</Text>
                         </View>
-                        <View style={[styles.statBadge, { backgroundColor: '#fee2e2' }]}>
-                            <Text style={[styles.statNumber, { color: '#ef4444' }]}>{filteredStaff.filter(s => !s.user.is_active).length}</Text>
-                            <Text style={[styles.statLabel, { color: '#dc2626' }]}>Inactive</Text>
+                        <View className="flex-1 bg-[#fee2e2] rounded-[10px] py-[10px] items-center">
+                            <Text className="text-xl font-bold text-[#ef4444]">{filteredStaff.filter(s => !s.user.is_active).length}</Text>
+                            <Text className="text-[11px] font-medium text-[#dc2626] mt-[2px]">Inactive</Text>
                         </View>
                     </View>
 
@@ -322,9 +323,9 @@ export default function ViewStaffsScreen() {
                             />
                         ))
                     ) : (
-                        <View style={styles.emptyContainer}>
+                        <View className="items-center py-10">
                             <Ionicons name="people-outline" size={48} color="#d1d5db" />
-                            <Text style={styles.emptyText}>
+                            <Text className="text-sm text-[#9ca3af] mt-3 text-center">
                                 {searchQuery ? 'No staff found matching your search' : 'No staff found'}
                             </Text>
                         </View>
@@ -334,47 +335,3 @@ export default function ViewStaffsScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f0f2f8' },
-    header: { backgroundColor: NAVY, paddingHorizontal: 16, paddingBottom: 40, flexDirection: 'row', alignItems: 'flex-start' },
-    backButton: { padding: 8, marginRight: 8 },
-    headerContent: { flex: 1 },
-    headerTitle: { fontSize: 32, fontWeight: '700', color: '#ffffff', marginBottom: 4 },
-    headerSubtitle: { fontSize: 14, color: 'rgba(255, 255, 255, 0.7)' },
-    cardContainer: { flex: 1, backgroundColor: '#ffffff', marginTop: -24, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
-    scrollView: { flex: 1 },
-    scrollContent: { padding: 16, paddingBottom: 32 },
-    sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a2e', marginBottom: 12 },
-    searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8ecf4', borderRadius: 10, paddingHorizontal: 12, marginBottom: 12 },
-    searchInput: { flex: 1, paddingVertical: 12, paddingHorizontal: 8, fontSize: 15, color: '#1a1a2e' },
-    statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-    statBadge: { flex: 1, backgroundColor: '#eff6ff', borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-    statNumber: { fontSize: 20, fontWeight: '700', color: BLUE },
-    statLabel: { fontSize: 11, fontWeight: '500', color: '#3b82f6', marginTop: 2 },
-    staffCard: { backgroundColor: '#ffffff', borderRadius: 14, marginBottom: 12, borderWidth: 1, borderColor: '#e8ecf4', overflow: 'hidden' },
-    staffHeader: { flexDirection: 'row', alignItems: 'center', padding: 12 },
-    avatarContainer: { position: 'relative', marginRight: 12 },
-    avatar: { width: 50, height: 50, borderRadius: 10 },
-    avatarPlaceholder: { width: 50, height: 50, borderRadius: 10, backgroundColor: '#e8ecf4', justifyContent: 'center', alignItems: 'center' },
-    avatarText: { fontSize: 20, fontWeight: '600', color: NAVY },
-    statusBadge: { position: 'absolute', bottom: -4, right: -4, width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#ffffff' },
-    staffInfo: { flex: 1 },
-    staffName: { fontSize: 16, fontWeight: '600', color: '#1a1a2e' },
-    staffRole: { fontSize: 13, color: NAVY },
-    expandedContent: { padding: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f2f8' },
-    detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-    detailLabel: { fontSize: 13, color: '#6b7280', width: 90 },
-    detailValue: { fontSize: 13, color: '#1a1a2e', fontWeight: '500', flex: 1 },
-    toggleRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 12, padding: 14, marginTop: 12 },
-    toggleLabel: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
-    toggleHint: { fontSize: 11, color: '#9ca3af', marginTop: 2 },
-    activateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#22c55e', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, gap: 6 },
-    activateButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-    deactivateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ef4444', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, gap: 6 },
-    deactivateButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f2f8' },
-    loadingText: { marginTop: 12, fontSize: 16, color: '#6b7280' },
-    emptyContainer: { alignItems: 'center', paddingVertical: 40 },
-    emptyText: { fontSize: 14, color: '#9ca3af', marginTop: 12, textAlign: 'center' },
-});

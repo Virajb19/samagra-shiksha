@@ -16,6 +16,8 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    Modal,
+    FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +34,59 @@ import { useAuthStore } from '../../../src/lib/store';
 import FormBottomBar from '../../../src/components/FormBottomBar';
 
 const BLUE = '#1565C0';
+
+/* ── Reusable bottom-sheet select modal ── */
+function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: {
+    visible: boolean;
+    title: string;
+    data: { id: string; name: string }[];
+    selectedValue: string;
+    onSelect: (value: string) => void;
+    onClose: () => void;
+    loading?: boolean;
+}) {
+    return (
+        <Modal visible={visible} transparent animationType="slide">
+            <View className="flex-1 bg-black/50 justify-end">
+                <View className="bg-white rounded-t-[20px] max-h-[70%]">
+                    <View className="flex-row justify-between items-center p-4 border-b border-[#e5e7eb]">
+                        <Text className="text-lg font-semibold text-[#1f2937]">{title}</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Ionicons name="close" size={24} color="#374151" />
+                        </TouchableOpacity>
+                    </View>
+                    {loading ? (
+                        <ActivityIndicator size="large" color={BLUE} style={{ padding: 40 }} />
+                    ) : (
+                        <FlatList
+                            data={data}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    className={`py-[14px] px-4 border-b border-[#f3f4f6] flex-row justify-between items-center ${selectedValue === item.id ? 'bg-[#e8ecf4]' : ''}`}
+                                    onPress={() => {
+                                        onSelect(item.id);
+                                        onClose();
+                                    }}
+                                >
+                                    <Text className={`text-base text-[#374151] ${selectedValue === item.id ? 'font-semibold' : ''}`} style={selectedValue === item.id ? { color: BLUE } : undefined}>
+                                        {item.name}
+                                    </Text>
+                                    {selectedValue === item.id && (
+                                        <Ionicons name="checkmark" size={20} color={BLUE} />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            ListEmptyComponent={
+                                <Text className="text-center p-5 text-[#6b7280] text-sm">No items available</Text>
+                            }
+                        />
+                    )}
+                </View>
+            </View>
+        </Modal>
+    );
+}
 
 function GenderRadio({ value, onChange, error }: { value?: string; onChange: (v: 'MALE' | 'FEMALE') => void; error?: string }) {
     return (
@@ -97,14 +152,14 @@ export default function IESchoolVisitFormScreen() {
     const photos = watch('geoTaggedPhotos');
 
     const { data: districts = [] } = useQuery({ queryKey: ['districts'], queryFn: getDistricts });
-    const { data: schools = [] } = useQuery({
+    const { data: schools = [], isLoading: isLoadingSchools } = useQuery({
         queryKey: ['schools', selectedDistrictId],
         queryFn: () => getSchools(selectedDistrictId),
         enabled: !!selectedDistrictId,
     });
 
-    const [showDistrictPicker, setShowDistrictPicker] = useState(false);
-    const [showSchoolPicker, setShowSchoolPicker] = useState(false);
+    const [showDistrictModal, setShowDistrictModal] = useState(false);
+    const [showSchoolModal, setShowSchoolModal] = useState(false);
 
     const submitMutation = useMutation({
         mutationFn: (data: IESchoolVisitFormData) => {
@@ -184,51 +239,60 @@ export default function IESchoolVisitFormScreen() {
                 {/* District */}
                 <View className="mb-5">
                     <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">District *</Text>
-                    <TouchableOpacity className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDistrictPicker(!showDistrictPicker)}>
+                    <TouchableOpacity className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDistrictModal(true)}>
                         <Text className={selectedDistrict ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedDistrict?.name || 'Select district'}</Text>
                         <Ionicons name="chevron-down" size={20} color="#9ca3af" />
                     </TouchableOpacity>
-                    {showDistrictPicker && (
-                        <View className="border border-gray-200 rounded-xl mt-1 max-h-48 bg-white" style={{ elevation: 4 }}>
-                            <ScrollView nestedScrollEnabled>
-                                {districts.map((d) => (
-                                    <TouchableOpacity key={d.id} className="px-4 py-3 border-b border-gray-100" onPress={() => {
-                                        setValue('districtId', d.id, { shouldValidate: true });
-                                        setValue('schoolId', '', { shouldValidate: false });
-                                        setShowDistrictPicker(false);
-                                    }}>
-                                        <Text className="text-[15px] text-[#1a1a1a]">{d.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    )}
                     {errors.districtId && <Text className="text-xs text-red-500 mt-1">{errors.districtId.message}</Text>}
                 </View>
+
+                {/* District Select Modal */}
+                <SelectModal
+                    visible={showDistrictModal}
+                    onClose={() => setShowDistrictModal(false)}
+                    title="Select District"
+                    data={districts}
+                    selectedValue={selectedDistrictId}
+                    onSelect={(value) => {
+                        setValue('districtId', value, { shouldValidate: true });
+                        setValue('schoolId', '', { shouldValidate: false });
+                    }}
+                />
 
                 {/* School */}
                 <View className="mb-5">
                     <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">School *</Text>
-                    <TouchableOpacity className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center" onPress={() => { if (selectedDistrictId) setShowSchoolPicker(!showSchoolPicker); }}>
-                        <Text className={selectedSchool ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedSchool?.name || `Select School${selectedDistrict ? ` in ${selectedDistrict.name}` : ''}`}</Text>
-                        <Ionicons name="chevron-down" size={20} color="#9ca3af" />
-                    </TouchableOpacity>
-                    {showSchoolPicker && (
-                        <View className="border border-gray-200 rounded-xl mt-1 max-h-48 bg-white" style={{ elevation: 4 }}>
-                            <ScrollView nestedScrollEnabled>
-                                {schools.map((s) => (
-                                    <TouchableOpacity key={s.id} className="px-4 py-3 border-b border-gray-100" onPress={() => {
-                                        setValue('schoolId', s.id, { shouldValidate: true });
-                                        setShowSchoolPicker(false);
-                                    }}>
-                                        <Text className="text-[15px] text-[#1a1a1a]">{s.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
+                    {!selectedDistrictId ? (
+                        <View className="border border-gray-200 rounded-xl px-4 py-3.5 flex-row justify-between items-center bg-gray-100" style={{ opacity: 0.6 }}>
+                            <Text className="text-[15px] text-gray-400">Select district first</Text>
+                            <Ionicons name="chevron-down" size={20} color="#d1d5db" />
                         </View>
+                    ) : isLoadingSchools ? (
+                        <View className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center">
+                            <Text className="text-[15px] text-gray-400">Fetching schools...</Text>
+                            <ActivityIndicator size="small" color={BLUE} />
+                        </View>
+                    ) : (
+                        <TouchableOpacity className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowSchoolModal(true)}>
+                            <Text className={selectedSchool ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedSchool?.name || `Select School in ${selectedDistrict?.name || ''}`}</Text>
+                            <Ionicons name="chevron-down" size={20} color="#9ca3af" />
+                        </TouchableOpacity>
                     )}
                     {errors.schoolId && <Text className="text-xs text-red-500 mt-1">{errors.schoolId.message}</Text>}
                 </View>
+
+                {/* School Select Modal */}
+                <SelectModal
+                    visible={showSchoolModal}
+                    onClose={() => setShowSchoolModal(false)}
+                    title={`Select School${selectedDistrict ? ` — ${selectedDistrict.name}` : ''}`}
+                    data={schools}
+                    selectedValue={watch('schoolId')}
+                    onSelect={(value) => {
+                        setValue('schoolId', value, { shouldValidate: true });
+                    }}
+                    loading={isLoadingSchools}
+                />
 
                 {/* Gender */}
                 <Controller control={control} name="gender" render={({ field: { onChange, value } }) => (

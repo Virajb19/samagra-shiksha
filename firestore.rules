@@ -20,12 +20,19 @@ service cloud.firestore {
       return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN', 'SUBJECT_COORDINATOR', 'ASSISTANT'];
     }
 
+    function isHeadmaster() {
+      return isAuth() && getRole() == 'HEADMASTER';
+    }
+
     // ── Users ──
     match /users/{userId} {
       allow read: if isAuth();
       // Allow self-create and self-update: newly registered users have no role claim yet
       allow create: if isAuth() && (isAdmin() || request.auth.uid == userId);
-      allow update: if isAdmin() || request.auth.uid == userId;
+      // Admins: full update; Self: full update; Headmasters: only is_active + updated_at
+      allow update: if isAdmin()
+                    || request.auth.uid == userId
+                    || (isHeadmaster() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_active', 'updated_at']));
       allow delete: if isAdmin();
     }
 
