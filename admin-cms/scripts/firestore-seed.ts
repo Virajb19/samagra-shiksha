@@ -521,12 +521,24 @@ function seedBulkUsers(): void {
         userDoc.responsibilities = pickResponsibilities();
         break;
 
+      case USER_ROLES.IE_RESOURCE_PERSON:
+        userDoc.district_id = u.districtId;
+        userDoc.qualification = randomElement(qualifications);
+        userDoc.rci_number = `RCI${String(randomInt(10000, 99999))}`;
+        userDoc.ebrc = randomElement(ebrcNames);
+        userDoc.years_of_experience = randomInt(1, 25);
+        userDoc.date_of_joining = admin.firestore.Timestamp.fromDate(generateDate(2010, 2024));
+        userDoc.aadhaar_number = String(randomInt(100000000000, 999999999999));
+        break;
+
       case USER_ROLES.KGBV_WARDEN:
         userDoc.kgbv_type = randomElement(kgbvTypes);
         userDoc.residential_location = randomElement(residentialLocations);
         userDoc.district_id = u.districtId;
         userDoc.ebrc = randomElement(ebrcNames);
         userDoc.years_of_experience = randomInt(1, 25);
+        userDoc.date_of_joining = admin.firestore.Timestamp.fromDate(generateDate(2010, 2024));
+        userDoc.aadhaar_number = String(randomInt(100000000000, 999999999999));
         break;
 
       case USER_ROLES.NSCBAV_WARDEN:
@@ -535,6 +547,8 @@ function seedBulkUsers(): void {
         userDoc.district_id = u.districtId;
         userDoc.ebrc = randomElement(ebrcNames);
         userDoc.years_of_experience = randomInt(1, 25);
+        userDoc.date_of_joining = admin.firestore.Timestamp.fromDate(generateDate(2010, 2024));
+        userDoc.aadhaar_number = String(randomInt(100000000000, 999999999999));
         break;
 
       case USER_ROLES.JUNIOR_ENGINEER:

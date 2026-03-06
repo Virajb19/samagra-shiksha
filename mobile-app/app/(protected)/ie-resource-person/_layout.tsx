@@ -16,6 +16,7 @@ export default function IEResourcePersonLayout() {
         >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="complete-profile" options={{ title: 'Complete Profile', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="view-profile" options={{ headerShown: false }} />
         </Stack>
     );
 }

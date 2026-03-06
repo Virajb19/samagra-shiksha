@@ -139,15 +139,19 @@ export async function completeIEResourcePersonProfile(params: {
     yearsOfExperience: number;
     rciNumber: string;
     ebrc: string;
+    dateOfJoining: string;
+    aadhaarNumber: string;
     currentUser: User;
 }): Promise<User> {
-    const { userId, districtId, qualification, yearsOfExperience, rciNumber, ebrc, currentUser } = params;
+    const { userId, districtId, qualification, yearsOfExperience, rciNumber, ebrc, dateOfJoining, aadhaarNumber, currentUser } = params;
     await updateDoc(doc(db, 'users', userId), {
         district_id: districtId,
         qualification,
         years_of_experience: yearsOfExperience,
         rci_number: rciNumber,
         ebrc,
+        date_of_joining: Timestamp.fromDate(new Date(dateOfJoining)),
+        aadhaar_number: aadhaarNumber,
         has_completed_profile: true,
         updated_at: Timestamp.now(),
     });
@@ -158,6 +162,8 @@ export async function completeIEResourcePersonProfile(params: {
         years_of_experience: yearsOfExperience,
         rci_number: rciNumber,
         ebrc,
+        date_of_joining: dateOfJoining,
+        aadhaar_number: aadhaarNumber,
         has_completed_profile: true,
     };
     await storeUserData(updatedUser);

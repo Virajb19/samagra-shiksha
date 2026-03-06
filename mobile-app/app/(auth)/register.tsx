@@ -126,7 +126,7 @@ export default function RegisterScreen() {
         });
 
         if (!result.canceled && result.assets[0]) {
-            setValue('profileImage', result.assets[0].uri);
+            setValue('profileImage', result.assets[0].uri, { shouldValidate: true });
         }
     };
 

@@ -81,6 +81,7 @@ export function mapUserDoc(snap: DocumentSnapshot): User {
         residential_location: d.residential_location ?? undefined,
         ebrc: d.ebrc ?? undefined,
         qualification: d.qualification ?? undefined,
+        rci_number: d.rci_number ?? undefined,
         years_of_experience: d.years_of_experience ?? undefined,
         date_of_joining: d.date_of_joining ? toIsoString(d.date_of_joining) : undefined,
         aadhaar_number: d.aadhaar_number ?? undefined,

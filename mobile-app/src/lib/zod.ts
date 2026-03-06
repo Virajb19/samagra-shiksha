@@ -106,6 +106,11 @@ export const IEResourcePersonProfileSchema = z.object({
         }, 'Experience must be between 0 and 60'),
     rciNumber: z.string().min(1, 'Please enter your RCI number'),
     ebrc: z.string().min(1, 'Please enter your EBRC'),
+    dateOfJoining: z
+        .string()
+        .min(1, 'Please enter date of joining')
+        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+    aadhaarNumber: z.string().length(12, 'Aadhaar number must be 12 digits').regex(/^\d{12}$/, 'Aadhaar number must contain only digits'),
 });
 
 export type IEResourcePersonProfileFormData = z.infer<typeof IEResourcePersonProfileSchema>;

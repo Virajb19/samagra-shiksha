@@ -85,10 +85,10 @@ export const UserDocSchema = z.object({
   // Experience for roles without faculty records (KGBV, NSCBAV, JE, IE)
   years_of_experience: z.number().int().nullable().optional(),
 
-  // Date of joining (KGBV_WARDEN, NSCBAV_WARDEN)
+  // Date of joining (KGBV_WARDEN, NSCBAV_WARDEN, IE_RESOURCE_PERSON)
   date_of_joining: dateTimeLike.nullable().optional(),
 
-  // Aadhaar number (KGBV_WARDEN, NSCBAV_WARDEN)
+  // Aadhaar number (KGBV_WARDEN, NSCBAV_WARDEN, IE_RESOURCE_PERSON)
   aadhaar_number: z.string().nullable().optional(),
 
   // Profile completion flag

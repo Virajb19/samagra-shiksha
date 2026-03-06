@@ -107,8 +107,8 @@ export interface User {
     qualification?: string;              // NSCBAV_WARDEN, IE_RESOURCE_PERSON
     rci_number?: string;                 // IE_RESOURCE_PERSON
     years_of_experience?: number;        // KGBV, NSCBAV, JE, IE_RESOURCE_PERSON
-    date_of_joining?: string;            // KGBV_WARDEN, NSCBAV_WARDEN
-    aadhaar_number?: string;             // KGBV_WARDEN, NSCBAV_WARDEN
+    date_of_joining?: string;            // KGBV_WARDEN, NSCBAV_WARDEN, IE_RESOURCE_PERSON
+    aadhaar_number?: string;             // KGBV_WARDEN, NSCBAV_WARDEN, IE_RESOURCE_PERSON
 }
 
 /**

@@ -117,7 +117,7 @@ export default function IEResourcePersonHomeTabScreen() {
                 <View className="flex-row justify-between mb-3">
                     <ActionCard title={hasCompletedProfile ? 'View Profile' : 'Complete Profile'} iconName="person-outline" onPress={() => {
                         if (!hasCompletedProfile) router.push('/(protected)/ie-resource-person/complete-profile');
-                        else Alert.alert('Profile', 'Profile viewing coming soon.');
+                        else router.push('/(protected)/ie-resource-person/view-profile');
                     }} />
                     <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } Alert.alert('Coming Soon', 'Notices will be available soon.'); }} disabled={!hasCompletedProfile || !isActive} />
                     <ActionCard title="Activities Forms" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/activity-forms' as any); }} disabled={!hasCompletedProfile || !isActive} />
