@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return request.auth.token.role;
+    }
+
+    function isAdmin() {
+      return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN'];
+    }
+
+    function isCoordinatorOrAbove() {
+      return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN', 'SUBJECT_COORDINATOR', 'ASSISTANT'];
+    }
+
+    // ── Users ──
+    match /users/{userId} {
+      allow read: if isAuth();
+      // Allow self-create and self-update: newly registered users have no role claim yet
+      allow create: if isAuth() && (isAdmin() || request.auth.uid == userId);
+      allow update: if isAdmin() || request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // ── Faculties ──
+    match /faculties/{facultyId} {
+      allow read: if isAuth();
+      // Allow teachers/headmasters to create/update their own faculty profile
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
+    }
+
+    // ── Schools ──
+    match /schools/{schoolId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── Districts ──
+    match /districts/{districtId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── Teaching Assignments ──
+    match /teaching_assignments/{assignmentId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── Subjects ──
+    match /subjects/{subjectId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── Audit Logs (append-only, no edits/deletes) ──
+    match /audit_logs/{logId} {
+      allow read: if isCoordinatorOrAbove();
+      allow create: if isAuth();
+      allow update, delete: if false;
+    }
+
+    // ── Helpdesk Tickets ──
+    match /helpdesk_tickets/{ticketId} {
+      allow read: if isCoordinatorOrAbove();
+      allow create: if isAuth();
+      allow update: if isCoordinatorOrAbove();
+      allow delete: if isAdmin();
+    }
+
+    // ── Notices ──
+    match /notices/{noticeId} {
+      allow read: if isAuth();
+      allow create, update: if isCoordinatorOrAbove();
+      allow delete: if isAdmin();
+    }
+
+    // ── Notice Recipients ──
+    match /notice_recipients/{recipientId} {
+      allow read: if isAuth();
+      allow create, update: if isCoordinatorOrAbove();
+      allow delete: if isAdmin();
+    }
+
+    // ── Circulars ──
+    match /circulars/{circularId} {
+      allow read: if isAuth();
+      allow create, update: if isCoordinatorOrAbove();
+      allow delete: if isAdmin();
+    }
+
+    // ── Circular Schools (join table) ──
+    match /circular_schools/{csId} {
+      allow read: if isAuth();
+      allow create, update: if isCoordinatorOrAbove();
+      allow delete: if isAdmin();
+    }
+
+    // ── User Stars ──
+    match /user_stars/{starId} {
+      allow read: if isAuth();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Project Schools (Project Management) ──
+    match /project_schools/{schoolId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── Projects (Project Management) ──
+    match /projects/{projectId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── Activity Forms ──
+    match /activity_forms/{formId} {
+      allow read: if isAuth();
+      allow update: if isAdmin();
+      allow create, delete: if false;
+    }
+
+    // ── ICT Form Data (submitted forms) ──
+    match /ict_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Library Form Data (submitted forms) ──
+    match /library_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Science Lab Form Data (submitted forms) ──
+    match /science_lab_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Self Defense Form Data (submitted forms) ──
+    match /self_defense_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── KGBV Form Data (submitted by KGBV wardens) ──
+    match /kgbv_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── NSCBAV Form Data (submitted by NSCBAV wardens) ──
+    match /nscbav_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Deny everything else by default ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

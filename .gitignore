@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.local
+backend/uploads/
+.expo/
+dist/
+
+# Firebase / Emulator logs
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*.log
+
+# Emulator data (optional)
+.emulators/
+
+*.log
+firebase-debug.log
+firestore-debug.log

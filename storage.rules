@@ -1,0 +1,95 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Helpers ──
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return request.auth.token.role;
+    }
+
+    function isAdmin() {
+      return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN'];
+    }
+
+    function isCoordinatorOrAbove() {
+      return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN', 'SUBJECT_COORDINATOR', 'ASSISTANT'];
+    }
+
+    // Max upload size: 10MB
+    function isValidSize() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ── Profile Photos ──
+    // Any authenticated user can read; only the owner can upload to their folder
+    match /profile-photos/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.auth.uid == userId && isValidSize();
+    }
+
+    // ── Notice Attachments ──
+    // Any authenticated user can read; coordinators+ can upload
+    match /notices/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isCoordinatorOrAbove() && isValidSize();
+    }
+
+    // ── Circular Attachments ──
+    // Any authenticated user can read; coordinators+ can upload
+    match /circulars/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isCoordinatorOrAbove() && isValidSize();
+    }
+
+    // ── ICT Form Files ──
+    // Any authenticated user can read/write (userId in path is Firestore doc ID, not Auth UID)
+    match /ict-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // ── Library Form Files ──
+    // Any authenticated user can read/write; max 10 MB per file
+    match /library-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ── Science Lab Form Files ──
+    // Any authenticated user can read/write; max 10 MB per file
+    match /science-lab-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ── Self Defense Form Files ──
+    // Any authenticated user can read/write; max 5 MB per file
+    match /self-defense-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // ── KGBV Form Files ──
+    // Any authenticated user can read/write; max 5 MB per file
+    match /kgbv-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // ── NSCBAV Form Files ──
+    // Any authenticated user can read/write; max 5 MB per file
+    match /nscbav-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // ── Deny everything else by default ──
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
