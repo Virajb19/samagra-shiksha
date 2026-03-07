@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Loader2, FileText, Search, Save, FilterX, Image as ImageIcon, ChevronLeft, ChevronRight, Clock, User } from 'lucide-react';
+import { Loader2, FileText, Search, Save, FilterX, Image as ImageIcon, ChevronLeft, ChevronRight, Clock, User, MapPin } from 'lucide-react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -82,6 +82,7 @@ type PhotoSlide = {
   comment: string | null;
   userName: string;
   date: string;
+  locationAddress: string | null;
 };
 
 // ─── Photo Viewer Dialog ───────────────────────────────────────────────
@@ -110,6 +111,7 @@ function ProjectPhotoDialog({ projectId, open, onOpenChange }: { projectId: stri
                     comment: update.comment ?? null,
                     userName: update.user_name,
                     date: new Date(update.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    locationAddress: update.location_address ?? null,
                 });
             }
         }
@@ -183,6 +185,12 @@ function ProjectPhotoDialog({ projectId, open, onOpenChange }: { projectId: stri
                             {current.comment && (
                                 <p className="text-sm text-slate-700 dark:text-slate-300 italic">
                                     &ldquo;{current.comment}&rdquo;
+                                </p>
+                            )}
+                            {current.locationAddress && (
+                                <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                    {current.locationAddress}
                                 </p>
                             )}
                         </div>
@@ -604,20 +612,20 @@ export default function ProjectDetailsPage() {
                       <tr
                         key={project.id}
                         className={`[&>td]:border-b [&>td]:border-slate-300 dark:[&>td]:border-slate-700 transition-colors text-sm ${isEdited
-                          ? 'bg-amber-50/50 dark:bg-amber-900/10'
+                          ? 'bg-amber-200/60 dark:bg-amber-900/30'
                           : 'hover:bg-slate-50 dark:hover:bg-slate-700/30'
                           }`}
                       >
                         {/* Frozen info columns */}
-                        <td className={`py-3 px-4 sticky left-0 z-10 w-[40px] ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>
+                        <td className={`py-3 px-4 sticky left-0 z-10 w-[40px] ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold">{index + 1}</span>
                         </td>
-                        <td className={`py-3 px-4 text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap sticky left-[40px] z-10 w-[80px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.district_name}</td>
-                        <td className={`py-3 px-4 text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap sticky left-[120px] z-10 w-[70px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{ebrcMap.get(project.udise_code) || '—'}</td>
-                        <td className={`py-3 px-4 text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap sticky left-[190px] z-10 w-[90px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.udise_code}</td>
-                        <td className={`py-3 px-4 text-xs text-slate-700 dark:text-slate-300 sticky left-[280px] z-10 w-[160px] min-w-[160px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.activity}</td>
-                        <td className={`py-3 px-4 text-xs text-blue-600 dark:text-blue-400 font-medium sticky left-[440px] z-10 w-[180px] min-w-[180px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.school_name}</td>
-                        <td className={`py-3 px-4 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap sticky left-[620px] z-10 w-[80px] border-l border-slate-300 dark:border-slate-700 border-r-2 border-r-slate-400 dark:border-r-slate-600 ${isEdited ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.pab_year}</td>
+                        <td className={`py-3 px-4 text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap sticky left-[40px] z-10 w-[80px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.district_name}</td>
+                        <td className={`py-3 px-4 text-slate-700 dark:text-slate-300 text-xs whitespace-nowrap sticky left-[120px] z-10 w-[70px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{ebrcMap.get(project.udise_code) || '—'}</td>
+                        <td className={`py-3 px-4 text-xs font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap sticky left-[190px] z-10 w-[90px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.udise_code}</td>
+                        <td className={`py-3 px-4 text-xs text-slate-700 dark:text-slate-300 sticky left-[280px] z-10 w-[160px] min-w-[160px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.activity}</td>
+                        <td className={`py-3 px-4 text-xs text-blue-600 dark:text-blue-400 font-medium sticky left-[440px] z-10 w-[180px] min-w-[180px] border-l border-slate-300 dark:border-slate-700 ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.school_name}</td>
+                        <td className={`py-3 px-4 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap sticky left-[620px] z-10 w-[80px] border-l border-slate-300 dark:border-slate-700 border-r-2 border-r-slate-400 dark:border-r-slate-600 ${isEdited ? 'bg-amber-200 dark:bg-amber-950/20' : 'bg-white dark:bg-slate-900'}`}>{project.pab_year}</td>
 
                         {/* Status dropdown - color coded */}
                         <td className="py-2 px-2 text-center">
@@ -671,7 +679,7 @@ export default function ProjectDetailsPage() {
                               />
                             </div>
                             <span className="text-[10px] text-slate-400">
-                              {getTotalSpent(project).toFixed(1)} / {((getValue(project, 'approved') as number) || 0).toFixed(1)}
+                              {Number(getTotalSpent(project)).toFixed(1)} / {(Number(getValue(project, 'approved')) || 0).toFixed(1)}
                             </span>
                           </div>
                         </td>

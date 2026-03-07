@@ -55,10 +55,21 @@ export default function RootLayout() {
 
     const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded) {
-            // Set Lato as default font for all Text
-            const existingStyle = (Text as any).defaultProps?.style ?? {};
-            (Text as any).defaultProps = (Text as any).defaultProps || {};
-            (Text as any).defaultProps.style = { ...existingStyle, fontFamily: 'assets_fonts_latoregular' };
+            // Monkey-patch Text.render to inject Lato as the default font.
+            // This works with NativeWind because the font is set as the base,
+            // and NativeWind/user styles merge on top of it.
+            const originalRender = (Text as any).render;
+            if (originalRender && !(Text as any).__fontPatched) {
+                (Text as any).render = function (props: any, ref: any) {
+                    const baseStyle = { fontFamily: 'assets_fonts_latoregular' };
+                    const mergedProps = {
+                        ...props,
+                        style: [baseStyle, props.style],
+                    };
+                    return originalRender.call(this, mergedProps, ref);
+                };
+                (Text as any).__fontPatched = true;
+            }
 
             await SplashScreen.hideAsync();
         }
