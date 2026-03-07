@@ -363,6 +363,21 @@ export const ProjectDocSchema = z.object({
   updated_at: dateTimeLike,
 });
 
+/** Tracks individual progress updates submitted by Junior Engineers */
+export const ProjectUpdateDocSchema = z.object({
+  id: uuid,
+  project_id: uuid,
+  user_id: uuid,
+  user_name: z.string().min(1),
+  completion_status: z.number().min(0).max(100),
+  comment: z.string().nullable().optional(),
+  photos: z.array(z.string()).default([]),
+  location_address: z.string().nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  created_at: dateTimeLike,
+});
+
 // ── Activity Forms ──
 
 export const ActivityFormTypeSchema = z.enum([
@@ -622,6 +637,7 @@ export const CollectionSchemas = {
   faculty_attendances: FacultyAttendanceDocSchema,
   project_schools: ProjectSchoolDocSchema,
   projects: ProjectDocSchema,
+  project_updates: ProjectUpdateDocSchema,
   activity_forms: ActivityFormDocSchema,
   ict_form_data: ICTFormDataDocSchema,
   library_form_data: LibraryFormDataDocSchema,
@@ -669,6 +685,8 @@ export const Relations: RelationDef[] = [
   { from: "faculty_attendances", to: "users", type: "one-to-many", foreignKey: "user_id" },
   { from: "project_schools", to: "districts", type: "one-to-many", foreignKey: "district_id" },
   { from: "projects", to: "project_schools", type: "one-to-many", foreignKey: "project_school_id" },
+  { from: "project_updates", to: "projects", type: "one-to-many", foreignKey: "project_id" },
+  { from: "project_updates", to: "users", type: "one-to-many", foreignKey: "user_id" },
   { from: "ict_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
   { from: "library_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
   { from: "science_lab_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },

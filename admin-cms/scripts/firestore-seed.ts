@@ -328,7 +328,7 @@ const ALL_COLLECTIONS = [
   'helpdesk_tickets', 'notification_logs',
   'user_stars',
   'audit_logs',
-  'project_schools', 'projects',
+  'project_schools', 'projects', 'project_updates',
   'activity_forms',
   'ict_form_data',
   'library_form_data',
@@ -1071,6 +1071,7 @@ const projectSchoolMeta: Array<{
   udise_code: string;
   category: string;
 }> = [];
+const projectIdsByStatus: { inProgress: string[]; completed: string[] } = { inProgress: [], completed: [] };
 
 function seedProjectSchools(): void {
   let count = 0;
@@ -1251,9 +1252,195 @@ function seedProjects(): void {
     if (contractor) doc.contractor = contractor;
 
     writer.set(db.collection('projects').doc(id), doc);
+    if (status === 'In Progress') projectIdsByStatus.inProgress.push(id);
+    if (status === 'Completed') projectIdsByStatus.completed.push(id);
     count++;
   }
-  console.log(`✅ ${count} projects`);
+  console.log(`✅ ${count} projects (${projectIdsByStatus.inProgress.length} In Progress, ${projectIdsByStatus.completed.length} Completed)`);
+}
+
+// ────────────────────── PROJECT UPDATES ──────────────────────
+
+function seedProjectUpdates(): void {
+  console.log('📝 Creating project updates (linked to real projects)...');
+  let count = 0;
+
+  const CONSTRUCTION_PHOTOS = [
+    'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+    'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80',
+    'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80',
+    'https://images.unsplash.com/photo-1590274853856-f22d5ee3d228?w=800&q=80',
+    'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80',
+    'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
+    'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
+    'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&q=80',
+    'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800&q=80',
+    'https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=800&q=80',
+    'https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?w=800&q=80',
+  ];
+
+  // Diverse comments grouped by progress stage
+  const COMMENTS_EARLY = [
+    'Foundation excavation started',
+    'Soil testing completed at site',
+    'Material procurement initiated',
+    'Site clearing and leveling done',
+    'Foundation work in progress',
+    'DPR approved, work order issued',
+    'Sand and aggregate delivered to site',
+    'Cement and steel bars received',
+  ];
+  const COMMENTS_MID = [
+    'Plinth level work completed',
+    'Brick masonry work ongoing',
+    'Lintel level reached',
+    'Roof casting in progress',
+    'Plastering of walls ongoing',
+    'Window and door frames installed',
+    'Flooring tiles being laid',
+    'Boundary wall construction started',
+    'Toilet block masonry completed',
+    'Water tank installation done',
+  ];
+  const COMMENTS_LATE = [
+    'Painting work in progress',
+    'Electrical wiring and fixtures installed',
+    'Plumbing work completed',
+    'Final coat of paint applied',
+    'Doors and windows fitted',
+    'Interior finishing work ongoing',
+    'Nearing completion — minor works pending',
+    'Final inspection scheduled',
+  ];
+  const COMMENTS_COMPLETED = [
+    'Project completed and handed over to school',
+    'All works completed — utilization certificate submitted',
+    'Final inspection done — project completed successfully',
+    'Completed on schedule — keys handed to headmaster',
+    'Completed with minor delay — fully functional now',
+  ];
+  const COMMENTS_DELAY = [
+    'Work delayed due to heavy rainfall',
+    'Labour shortage — progress stalled',
+    'Material supply delayed from vendor',
+    'Work halted due to land dispute',
+    'Slow progress due to festival season',
+    'Work paused — awaiting fund release',
+  ];
+
+  const LOCATION_ADDRESSES = [
+    'Dimapur Town, Dimapur',
+    'Kohima Ward 5, Kohima',
+    'Mokokchung Town, Mokokchung',
+    'Tuensang Village, Tuensang',
+    'Mon Town, Mon',
+    'Wokha District HQ, Wokha',
+    'Zunheboto Town, Zunheboto',
+    'Pfutsero Town, Phek',
+    'Peren HQ, Peren',
+    'Longleng Town, Longleng',
+    'Kiphire Village, Kiphire',
+    'Chumukedima, Chumukedima',
+    'Noklak Town, Noklak',
+    'Shamator HQ, Shamator',
+    'Tseminyu Town, Tseminyu',
+    'Niuland, Niuland',
+    null,
+  ];
+
+  // Nagaland lat/lng approximate bounds
+  const LAT_MIN = 25.2;
+  const LAT_MAX = 27.0;
+  const LNG_MIN = 93.3;
+  const LNG_MAX = 95.2;
+
+  const jeIds = ids.juniorEngineerIds;
+  if (jeIds.length === 0) return;
+
+  // Combine eligible projects (In Progress + Completed) and shuffle
+  const eligibleProjectIds = [
+    ...projectIdsByStatus.inProgress,
+    ...projectIdsByStatus.completed,
+  ];
+  if (eligibleProjectIds.length === 0) return;
+
+  // Shuffle so updates aren't grouped
+  for (let i = eligibleProjectIds.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [eligibleProjectIds[i], eligibleProjectIds[j]] = [eligibleProjectIds[j], eligibleProjectIds[i]];
+  }
+
+  // Pick comment based on completion stage
+  const pickComment = (pct: number): string | null => {
+    if (randomBool(0.12)) return randomElement(COMMENTS_DELAY);
+    if (pct <= 20) return randomElement(COMMENTS_EARLY);
+    if (pct <= 60) return randomElement(COMMENTS_MID);
+    if (pct <= 90) return randomElement(COMMENTS_LATE);
+    return randomElement(COMMENTS_COMPLETED);
+  };
+
+  // Each eligible project gets 1-6 updates (weighted towards 2-4)
+  for (const projectId of eligibleProjectIds) {
+    const updateCount = weightedRandom([1, 2, 3, 4, 5, 6], [10, 25, 30, 20, 10, 5]);
+    // Pick a primary JE for this project (80% of updates from same JE)
+    const primaryJe = randomElement(jeIds);
+    const primaryJeName = generateName();
+
+    // Generate ascending completion statuses for chronological realism
+    const statuses: number[] = [];
+    let prevStatus = 0;
+    for (let u = 0; u < updateCount; u++) {
+      const min = Math.max(10, prevStatus + 5);
+      const max = u === updateCount - 1 ? 100 : Math.min(100, prevStatus + 30);
+      const status = Math.min(100, weightedRandom(
+        Array.from({ length: Math.max(1, Math.floor((max - min) / 10) + 1) }, (_, k) => min + k * 10),
+        Array.from({ length: Math.max(1, Math.floor((max - min) / 10) + 1) }, () => 10),
+      ));
+      statuses.push(status);
+      prevStatus = status;
+    }
+
+    // Generate update dates spread over time
+    const baseDate = generateDate(2024, 2026);
+
+    for (let u = 0; u < updateCount; u++) {
+      const id = newId('project_updates');
+      // 80% primary JE, 20% different JE
+      const isSecondary = randomBool(0.2) && jeIds.length > 1;
+      const userId = isSecondary ? randomElement(jeIds.filter(j => j !== primaryJe)) : primaryJe;
+      const userName = isSecondary ? generateName() : primaryJeName;
+
+      const completionStatus = statuses[u];
+      const comment = randomBool(0.85) ? pickComment(completionStatus) : null;
+
+      const photoCount = randomInt(1, 3);
+      const shuffled = [...CONSTRUCTION_PHOTOS].sort(() => Math.random() - 0.5);
+      const photos = shuffled.slice(0, photoCount);
+
+      // Spread update dates chronologically
+      const updateDate = new Date(baseDate.getTime() + u * randomInt(5, 30) * 86400000);
+
+      const doc: Record<string, unknown> = {
+        id,
+        project_id: projectId,
+        user_id: userId,
+        user_name: userName,
+        completion_status: completionStatus,
+        comment,
+        photos,
+        location_address: randomElement(LOCATION_ADDRESSES),
+        latitude: randomDecimal(LAT_MIN, LAT_MAX, 6),
+        longitude: randomDecimal(LNG_MIN, LNG_MAX, 6),
+        created_at: admin.firestore.Timestamp.fromDate(updateDate),
+      };
+
+      writer.set(db.collection('project_updates').doc(id), doc);
+      count++;
+    }
+  }
+
+  console.log(`✅ ${count} project updates across ${eligibleProjectIds.length} projects`);
 }
 
 // ────────────────────── ACTIVITY FORMS ──────────────────────
@@ -1891,6 +2078,7 @@ async function main(): Promise<void> {
 
   seedProjectSchools();
   seedProjects();
+  seedProjectUpdates();
 
   seedActivityForms();
   seedICTFormData();

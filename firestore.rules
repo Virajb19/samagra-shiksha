@@ -127,7 +127,19 @@ service cloud.firestore {
     // ── Projects (Project Management) ──
     match /projects/{projectId} {
       allow read: if isAuth();
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isAdmin();
+      // Admins: full update; JE: only progress, photos, status, updated_at
+      allow update: if isAdmin()
+                    || (isAuth() && getRole() == 'JUNIOR_ENGINEER'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['progress', 'photos', 'status', 'updated_at']));
+    }
+
+    // ── Project Updates (submitted by Junior Engineers) ──
+    match /project_updates/{updateId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
 
     // ── Activity Forms ──

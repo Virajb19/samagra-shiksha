@@ -234,3 +234,79 @@ export interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
 }
+
+// ── Project Management Types ──
+
+export type ProjectSchoolCategory =
+    | 'Elementary'
+    | 'Secondary'
+    | 'Higher Secondary'
+    | 'PM Shri'
+    | 'NSCBAV'
+    | 'DA JGUA'
+    | 'KGBV-IV';
+
+export type ProjectActivity =
+    | 'New Government Primary School'
+    | 'Construction of New Building'
+    | 'Boys Toilet'
+    | 'Girls Toilet'
+    | 'Boys Toilet (Rejuvenation)'
+    | 'Girls Toilet (Rejuvenation)'
+    | 'Additional Classroom'
+    | 'Augmentation of EBRC'
+    | 'Boundary Wall'
+    | 'Boundary Wall (Rejuvenation)'
+    | 'Dilapidated Classrooms (Primary)'
+    | 'Dilapidated Classroom (Upper Primary)'
+    | 'Drinking Water Facility'
+    | 'Electrification'
+    | 'Electrification (Rejuvenation)'
+    | 'Major Repair'
+    | 'Major Repair (Rejuvenation)'
+    | 'Rain Water Harvesting'
+    | 'Upgradation of School (6-8)'
+    | 'Dilapidated Building (Primary)'
+    | 'Dilapidated Building (Upper Primary)'
+    | 'Hostel'
+    | 'ICT Lab'
+    | 'Vocational Lab'
+    | 'Library Room'
+    | 'Science Lab';
+
+export type PABYear =
+    | '2023 - 2024'
+    | '2024 - 2025'
+    | '2025 - 2026'
+    | '2026 - 2027';
+
+export interface Project {
+    id: string;
+    project_school_id: string;
+    school_name: string;
+    district_name: string;
+    udise_code: string;
+    pab_year: PABYear;
+    category: ProjectSchoolCategory;
+    activity: ProjectActivity;
+    contractor?: string;
+    status: 'Not Started' | 'In Progress' | 'Completed';
+    progress: number;
+    photos: string[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ProjectUpdate {
+    id: string;
+    project_id: string;
+    user_id: string;
+    user_name: string;
+    completion_status: number;
+    comment?: string | null;
+    photos: string[];
+    location_address?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    created_at: string;
+}

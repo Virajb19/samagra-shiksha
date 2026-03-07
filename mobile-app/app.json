@@ -69,7 +69,12 @@
         }
       ],
       "expo-asset",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/assets_fonts_latoregular.ttf"]
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {

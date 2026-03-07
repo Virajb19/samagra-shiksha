@@ -3,9 +3,10 @@
  *
  * App-wide layout that wraps all screens.
  * Initializes Zustand auth store (replaces AuthProvider).
+ * Loads Lato Regular font globally via expo-font config plugin + useFonts.
  */
 import 'react-native-get-random-values';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -14,68 +15,31 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 import { NotificationHandler } from '../src/components/NotificationHandler';
 import Toast, { BaseToast, ErrorToast, BaseToastProps } from 'react-native-toast-message';
 import { useAuthStore } from '../src/lib/store';
-import { View, Text } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep splash visible while fonts load
+SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
     error: (props: BaseToastProps) => (
-        <View
-            style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                marginHorizontal: 16,
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                gap: 12,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 8,
-                borderLeftWidth: 4,
-                borderLeftColor: '#ef4444',
-            }}
-        >
-            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#ef4444', justifyContent: 'center', alignItems: 'center' }}>
+        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl mx-4 px-4 py-3.5 gap-3 border-l-4 border-l-red-500" style={{ elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+            <View className="w-9 h-9 rounded-full bg-red-500 justify-center items-center">
                 <Ionicons name="alert-circle" size={22} color="#fff" />
             </View>
-            <Text
-                style={{ flex: 1, color: '#ffffff', fontSize: 15, fontWeight: '600', lineHeight: 20 }}
-                numberOfLines={3}
-            >
+            <Text style={{ fontFamily: 'assets_fonts_latoregular' }} className="flex-1 text-white text-[15px] font-semibold leading-5" numberOfLines={3}>
                 {props.text2 || props.text1}
             </Text>
         </View>
     ),
     success: (props: BaseToastProps) => (
-        <View
-            style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                marginHorizontal: 16,
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                gap: 12,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 8,
-                borderLeftWidth: 4,
-                borderLeftColor: '#22c55e',
-            }}
-        >
-            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#22c55e', justifyContent: 'center', alignItems: 'center' }}>
+        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl mx-4 px-4 py-3.5 gap-3 border-l-4 border-l-green-500" style={{ elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+            <View className="w-9 h-9 rounded-full bg-green-500 justify-center items-center">
                 <Ionicons name="checkmark-circle" size={22} color="#fff" />
             </View>
-            <Text
-                style={{ flex: 1, color: '#ffffff', fontSize: 15, fontWeight: '600', lineHeight: 20 }}
-                numberOfLines={3}
-            >
+            <Text style={{ fontFamily: 'assets_fonts_latoregular' }} className="flex-1 text-white text-[15px] font-semibold leading-5" numberOfLines={3}>
                 {props.text2 || props.text1}
             </Text>
         </View>
@@ -85,10 +49,29 @@ const toastConfig = {
 export default function RootLayout() {
     const init = useAuthStore(s => s.init);
 
+    const [fontsLoaded] = useFonts({
+        'assets_fonts_latoregular': require('../assets/assets_fonts_latoregular.ttf'),
+    });
+
+    const onLayoutRootView = useCallback(async () => {
+        if (fontsLoaded) {
+            // Set Lato as default font for all Text
+            const existingStyle = (Text as any).defaultProps?.style ?? {};
+            (Text as any).defaultProps = (Text as any).defaultProps || {};
+            (Text as any).defaultProps.style = { ...existingStyle, fontFamily: 'assets_fonts_latoregular' };
+
+            await SplashScreen.hideAsync();
+        }
+    }, [fontsLoaded]);
+
     useEffect(() => {
         const unsubscribe = init();
         return () => unsubscribe();
     }, [init]);
+
+    useEffect(() => {
+        onLayoutRootView();
+    }, [onLayoutRootView]);
 
     return (
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
@@ -108,4 +91,3 @@ export default function RootLayout() {
         </SafeAreaProvider>
     );
 }
-

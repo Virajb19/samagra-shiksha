@@ -662,3 +662,30 @@ export const IEHomeVisitFormSchema = z.object({
 });
 
 export type IEHomeVisitFormData = z.infer<typeof IEHomeVisitFormSchema>;
+
+// ── Project Status Update Schema ──────────────────────────────
+
+/**
+ * Completion status options for project updates.
+ * Values start from 10 and increment by 10 up to 100.
+ */
+export const PROJECT_COMPLETION_OPTIONS = [
+    '10', '20', '30', '40', '50', '60', '70', '80', '90', '100',
+] as const;
+
+/**
+ * Project Status Update form schema.
+ * Used by Junior Engineers to submit progress updates on assigned projects.
+ *
+ * Fields:
+ * - completionStatus: percentage of project completion (10%-100%)
+ * - comment: optional comment about the update
+ * - photos: at least 1 photo of project status (max 3)
+ */
+export const ProjectStatusUpdateSchema = z.object({
+    completionStatus: z.string().min(1, 'Please select project completion status'),
+    comment: z.string().optional(),
+    photos: z.array(z.string()).min(1, 'Please upload at least 1 photo of project status').max(3, 'Maximum 3 photos allowed'),
+});
+
+export type ProjectStatusUpdateFormData = z.infer<typeof ProjectStatusUpdateSchema>;

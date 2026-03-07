@@ -289,6 +289,20 @@ export interface Project {
     updated_at: string;
 }
 
+export interface ProjectUpdate {
+    id: string;
+    project_id: string;
+    user_id: string;
+    user_name: string;
+    completion_status: number;
+    comment?: string | null;
+    photos: string[];
+    location_address?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    created_at: string;
+}
+
 // ========================================
 // ACTIVITY FORM TYPES
 // ========================================

@@ -6,8 +6,8 @@
  * 2. Profile complete, not active → "Your account is under verification"
  * 3. Active → full access
  *
- * Action cards: Complete/View Profile, Notices
- * NO Activities Forms card, NO View Colleagues card
+ * Action cards: Complete/View Profile, Notices, View Projects
+ * Projects section: Shows 2 recent projects with View All button
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -20,10 +20,15 @@ import {
     Alert,
     Modal,
     Animated,
+    ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { getRecentProjects } from '../../../../src/services/project.service';
+import { getDistricts } from '../../../../src/services/firebase/master-data.firestore';
+import type { Project, District } from '../../../../src/types';
 
 const BLUE = '#1565C0';
 
@@ -138,6 +143,42 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
     );
 }
 
+/** Project card for home screen */
+function ProjectCard({ project, onPress }: { project: Project; onPress: () => void }) {
+    const progressWidth = `${Math.min(project.progress, 100)}%` as import('react-native').DimensionValue;
+    const isCompleted = project.status === 'Completed';
+    const progressLabel = project.progress === 0 ? 'N/A' : isCompleted ? 'Completed' : `${project.progress}%`;
+    const progressColor = isCompleted ? '#22c55e' : project.progress > 0 ? BLUE : '#9ca3af';
+
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            activeOpacity={0.85}
+            className="rounded-2xl overflow-hidden mb-4"
+            style={{ elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 }}
+        >
+            <View style={{ backgroundColor: BLUE, padding: 16 }}>
+                <View className="flex-row justify-between items-start">
+                    <View className="flex-1 mr-3">
+                        <Text className="text-white/80 text-xs font-semibold mb-1">{project.activity}</Text>
+                        <Text className="text-white text-lg font-bold" numberOfLines={1}>{project.school_name}</Text>
+                    </View>
+                    <View className="rounded-lg px-3 py-1" style={{ backgroundColor: isCompleted ? '#22c55e' : 'rgba(255,255,255,0.2)' }}>
+                        <Text className="text-white text-xs font-bold">{progressLabel}</Text>
+                    </View>
+                </View>
+                <View className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                    <View style={{ width: progressWidth, backgroundColor: '#fff', height: '100%', borderRadius: 999 }} />
+                </View>
+                <View className="flex-row items-center mt-2">
+                    <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.7)" />
+                    <Text className="text-white/70 text-xs ml-1">{project.district_name}</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+}
+
 export default function JuniorEngineerHomeTabScreen() {
     const { user } = useAuthStore();
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -146,6 +187,22 @@ export default function JuniorEngineerHomeTabScreen() {
     // Derive from real-time store user (kept up-to-date via onSnapshot in store)
     const hasCompletedProfile = user?.has_completed_profile ?? false;
     const isActive = user?.is_active ?? false;
+
+    // Fetch districts to resolve user's district_id → name
+    const { data: districts = [] } = useQuery<District[]>({
+        queryKey: ['districts'],
+        queryFn: getDistricts,
+        enabled: hasCompletedProfile && isActive,
+    });
+
+    const userDistrictName = districts.find(d => d.id === user?.district_id)?.name || '';
+
+    // Recent projects (2) for home screen
+    const { data: recentProjects = [], isLoading: loadingProjects } = useQuery<Project[]>({
+        queryKey: ['recent-projects', userDistrictName],
+        queryFn: () => getRecentProjects(userDistrictName),
+        enabled: !!userDistrictName && hasCompletedProfile && isActive,
+    });
 
     const handleLockedAction = () => {
         if (!hasCompletedProfile) {
@@ -213,16 +270,47 @@ export default function JuniorEngineerHomeTabScreen() {
                         disabled={!hasCompletedProfile || !isActive}
                     />
                     <ActionCard
-                        title="Events"
-                        iconName="calendar-outline"
+                        title="View Projects"
+                        iconName="document-text-outline"
                         onPress={() => {
                             if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; }
-                            Alert.alert('Coming Soon', 'Events will be available soon.');
+                            router.push('/(protected)/junior-engineer/projects');
                         }}
                         disabled={!hasCompletedProfile || !isActive}
                     />
                 </View>
             </View>
+
+            {/* Projects Section */}
+            {hasCompletedProfile && isActive && (
+                <View className="px-4 mt-4">
+                    <Text className="text-xl font-bold text-gray-800 mb-3">Projects</Text>
+                    {loadingProjects ? (
+                        <ActivityIndicator size="small" color={BLUE} style={{ marginVertical: 24 }} />
+                    ) : recentProjects.length === 0 ? (
+                        <View className="bg-white rounded-xl py-8 items-center" style={{ elevation: 1 }}>
+                            <Ionicons name="folder-open-outline" size={40} color="#9ca3af" />
+                            <Text className="text-gray-400 mt-2 text-sm">No projects assigned yet</Text>
+                        </View>
+                    ) : (
+                        <>
+                            {recentProjects.map((project) => (
+                                <ProjectCard
+                                    key={project.id}
+                                    project={project}
+                                    onPress={() => router.push(`/(protected)/junior-engineer/project-detail?id=${project.id}`)}
+                                />
+                            ))}
+                            <TouchableOpacity
+                                onPress={() => router.push('/(protected)/junior-engineer/projects')}
+                                className="items-center py-3"
+                            >
+                                <Text style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>View All</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+            )}
 
             {/* Profile status banners */}
             {!hasCompletedProfile && (
