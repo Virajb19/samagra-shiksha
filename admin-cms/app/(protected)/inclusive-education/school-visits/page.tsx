@@ -438,7 +438,14 @@ export default function SchoolVisitsPage() {
                                                                     {row.type_of_disability}
                                                                 </Badge>
                                                             ) : col.key === 'gender' ? (
-                                                                row.gender
+                                                                <Badge className={`border-0 text-xs ${row.gender.toLowerCase() === 'male'
+                                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                                    : row.gender.toLowerCase() === 'female'
+                                                                        ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+                                                                        : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                                                                    }`}>
+                                                                    {row.gender}
+                                                                </Badge>
                                                             ) : col.key === 'activities_topics' ? (
                                                                 row.activities_topics
                                                             ) : col.key === 'therapy_type' ? (

@@ -217,7 +217,7 @@ export default function HomeVisitsPage() {
             {/* Header */}
             <motion.div variants={itemVariants}>
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                         <motion.div
                             className="p-2 bg-linear-to-br from-violet-500 to-purple-600 rounded-lg"
                             whileHover={{ scale: 1.05, rotate: 5 }}
@@ -226,16 +226,12 @@ export default function HomeVisitsPage() {
                             <Home className="h-6 w-6 text-white" />
                         </motion.div>
                         <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">IE Home Visits</h1>
-                                {total > 0 && (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-500/15 to-purple-500/15 text-violet-700 dark:text-violet-300 border border-violet-200/50 dark:border-violet-700/30">
-                                        {total.toLocaleString()} Records
-                                    </span>
-                                )}
-                            </div>
+                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">IE Home Visits</h1>
                             <p className="text-slate-500 dark:text-slate-400 text-sm">Inclusive Education home visit records</p>
                         </div>
+                        <span className="bg-gradient-to-r from-violet-500/15 to-purple-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25 px-4 py-1.5 text-sm font-semibold rounded-full">
+                            {total} Records
+                        </span>
                     </div>
                     <div className="flex items-center gap-3">
                         <DownloadXlsxButton onDownload={handleDownloadXlsx} disabled={total === 0} />
@@ -412,7 +408,14 @@ export default function HomeVisitsPage() {
                                                                     {row.type_of_disability}
                                                                 </Badge>
                                                             ) : col.key === 'gender' ? (
-                                                                row.gender
+                                                                <Badge className={`border-0 text-xs ${row.gender.toLowerCase() === 'male'
+                                                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                                    : row.gender.toLowerCase() === 'female'
+                                                                        ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+                                                                        : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                                                                    }`}>
+                                                                    {row.gender}
+                                                                </Badge>
                                                             ) : col.key === 'activities_topics' ? (
                                                                 row.activities_topics
                                                             ) : col.key === 'therapy_type' ? (
