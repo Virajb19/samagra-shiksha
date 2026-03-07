@@ -356,6 +356,9 @@ export const ProjectDocSchema = z.object({
   march: z.number().default(0),
   balance: z.number().default(0),
   remarks: z.string().nullable().optional(),
+  // Updated by Junior Engineer from mobile app
+  progress: z.number().min(0).max(100).default(0),
+  photos: z.array(z.string()).default([]),
   created_at: dateTimeLike,
   updated_at: dateTimeLike,
 });

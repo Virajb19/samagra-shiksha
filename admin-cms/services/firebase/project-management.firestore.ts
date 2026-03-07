@@ -99,6 +99,8 @@ function toProject(docId: string, data: unknown): Project | null {
     march: parsed.data.march ?? 0,
     balance: parsed.data.balance ?? 0,
     remarks: parsed.data.remarks ?? "",
+    progress: parsed.data.progress ?? 0,
+    photos: parsed.data.photos ?? [],
     created_at: toIso(parsed.data.created_at),
     updated_at: toIso(parsed.data.updated_at),
   };
@@ -321,6 +323,8 @@ export const projectManagementFirestore = {
       december: 0, january: 0, february: 0, march: 0,
       balance: 0,
       remarks: "",
+      progress: 0,
+      photos: [],
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),
     });

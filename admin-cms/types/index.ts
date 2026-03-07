@@ -282,6 +282,9 @@ export interface Project {
     march: number;
     balance: number;
     remarks: string;
+    // Updated by Junior Engineer from mobile app
+    progress: number;
+    photos: string[];
     created_at: string;
     updated_at: string;
 }

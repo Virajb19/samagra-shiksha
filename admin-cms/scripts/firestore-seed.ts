@@ -1223,6 +1223,28 @@ function seedProjects(): void {
       ...monthlyValues,
       balance,
       remarks: randomElement(REMARKS_BY_STATUS[status] ?? ['']),
+      // ── Progress & Photos (set by Junior Engineer from mobile) ──
+      progress: status === 'Completed' ? 100
+        : status === 'In Progress' ? randomInt(10, 95)
+        : 0,
+      photos: status === 'Not Started' ? []
+        : (() => {
+          const constructionPhotos = [
+            'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
+            'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80',
+            'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80',
+            'https://images.unsplash.com/photo-1590274853856-f22d5ee3d228?w=800&q=80',
+            'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80',
+            'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
+            'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
+            'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
+            'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&q=80',
+            'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800&q=80',
+          ];
+          const photoCount = status === 'Completed' ? randomInt(2, 5) : randomInt(0, 3);
+          const shuffled = [...constructionPhotos].sort(() => Math.random() - 0.5);
+          return shuffled.slice(0, photoCount);
+        })(),
       created_at: TS(),
       updated_at: TS(),
     };

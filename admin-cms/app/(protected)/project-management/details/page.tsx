@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Loader2, FileText, Search, Save, FilterX } from 'lucide-react';
+import { Loader2, FileText, Search, Save, FilterX, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
 import {
@@ -28,6 +28,13 @@ import {
   PAB_YEARS,
 } from '@/lib/zod';
 import { showSuccessToast, showErrorToast } from '@/components/ui/custom-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -67,6 +74,71 @@ type EditableRow = {
 };
 
 const PAGE_SIZE = 20;
+
+// ─── Photo Viewer Dialog ───────────────────────────────────────────────
+function ProjectPhotoDialog({ photos, open, onOpenChange }: { photos: string[]; open: boolean; onOpenChange: (o: boolean) => void }) {
+    const [idx, setIdx] = useState(0);
+    const prev = () => setIdx((i) => (i === 0 ? photos.length - 1 : i - 1));
+    const next = () => setIdx((i) => (i === photos.length - 1 ? 0 : i + 1));
+    useEffect(() => { if (open) setIdx(0); }, [open]);
+    if (!photos.length) return null;
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-2xl">
+                <DialogHeader className="p-4 pb-0">
+                    <DialogTitle className="text-slate-900 dark:text-white text-lg">
+                        Photo {idx + 1} of {photos.length}
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="relative flex items-center justify-center min-h-[400px] p-4 bg-slate-50 dark:bg-slate-800/50 mx-4 rounded-xl">
+                    <AnimatePresence mode="wait">
+                        <motion.img key={idx} src={photos[idx]} alt={`Photo ${idx + 1}`}
+                            className="max-h-[500px] max-w-full object-contain rounded-lg shadow-md"
+                            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} />
+                    </AnimatePresence>
+                    {photos.length > 1 && (
+                        <>
+                            <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                            <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
+                                <ChevronRight className="h-5 w-5" />
+                            </button>
+                        </>
+                    )}
+                </div>
+                {photos.length > 1 && (
+                    <div className="flex gap-2 px-4 pb-4 overflow-x-auto justify-center">
+                        {photos.map((photo, i) => (
+                            <button key={i} onClick={() => setIdx(i)}
+                                className={cn('w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all shadow-sm',
+                                    i === idx ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-600 opacity-60 hover:opacity-100')}>
+                                <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function ProjectPhotoCell({ photos }: { photos: string[] }) {
+    const [open, setOpen] = useState(false);
+    if (!photos?.length) return <span className="text-slate-400">—</span>;
+    return (
+        <>
+            <button onClick={() => setOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+                <ImageIcon className="h-3.5 w-3.5" />
+                View ({photos.length})
+            </button>
+            <ProjectPhotoDialog photos={photos} open={open} onOpenChange={setOpen} />
+        </>
+    );
+}
 
 export default function ProjectDetailsPage() {
   const [districtFilter, setDistrictFilter] = useState<string>('all');
@@ -419,6 +491,8 @@ export default function ProjectDetailsPage() {
                     <th className="text-left py-3 px-4 font-semibold text-xs whitespace-nowrap sticky left-[620px] bg-blue-700 dark:bg-blue-800 z-[60] w-[80px] border-l border-blue-500/50 border-r-2 border-r-blue-400">PAB Year</th>
                     {/* Editable columns */}
                     <th className="text-center py-3 px-4 font-semibold text-xs whitespace-nowrap bg-blue-600/80 dark:bg-blue-700/80">Status</th>
+                    <th className="text-center py-3 px-4 font-semibold text-xs whitespace-nowrap bg-emerald-700/80 min-w-[140px]">Progress</th>
+                    <th className="text-center py-3 px-4 font-semibold text-xs whitespace-nowrap bg-blue-600/80 dark:bg-blue-700/80">Photos</th>
                     <th className="text-center py-3 px-4 font-semibold text-xs whitespace-nowrap bg-emerald-700/80 min-w-[140px]">% Utilized</th>
                     <th className="text-center py-3 px-4 font-semibold text-xs whitespace-nowrap bg-blue-600/80 dark:bg-blue-700/80">Physical</th>
                     <th className="text-center py-3 px-4 font-semibold text-xs whitespace-nowrap bg-blue-600/80 dark:bg-blue-700/80">Approved</th>
@@ -480,7 +554,25 @@ export default function ProjectDetailsPage() {
                           })()}
                         </td>
 
-                        {/* Progress bar + % Utilized (right after Status) */}
+                        {/* Progress (read-only, set by Junior Engineer) */}
+                        <td className="py-2 px-3 text-center">
+                          <div className="flex flex-col items-center gap-1 min-w-[110px]">
+                            <span className={`text-xs font-bold ${project.progress >= 75 ? 'text-emerald-600 dark:text-emerald-400' : project.progress >= 40 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>{project.progress}%</span>
+                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${project.progress >= 75 ? 'bg-emerald-500' : project.progress >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                style={{ width: `${project.progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Photos (read-only, set by Junior Engineer) */}
+                        <td className="py-2 px-2 text-center">
+                          <ProjectPhotoCell photos={project.photos} />
+                        </td>
+
+                        {/* Progress bar + % Utilized */}
                         <td className="py-2 px-3 text-center">
                           <div className="flex flex-col items-center gap-1 min-w-[110px]">
                             <span className={`text-xs font-bold ${colors.text}`}>{pct}%</span>
