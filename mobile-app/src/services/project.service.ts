@@ -153,6 +153,16 @@ export async function getFilteredProjects(
     return projects;
 }
 
+/**
+ * Get projects with cursor-based pagination and server-side filters.
+ * Filters (category, activity, pabYear) are applied as Firestore where() clauses.
+ *
+ * searchText triggers a separate server-side query:
+ * - school_name prefix match via >= / < range query
+ * - udise_code exact match when input is numeric
+ * Results are merged, deduplicated, and paginated client-side.
+ */
+
 // ── Paginated Query ──
 
 export interface PaginatedProjectsResponse {
@@ -162,11 +172,6 @@ export interface PaginatedProjectsResponse {
     nextCursor: string | null;
 }
 
-/**
- * Get projects with cursor-based pagination and server-side filters.
- * Filters (category, activity, pabYear) are applied as Firestore where() clauses.
- * searchText is applied client-side since Firestore can't do substring matching.
- */
 export async function getPaginatedProjects(
     districtName: string,
     limit = 10,
@@ -180,8 +185,14 @@ export async function getPaginatedProjects(
 ): Promise<PaginatedProjectsResponse> {
     const db = getFirebaseDb();
     const col = collection(db, 'projects');
+    const searchText = options?.searchText?.trim() || '';
 
-    // Build filter constraints
+    // ── If searching, use server-side search queries ──
+    if (searchText.length > 0) {
+        return searchProjectsServerSide(districtName, limit, cursor, searchText, options);
+    }
+
+    // ── Standard paginated query (no search) ──
     const filterConstraints: QueryConstraint[] = [
         where('district_name', '==', districtName),
     ];
@@ -218,26 +229,136 @@ export async function getPaginatedProjects(
     const q = query(col, ...constraints);
     const snap = await getDocs(q);
 
-    let projects = snap.docs.slice(0, limit).map((d) =>
+    const projects = snap.docs.slice(0, limit).map((d) =>
         docToProject(d.id, d.data() as Record<string, unknown>),
     );
-
-    // Client-side text search (Firestore can't do substring matching)
-    if (options?.searchText) {
-        const searchLower = options.searchText.toLowerCase();
-        projects = projects.filter(
-            (p) =>
-                p.school_name.toLowerCase().includes(searchLower) ||
-                p.activity.toLowerCase().includes(searchLower) ||
-                p.udise_code.includes(searchLower),
-        );
-    }
 
     return {
         data: projects,
         total,
         hasMore: snap.docs.length > limit,
         nextCursor: projects.length > 0 ? projects[projects.length - 1].id : null,
+    };
+}
+
+/**
+ * Server-side search for projects.
+ *
+ * Strategy:
+ * 1. school_name prefix match: uses >= searchText and < searchText + '\uf8ff'
+ *    This gives us prefix matching (e.g. "GHS" matches "GHS GHATHASHI")
+ * 2. udise_code exact match: if text is numeric, do an exact where() on udise_code
+ * 3. Merge results, deduplicate by id, apply pagination client-side
+ */
+async function searchProjectsServerSide(
+    districtName: string,
+    limit: number,
+    cursor: string | null,
+    searchText: string,
+    options?: {
+        category?: string;
+        activity?: string;
+        pabYear?: string;
+    },
+): Promise<PaginatedProjectsResponse> {
+    const db = getFirebaseDb();
+    const col = collection(db, 'projects');
+
+    // Common filter constraints
+    const baseFilters: QueryConstraint[] = [
+        where('district_name', '==', districtName),
+    ];
+    if (options?.category) baseFilters.push(where('category', '==', options.category));
+    if (options?.activity) baseFilters.push(where('activity', '==', options.activity));
+    if (options?.pabYear) baseFilters.push(where('pab_year', '==', options.pabYear));
+
+    const allResults = new Map<string, Project>();
+
+    // Query 1: school_name prefix match (case-sensitive)
+    // Try both as-is and uppercase first letter for better matching
+    const searchVariants = [
+        searchText,
+        searchText.toUpperCase(),
+        searchText.charAt(0).toUpperCase() + searchText.slice(1).toLowerCase(),
+    ];
+
+    for (const variant of searchVariants) {
+        try {
+            const nameQ = query(
+                col,
+                ...baseFilters,
+                where('school_name', '>=', variant),
+                where('school_name', '<=', variant + '\uf8ff'),
+                queryLimit(50), // cap each search at 50 results
+            );
+            const nameSnap = await getDocs(nameQ);
+            for (const d of nameSnap.docs) {
+                if (!allResults.has(d.id)) {
+                    allResults.set(d.id, docToProject(d.id, d.data() as Record<string, unknown>));
+                }
+            }
+        } catch {
+            // Firebase may reject some compound queries — skip
+        }
+    }
+
+    // Query 2: udise_code exact match (if text looks numeric or is a UDISE code)
+    if (/^\d+$/.test(searchText)) {
+        try {
+            const udiseQ = query(
+                col,
+                ...baseFilters,
+                where('udise_code', '==', searchText),
+            );
+            const udiseSnap = await getDocs(udiseQ);
+            for (const d of udiseSnap.docs) {
+                if (!allResults.has(d.id)) {
+                    allResults.set(d.id, docToProject(d.id, d.data() as Record<string, unknown>));
+                }
+            }
+        } catch {
+            // Skip
+        }
+    }
+
+    // Query 3: activity exact match
+    try {
+        const actQ = query(
+            col,
+            where('district_name', '==', districtName),
+            where('activity', '==', searchText),
+            queryLimit(50),
+        );
+        const actSnap = await getDocs(actQ);
+        for (const d of actSnap.docs) {
+            if (!allResults.has(d.id)) {
+                allResults.set(d.id, docToProject(d.id, d.data() as Record<string, unknown>));
+            }
+        }
+    } catch {
+        // Skip — activity is an enum, exact match may not find anything
+    }
+
+    // Sort by created_at desc
+    const sorted = Array.from(allResults.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+
+    // Apply cursor-based pagination client-side on merged results
+    let startIdx = 0;
+    if (cursor) {
+        const cursorIdx = sorted.findIndex((p) => p.id === cursor);
+        if (cursorIdx !== -1) startIdx = cursorIdx + 1;
+    }
+
+    const page = sorted.slice(startIdx, startIdx + limit);
+    const hasMore = startIdx + limit < sorted.length;
+
+    return {
+        data: page,
+        total: sorted.length,
+        hasMore,
+        nextCursor: page.length > 0 ? page[page.length - 1].id : null,
     };
 }
 
@@ -255,6 +376,212 @@ export async function getRecentProjects(districtName: string): Promise<Project[]
     );
     const snap = await getDocs(q);
     return snap.docs.map((d) => docToProject(d.id, d.data() as Record<string, unknown>));
+}
+
+/**
+ * Get the 2 most recent projects across ALL districts (for JE home screen).
+ */
+export async function getAllRecentProjects(): Promise<Project[]> {
+    const db = getFirebaseDb();
+    const col = collection(db, 'projects');
+    const q = query(
+        col,
+        orderBy('created_at', 'desc'),
+        queryLimit(2),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => docToProject(d.id, d.data() as Record<string, unknown>));
+}
+
+/**
+ * Get ALL projects with cursor-based pagination (no district requirement).
+ * Used by JE screens where they can see all projects.
+ * District is an optional filter instead of a required parameter.
+ */
+export async function getAllPaginatedProjects(
+    limit = 10,
+    cursor: string | null = null,
+    options?: {
+        category?: string;
+        activity?: string;
+        pabYear?: string;
+        district?: string;
+        searchText?: string;
+    },
+): Promise<PaginatedProjectsResponse> {
+    const db = getFirebaseDb();
+    const col = collection(db, 'projects');
+    const searchText = options?.searchText?.trim() || '';
+
+    // ── If searching, use server-side search queries ──
+    if (searchText.length > 0) {
+        return searchAllProjectsServerSide(limit, cursor, searchText, options);
+    }
+
+    // ── Standard paginated query (no search) ──
+    const filterConstraints: QueryConstraint[] = [];
+
+    if (options?.district) {
+        filterConstraints.push(where('district_name', '==', options.district));
+    }
+    if (options?.category) {
+        filterConstraints.push(where('category', '==', options.category));
+    }
+    if (options?.activity) {
+        filterConstraints.push(where('activity', '==', options.activity));
+    }
+    if (options?.pabYear) {
+        filterConstraints.push(where('pab_year', '==', options.pabYear));
+    }
+
+    // Get total count
+    const countQ = filterConstraints.length > 0
+        ? query(col, ...filterConstraints)
+        : query(col);
+    const countSnap = await getCountFromServer(countQ);
+    const total = countSnap.data().count;
+
+    // Build paginated query
+    const constraints: QueryConstraint[] = [
+        ...filterConstraints,
+        orderBy('created_at', 'desc'),
+        queryLimit(limit + 1),
+    ];
+
+    if (cursor) {
+        const cursorDoc = await getDoc(doc(db, 'projects', cursor));
+        if (cursorDoc.exists()) {
+            constraints.push(startAfter(cursorDoc));
+        }
+    }
+
+    const q = query(col, ...constraints);
+    const snap = await getDocs(q);
+
+    const projects = snap.docs.slice(0, limit).map((d) =>
+        docToProject(d.id, d.data() as Record<string, unknown>),
+    );
+
+    return {
+        data: projects,
+        total,
+        hasMore: snap.docs.length > limit,
+        nextCursor: projects.length > 0 ? projects[projects.length - 1].id : null,
+    };
+}
+
+/**
+ * Server-side search across ALL projects (no district requirement).
+ */
+async function searchAllProjectsServerSide(
+    limit: number,
+    cursor: string | null,
+    searchText: string,
+    options?: {
+        category?: string;
+        activity?: string;
+        pabYear?: string;
+        district?: string;
+    },
+): Promise<PaginatedProjectsResponse> {
+    const db = getFirebaseDb();
+    const col = collection(db, 'projects');
+
+    // Base filters (all optional)
+    const baseFilters: QueryConstraint[] = [];
+    if (options?.district) baseFilters.push(where('district_name', '==', options.district));
+    if (options?.category) baseFilters.push(where('category', '==', options.category));
+    if (options?.pabYear) baseFilters.push(where('pab_year', '==', options.pabYear));
+
+    const allResults = new Map<string, Project>();
+
+    // Query 1: school_name prefix match with case variants
+    const searchVariants = [
+        searchText,
+        searchText.toUpperCase(),
+        searchText.charAt(0).toUpperCase() + searchText.slice(1).toLowerCase(),
+    ];
+
+    for (const variant of searchVariants) {
+        try {
+            const nameQ = query(
+                col,
+                ...baseFilters,
+                where('school_name', '>=', variant),
+                where('school_name', '<=', variant + '\uf8ff'),
+                queryLimit(50),
+            );
+            const nameSnap = await getDocs(nameQ);
+            for (const d of nameSnap.docs) {
+                if (!allResults.has(d.id)) {
+                    allResults.set(d.id, docToProject(d.id, d.data() as Record<string, unknown>));
+                }
+            }
+        } catch {
+            // Skip compound query errors
+        }
+    }
+
+    // Query 2: udise_code exact match (numeric input)
+    if (/^\d+$/.test(searchText)) {
+        try {
+            const udiseQ = query(
+                col,
+                ...baseFilters,
+                where('udise_code', '==', searchText),
+            );
+            const udiseSnap = await getDocs(udiseQ);
+            for (const d of udiseSnap.docs) {
+                if (!allResults.has(d.id)) {
+                    allResults.set(d.id, docToProject(d.id, d.data() as Record<string, unknown>));
+                }
+            }
+        } catch {
+            // Skip
+        }
+    }
+
+    // Query 3: activity exact match
+    try {
+        const actFilters: QueryConstraint[] = [];
+        if (options?.district) actFilters.push(where('district_name', '==', options.district));
+        const actQ = query(
+            col,
+            ...actFilters,
+            where('activity', '==', searchText),
+            queryLimit(50),
+        );
+        const actSnap = await getDocs(actQ);
+        for (const d of actSnap.docs) {
+            if (!allResults.has(d.id)) {
+                allResults.set(d.id, docToProject(d.id, d.data() as Record<string, unknown>));
+            }
+        }
+    } catch {
+        // Skip
+    }
+
+    // Sort by created_at desc
+    const sorted = Array.from(allResults.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+
+    // Client-side cursor pagination on merged results
+    let startIdx = 0;
+    if (cursor) {
+        const cursorIdx = sorted.findIndex((p) => p.id === cursor);
+        if (cursorIdx !== -1) startIdx = cursorIdx + 1;
+    }
+
+    const page = sorted.slice(startIdx, startIdx + limit);
+    const hasMore = startIdx + limit < sorted.length;
+
+    return {
+        data: page,
+        total: sorted.length,
+        hasMore,
+        nextCursor: page.length > 0 ? page[page.length - 1].id : null,
+    };
 }
 
 /**

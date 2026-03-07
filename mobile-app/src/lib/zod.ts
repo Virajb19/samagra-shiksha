@@ -680,12 +680,12 @@ export const PROJECT_COMPLETION_OPTIONS = [
  * Fields:
  * - completionStatus: percentage of project completion (10%-100%)
  * - comment: optional comment about the update
- * - photos: at least 1 photo of project status (max 3)
+ * - photos: at least 1 photo of project status (max 10)
  */
 export const ProjectStatusUpdateSchema = z.object({
     completionStatus: z.string().min(1, 'Please select project completion status'),
     comment: z.string().optional(),
-    photos: z.array(z.string()).min(1, 'Please upload at least 1 photo of project status').max(3, 'Maximum 3 photos allowed'),
+    photos: z.array(z.string()).min(1, 'Please upload at least 1 photo of project status').max(10, 'Maximum 10 photos allowed'),
 });
 
 export type ProjectStatusUpdateFormData = z.infer<typeof ProjectStatusUpdateSchema>;

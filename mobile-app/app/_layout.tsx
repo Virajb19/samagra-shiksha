@@ -73,6 +73,8 @@ export default function RootLayout() {
         onLayoutRootView();
     }, [onLayoutRootView]);
 
+    if (!fontsLoaded) return null;
+
     return (
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <NotificationHandler>

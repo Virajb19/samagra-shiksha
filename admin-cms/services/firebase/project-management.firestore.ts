@@ -17,11 +17,12 @@ import {
   getCountFromServer,
   updateDoc,
 } from "firebase/firestore";
-import type { ProjectSchool, Project, ProjectSchoolCategory, ProjectActivity, PABYear } from "@/types";
+import type { ProjectSchool, Project, ProjectUpdate, ProjectSchoolCategory, ProjectActivity, PABYear } from "@/types";
 import { getFirebaseFirestore } from "@/lib/firebase";
 import {
   ProjectSchoolDocSchema,
   ProjectDocSchema,
+  ProjectUpdateDocSchema,
 } from "@/lib/firebase-zod-schema";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
 import { devDelay } from "@/lib/dev-delay";
@@ -469,5 +470,37 @@ export const projectManagementFirestore = {
         schools: Array.from(entry.schools),
       }))
       .sort((a, b) => b.count - a.count);
+  },
+
+  /** Fetch all project updates for a given project, ordered by created_at */
+  async getProjectUpdates(projectId: string): Promise<ProjectUpdate[]> {
+    await waitForAuthReady();
+    const db = getFirebaseFirestore();
+    const q = query(
+      collection(db, 'project_updates'),
+      where('project_id', '==', projectId),
+      orderBy('created_at', 'asc'),
+    );
+    const snap = await getDocs(q);
+    const results: ProjectUpdate[] = [];
+    for (const d of snap.docs) {
+      const raw = d.data();
+      const parsed = ProjectUpdateDocSchema.safeParse({ id: d.id, ...raw });
+      if (!parsed.success) continue;
+      results.push({
+        id: parsed.data.id,
+        project_id: parsed.data.project_id,
+        user_id: parsed.data.user_id,
+        user_name: parsed.data.user_name,
+        completion_status: parsed.data.completion_status,
+        comment: parsed.data.comment ?? undefined,
+        photos: parsed.data.photos ?? [],
+        location_address: parsed.data.location_address ?? undefined,
+        latitude: parsed.data.latitude ?? undefined,
+        longitude: parsed.data.longitude ?? undefined,
+        created_at: toIso(parsed.data.created_at),
+      });
+    }
+    return results;
   },
 };

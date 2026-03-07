@@ -1072,6 +1072,7 @@ const projectSchoolMeta: Array<{
   category: string;
 }> = [];
 const projectIdsByStatus: { inProgress: string[]; completed: string[] } = { inProgress: [], completed: [] };
+const projectDocsMap = new Map<string, Record<string, unknown>>();
 
 function seedProjectSchools(): void {
   let count = 0;
@@ -1252,6 +1253,7 @@ function seedProjects(): void {
     if (contractor) doc.contractor = contractor;
 
     writer.set(db.collection('projects').doc(id), doc);
+    projectDocsMap.set(id, doc); // Store for later progress sync
     if (status === 'In Progress') projectIdsByStatus.inProgress.push(id);
     if (status === 'Completed') projectIdsByStatus.completed.push(id);
     count++;
@@ -1437,6 +1439,14 @@ function seedProjectUpdates(): void {
 
       writer.set(db.collection('project_updates').doc(id), doc);
       count++;
+    }
+
+    // ── Sync project's progress with its latest update ──
+    const lastCompletionStatus = statuses[statuses.length - 1];
+    const storedDoc = projectDocsMap.get(projectId);
+    if (storedDoc) {
+      storedDoc.progress = lastCompletionStatus;
+      writer.set(db.collection('projects').doc(projectId), storedDoc);
     }
   }
 

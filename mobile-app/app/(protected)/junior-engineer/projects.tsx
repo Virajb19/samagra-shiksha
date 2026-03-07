@@ -23,8 +23,9 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../../src/lib/store';
-import { getPaginatedProjects } from '../../../src/services/project.service';
+import { getAllPaginatedProjects } from '../../../src/services/project.service';
 import { getDistricts } from '../../../src/services/firebase/master-data.firestore';
 import type { Project, District } from '../../../src/types';
 
@@ -236,7 +237,16 @@ function ProjectCard({ project, onPress }: { project: Project; onPress: () => vo
 export default function ProjectsListScreen() {
     const { user } = useAuthStore();
     const [searchText, setSearchText] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterVisible, setFilterVisible] = useState(false);
+
+    // Debounce search input (500ms)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchText.trim());
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchText]);
 
     // Filter state (applied on "Search" tap)
     const [categoryFilter, setCategoryFilter] = useState('');
@@ -250,13 +260,12 @@ export default function ProjectsListScreen() {
     const [tmpDistrict, setTmpDistrict] = useState('');
     const [tmpYear, setTmpYear] = useState('');
 
-    // Fetch districts
+    // Fetch districts (for filter dropdown)
     const { data: districts = [] } = useQuery<District[]>({
         queryKey: ['districts'],
         queryFn: getDistricts,
     });
 
-    const userDistrictName = districts.find(d => d.id === user?.district_id)?.name || '';
     const districtNames = useMemo(() => districts.map(d => d.name).sort(), [districts]);
 
     // Open filter dialog → sync temp state from active filters
@@ -285,7 +294,7 @@ export default function ProjectsListScreen() {
         setTmpYear('');
     };
 
-    // ── Infinite Query ──
+    // ── Infinite Query (searchText is now server-side) ──
     const {
         data,
         fetchNextPage,
@@ -295,35 +304,31 @@ export default function ProjectsListScreen() {
         isFetching,
         refetch,
     } = useInfiniteQuery({
-        queryKey: ['projects-paginated', userDistrictName, categoryFilter, activityFilter, districtFilter, yearFilter],
+        queryKey: ['projects-paginated', categoryFilter, activityFilter, districtFilter, yearFilter, debouncedSearch],
         queryFn: ({ pageParam }) =>
-            getPaginatedProjects(userDistrictName, PAGE_SIZE, pageParam as string | null, {
+            getAllPaginatedProjects(PAGE_SIZE, pageParam as string | null, {
                 category: categoryFilter || undefined,
                 activity: activityFilter || undefined,
                 pabYear: yearFilter || undefined,
+                district: districtFilter || undefined,
+                searchText: debouncedSearch || undefined,
             }),
         initialPageParam: null as string | null,
         getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
-        enabled: !!userDistrictName,
     });
+
+    // Refetch when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch]),
+    );
 
     // Flatten all pages into a single list
     const allProjects = useMemo(() => {
         if (!data?.pages) return [];
         return data.pages.flatMap((page) => page.data);
     }, [data]);
-
-    // Client-side text search on loaded data
-    const filteredProjects = useMemo(() => {
-        if (!searchText.trim()) return allProjects;
-        const q = searchText.toLowerCase();
-        return allProjects.filter(
-            (p) =>
-                p.school_name.toLowerCase().includes(q) ||
-                p.activity.toLowerCase().includes(q) ||
-                p.udise_code.includes(q),
-        );
-    }, [allProjects, searchText]);
 
     const totalCount = data?.pages?.[0]?.total ?? 0;
     const activeFilterCount = [categoryFilter, activityFilter, districtFilter, yearFilter].filter(Boolean).length;
@@ -404,20 +409,20 @@ export default function ProjectsListScreen() {
                     </View>
                     {/* Result count */}
                     <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 6, marginLeft: 4 }}>
-                        {showSkeleton ? 'Loading...' : `${filteredProjects.length} of ${totalCount} projects`}
+                        {showSkeleton ? 'Loading...' : `${allProjects.length} of ${totalCount} projects`}
                     </Text>
                 </View>
 
                 {showSkeleton ? (
                     <SkeletonList />
-                ) : filteredProjects.length === 0 ? (
+                ) : allProjects.length === 0 ? (
                     <View className="flex-1 items-center justify-center">
                         <Ionicons name="folder-open-outline" size={60} color="#d1d5db" />
                         <Text className="text-gray-400 text-base mt-3">No projects found</Text>
                     </View>
                 ) : (
                     <FlatList
-                        data={filteredProjects}
+                        data={allProjects}
                         keyExtractor={(item) => item.id}
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}

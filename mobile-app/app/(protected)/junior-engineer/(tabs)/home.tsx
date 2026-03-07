@@ -26,9 +26,8 @@ import { router } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { getRecentProjects } from '../../../../src/services/project.service';
-import { getDistricts } from '../../../../src/services/firebase/master-data.firestore';
-import type { Project, District } from '../../../../src/types';
+import { getAllRecentProjects } from '../../../../src/services/project.service';
+import type { Project } from '../../../../src/types';
 
 const BLUE = '#1565C0';
 
@@ -188,20 +187,11 @@ export default function JuniorEngineerHomeTabScreen() {
     const hasCompletedProfile = user?.has_completed_profile ?? false;
     const isActive = user?.is_active ?? false;
 
-    // Fetch districts to resolve user's district_id → name
-    const { data: districts = [] } = useQuery<District[]>({
-        queryKey: ['districts'],
-        queryFn: getDistricts,
-        enabled: hasCompletedProfile && isActive,
-    });
-
-    const userDistrictName = districts.find(d => d.id === user?.district_id)?.name || '';
-
-    // Recent projects (2) for home screen
+    // Recent projects (2) for home screen — across all districts
     const { data: recentProjects = [], isLoading: loadingProjects } = useQuery<Project[]>({
-        queryKey: ['recent-projects', userDistrictName],
-        queryFn: () => getRecentProjects(userDistrictName),
-        enabled: !!userDistrictName && hasCompletedProfile && isActive,
+        queryKey: ['recent-projects-all'],
+        queryFn: () => getAllRecentProjects(),
+        enabled: hasCompletedProfile && isActive,
     });
 
     const handleLockedAction = () => {

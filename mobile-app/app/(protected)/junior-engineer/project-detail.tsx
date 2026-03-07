@@ -193,7 +193,7 @@ export default function ProjectDetailScreen() {
                 {/* Update Project Status Button */}
                 <View className="px-4 pb-6 pt-2" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
                     <TouchableOpacity
-                        onPress={() => router.push(`/(protected)/junior-engineer/update-project-status?id=${project.id}&progress=${project.progress}`)}
+                        onPress={() => router.push(`/(protected)/junior-engineer/update-project-status?id=${project.id}&progress=${project.progress}&school_name=${encodeURIComponent(project.school_name)}&activity=${encodeURIComponent(project.activity)}&district_name=${encodeURIComponent(project.district_name)}&category=${encodeURIComponent(project.category)}&udise_code=${project.udise_code}`)}
                         className="rounded-xl py-4 items-center"
                         style={{ backgroundColor: BLUE, elevation: 4 }}
                         activeOpacity={0.85}

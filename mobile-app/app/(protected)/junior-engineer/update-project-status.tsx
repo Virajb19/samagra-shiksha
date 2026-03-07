@@ -4,13 +4,13 @@
  * Junior Engineer submits a project progress update with:
  * - Completion status (dropdown: 10%-100%)
  * - Comment (optional)
- * - Photos (1-3)
- * - GPS location (captured on submit)
+ * - Photos (1-10)
+ * - GPS location (requested on mount, captured on submit)
  *
  * Uses react-hook-form + zodResolver for validation.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -22,6 +22,7 @@ import {
     ActivityIndicator,
     Platform,
     KeyboardAvoidingView,
+    Animated,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,17 +42,64 @@ import { submitProjectUpdate } from '../../../src/services/project.service';
 import { useAuthStore } from '../../../src/lib/store';
 
 const BLUE = '#1565C0';
-const MAX_PHOTOS = 3;
+const BLUE_DARK = '#0D47A1';
+const MAX_PHOTOS = 10;
 
 export default function UpdateProjectStatusScreen() {
-    const { id: projectId, progress: currentProgress } = useLocalSearchParams<{
+    const {
+        id: projectId,
+        progress: currentProgress,
+        school_name: schoolName,
+        activity,
+        district_name: districtName,
+        category,
+        udise_code: udiseCode,
+    } = useLocalSearchParams<{
         id: string;
         progress: string;
+        school_name: string;
+        activity: string;
+        district_name: string;
+        category: string;
+        udise_code: string;
     }>();
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
 
     const [showStatusPicker, setShowStatusPicker] = useState(false);
+    const [locationGranted, setLocationGranted] = useState<boolean | null>(null);
+    const [liveAddress, setLiveAddress] = useState<string>('Fetching location...');
+
+    // ── Request location permission on mount ──
+    useEffect(() => {
+        (async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            setLocationGranted(status === 'granted');
+
+            if (status === 'granted') {
+                try {
+                    const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+                    const [place] = await Location.reverseGeocodeAsync({
+                        latitude: loc.coords.latitude,
+                        longitude: loc.coords.longitude,
+                    });
+                    if (place) {
+                        setLiveAddress(
+                            [place.name, place.street, place.city, place.region, place.postalCode, place.country]
+                                .filter(Boolean)
+                                .join(', '),
+                        );
+                    } else {
+                        setLiveAddress(`${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)}`);
+                    }
+                } catch {
+                    setLiveAddress('Unable to fetch address');
+                }
+            } else {
+                setLiveAddress('Location permission denied');
+            }
+        })();
+    }, []);
 
     const {
         control,
@@ -94,6 +142,29 @@ export default function UpdateProjectStatusScreen() {
         }
     };
 
+    const takePhoto = async () => {
+        if (photos.length >= MAX_PHOTOS) {
+            Alert.alert('Limit Reached', `Maximum ${MAX_PHOTOS} photos allowed.`);
+            return;
+        }
+
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Camera permission is needed to take photos.');
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            quality: 0.7,
+        });
+
+        if (!result.canceled && result.assets.length > 0) {
+            setValue('photos', [...photos, result.assets[0].uri].slice(0, MAX_PHOTOS), {
+                shouldValidate: true,
+            });
+        }
+    };
+
     const removePhoto = (index: number) => {
         const updated = photos.filter((_, i) => i !== index);
         setValue('photos', updated, { shouldValidate: true });
@@ -103,19 +174,21 @@ export default function UpdateProjectStatusScreen() {
 
     const submitMutation = useMutation({
         mutationFn: async (data: ProjectStatusUpdateFormData) => {
-            // 1. Request location
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                throw new Error(
-                    'Location permission is required to submit a project update. Please enable location access.',
-                );
+            // Check location permission
+            if (!locationGranted) {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    throw new Error(
+                        'Location permission is required to submit a project update.',
+                    );
+                }
             }
 
             const location = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.High,
             });
 
-            // 2. Reverse geocode for location address
+            // Reverse geocode
             let locationAddress = '';
             try {
                 const [place] = await Location.reverseGeocodeAsync({
@@ -123,15 +196,14 @@ export default function UpdateProjectStatusScreen() {
                     longitude: location.coords.longitude,
                 });
                 if (place) {
-                    locationAddress = [place.name, place.city, place.region]
+                    locationAddress = [place.name, place.street, place.city, place.region, place.postalCode, place.country]
                         .filter(Boolean)
                         .join(', ');
                 }
             } catch {
-                // Non-critical — proceed without address
+                // Non-critical
             }
 
-            // 3. Submit
             const result = await submitProjectUpdate({
                 projectId: projectId!,
                 userId: user!.id,
@@ -164,6 +236,7 @@ export default function UpdateProjectStatusScreen() {
                 type: 'error',
                 text1: 'Submission Failed',
                 text2: error.message,
+                visibilityTime: 4000,
             });
         },
     });
@@ -173,212 +246,368 @@ export default function UpdateProjectStatusScreen() {
     };
 
     const onFormError = () => {
-        Toast.show({
-            type: 'error',
-            text1: 'Validation Error',
-            text2: 'Please fill in all required fields.',
-        });
+        // Collect all error messages
+        const messages: string[] = [];
+        if (errors.completionStatus) messages.push('• ' + errors.completionStatus.message);
+        if (errors.photos) messages.push('• ' + errors.photos.message);
+        if (errors.comment) messages.push('• ' + errors.comment.message);
+
+        Alert.alert(
+            'Validation Error',
+            messages.length > 0
+                ? 'Please fix the following:\n\n' + messages.join('\n')
+                : 'Please fill in all required fields.',
+        );
     };
+
+    // ── Progress helper ──
+    const progressNum = parseInt(currentProgress || '0', 10);
+    const progressColor = progressNum >= 75 ? '#22c55e' : progressNum >= 40 ? '#f59e0b' : '#ef4444';
 
     const bodyContent = (
         <ScrollView
-            className="flex-1 bg-white"
-            contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: 120 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
         >
-            {/* Current Progress */}
-            {currentProgress && (
-                <View className="bg-blue-50 rounded-xl p-3 mb-5 flex-row items-center">
-                    <Ionicons name="information-circle-outline" size={18} color={BLUE} />
-                    <Text className="text-sm text-blue-800 ml-2 flex-1">
-                        Current progress: <Text className="font-bold">{currentProgress}%</Text>
+            {/* ─── Project Info Header ─── */}
+            <View
+                style={{
+                    backgroundColor: BLUE,
+                    paddingHorizontal: 20,
+                    paddingTop: 16,
+                    paddingBottom: 20,
+                    borderBottomLeftRadius: 24,
+                    borderBottomRightRadius: 24,
+                }}
+            >
+                <View className="flex-row justify-between items-start">
+                    <View className="flex-1 mr-3">
+                        {activity ? (
+                            <Text className="text-white/80 text-xs font-semibold tracking-wide uppercase">{activity}</Text>
+                        ) : null}
+                        {schoolName ? (
+                            <Text className="text-white text-lg font-bold mt-1" numberOfLines={2}>{schoolName}</Text>
+                        ) : null}
+                        <View className="mt-2 gap-y-0.5">
+                            {udiseCode ? (
+                                <Text className="text-white/70 text-xs">
+                                    <Text className="text-white/50">Project ID: </Text>#{udiseCode}
+                                </Text>
+                            ) : null}
+                            {category ? (
+                                <Text className="text-white/70 text-xs">
+                                    <Text className="text-white/50">Category: </Text>{category}
+                                </Text>
+                            ) : null}
+                        </View>
+                        {districtName ? (
+                            <View className="flex-row items-center mt-1.5">
+                                <Ionicons name="location-outline" size={12} color="rgba(255,255,255,0.7)" />
+                                <Text className="text-white/70 text-xs ml-1">{districtName}</Text>
+                            </View>
+                        ) : null}
+                    </View>
+                    {/* Progress badge */}
+                    <View
+                        className="rounded-xl px-3 py-1.5 items-center"
+                        style={{ backgroundColor: progressColor }}
+                    >
+                        <Text className="text-white text-lg font-bold">{progressNum}%</Text>
+                        <Text className="text-white/80 text-[9px] font-semibold">PROGRESS</Text>
+                    </View>
+                </View>
+
+                {/* Live Location */}
+                <View
+                    className="flex-row items-center mt-3 px-3 py-2 rounded-lg"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+                >
+                    <Ionicons
+                        name={locationGranted === false ? 'warning-outline' : 'navigate-outline'}
+                        size={14}
+                        color={locationGranted === false ? '#fbbf24' : 'rgba(255,255,255,0.8)'}
+                    />
+                    <Text className="text-white/80 text-[11px] ml-2 flex-1" numberOfLines={2}>
+                        <Text style={{ fontWeight: '700' }}>Live Location: </Text>
+                        {liveAddress}
                     </Text>
                 </View>
-            )}
+            </View>
 
-            {/* Completion Status */}
-            <View className="mb-5">
-                <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">
-                    Completion Status <Text className="text-red-500">*</Text>
-                </Text>
-                <Text className="text-xs text-gray-500 mb-2">
-                    Select the current completion percentage
-                </Text>
+            {/* ─── Form Content ─── */}
+            <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
+                {/* ─ Project Completion Status ─ */}
+                <View className="mb-5">
+                    <Text className="text-[15px] font-bold text-gray-800 mb-1">
+                        Project Completion Status <Text className="text-red-500">*</Text>
+                    </Text>
+                    <Text className="text-xs text-gray-400 mb-2">
+                        Select the current completion percentage
+                    </Text>
 
-                <TouchableOpacity
-                    onPress={() => setShowStatusPicker(!showStatusPicker)}
-                    className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 flex-row justify-between items-center"
-                >
-                    <Text
-                        className={
-                            selectedStatus
-                                ? 'text-[15px] text-[#1a1a1a]'
-                                : 'text-[15px] text-gray-400'
-                        }
+                    <TouchableOpacity
+                        onPress={() => setShowStatusPicker(!showStatusPicker)}
+                        className="flex-row justify-between items-center"
+                        style={{
+                            backgroundColor: '#f8fafc',
+                            borderWidth: 1,
+                            borderColor: errors.completionStatus ? '#ef4444' : '#e2e8f0',
+                            borderRadius: 14,
+                            paddingHorizontal: 16,
+                            paddingVertical: 14,
+                        }}
+                        activeOpacity={0.7}
                     >
-                        {selectedStatus ? `${selectedStatus}%` : 'Select completion status'}
-                    </Text>
-                    <Ionicons
-                        name={showStatusPicker ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color="#9ca3af"
-                    />
-                </TouchableOpacity>
-
-                {showStatusPicker && (
-                    <View className="bg-white border border-gray-200 rounded-xl mt-1 overflow-hidden">
-                        {PROJECT_COMPLETION_OPTIONS.map((option) => (
-                            <TouchableOpacity
-                                key={option}
-                                onPress={() => {
-                                    setValue('completionStatus', option, {
-                                        shouldValidate: true,
-                                    });
-                                    setShowStatusPicker(false);
-                                }}
-                                className={`px-4 py-3 border-b border-gray-100 flex-row justify-between items-center ${
-                                    selectedStatus === option ? 'bg-blue-50' : ''
-                                }`}
-                            >
-                                <Text
-                                    className={`text-[15px] ${
-                                        selectedStatus === option
-                                            ? 'text-blue-700 font-semibold'
-                                            : 'text-[#1a1a1a]'
-                                    }`}
-                                >
-                                    {option}%
-                                </Text>
-                                {selectedStatus === option && (
-                                    <Ionicons
-                                        name="checkmark-circle"
-                                        size={20}
-                                        color={BLUE}
-                                    />
-                                )}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
-
-                {errors.completionStatus ? (
-                    <Text className="text-xs text-red-500 mt-1">
-                        {errors.completionStatus.message}
-                    </Text>
-                ) : (
-                    <View className="h-4" />
-                )}
-            </View>
-
-            {/* Comment */}
-            <View className="mb-5">
-                <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">
-                    Comment <Text className="text-gray-400 text-xs font-normal">(Optional)</Text>
-                </Text>
-                <Controller
-                    control={control}
-                    name="comment"
-                    render={({ field: { onChange, onBlur, value } }) => (
-                        <TextInput
-                            className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]"
-                            placeholder="Add any comments about the update..."
-                            placeholderTextColor="#9ca3af"
-                            multiline
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            style={{ minHeight: 100 }}
-                            value={value}
-                            onChangeText={onChange}
-                            onBlur={onBlur}
-                        />
-                    )}
-                />
-            </View>
-
-            {/* Photos */}
-            <View className="mb-5">
-                <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">
-                    Photos <Text className="text-red-500">*</Text>
-                </Text>
-                <Text className="text-xs text-gray-500 mb-2.5">
-                    {photos.length}/{MAX_PHOTOS} photos uploaded
-                </Text>
-
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={{ overflow: 'visible' }}
-                    contentContainerStyle={{
-                        gap: 12,
-                        paddingRight: 16,
-                        paddingTop: 10,
-                        paddingLeft: 2,
-                        paddingBottom: 4,
-                    }}
-                >
-                    {photos.map((uri, idx) => (
-                        <View key={idx} style={{ position: 'relative' }}>
-                            <Image
-                                source={{ uri }}
-                                style={{ width: 96, height: 96, borderRadius: 12 }}
-                            />
-                            <TouchableOpacity
-                                style={{
-                                    position: 'absolute',
-                                    top: -8,
-                                    right: -8,
-                                    backgroundColor: '#ef4444',
-                                    borderRadius: 12,
-                                    width: 24,
-                                    height: 24,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                                onPress={() => removePhoto(idx)}
-                            >
-                                <Ionicons name="close" size={14} color="#fff" />
-                            </TouchableOpacity>
-                        </View>
-                    ))}
-
-                    {photos.length < MAX_PHOTOS && (
-                        <TouchableOpacity
-                            onPress={pickPhotos}
+                        <Text
                             style={{
-                                width: 96,
-                                height: 96,
-                                borderRadius: 12,
-                                borderWidth: 2,
-                                borderColor: '#d1d5db',
-                                borderStyle: 'dashed',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: '#f9fafb',
+                                fontSize: 15,
+                                color: selectedStatus ? '#1a1a1a' : '#94a3b8',
+                                fontWeight: selectedStatus ? '600' : '400',
                             }}
                         >
-                            <Ionicons name="camera-outline" size={28} color="#9ca3af" />
-                            <Text className="text-[10px] text-gray-400 mt-1">Add Photo</Text>
-                        </TouchableOpacity>
+                            {selectedStatus ? `${selectedStatus}%` : 'Select option'}
+                        </Text>
+                        <Ionicons
+                            name={showStatusPicker ? 'chevron-up' : 'chevron-down'}
+                            size={20}
+                            color="#94a3b8"
+                        />
+                    </TouchableOpacity>
+
+                    {showStatusPicker && (
+                        <View
+                            style={{
+                                backgroundColor: '#fff',
+                                borderWidth: 1,
+                                borderColor: '#e2e8f0',
+                                borderRadius: 14,
+                                marginTop: 6,
+                                overflow: 'hidden',
+                                elevation: 4,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.08,
+                                shadowRadius: 8,
+                            }}
+                        >
+                            {PROJECT_COMPLETION_OPTIONS.map((option, idx) => (
+                                <TouchableOpacity
+                                    key={option}
+                                    onPress={() => {
+                                        setValue('completionStatus', option, {
+                                            shouldValidate: true,
+                                        });
+                                        setShowStatusPicker(false);
+                                    }}
+                                    style={{
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 13,
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        backgroundColor: selectedStatus === option ? '#eff6ff' : '#fff',
+                                        borderBottomWidth: idx < PROJECT_COMPLETION_OPTIONS.length - 1 ? 1 : 0,
+                                        borderBottomColor: '#f1f5f9',
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <View className="flex-row items-center">
+                                        <View
+                                            style={{
+                                                width: 32,
+                                                height: 4,
+                                                borderRadius: 2,
+                                                backgroundColor: parseInt(option) >= 75 ? '#22c55e' : parseInt(option) >= 40 ? '#f59e0b' : '#ef4444',
+                                                marginRight: 10,
+                                                opacity: 0.7,
+                                            }}
+                                        />
+                                        <Text
+                                            style={{
+                                                fontSize: 15,
+                                                color: selectedStatus === option ? BLUE : '#374151',
+                                                fontWeight: selectedStatus === option ? '700' : '500',
+                                            }}
+                                        >
+                                            {option}%
+                                        </Text>
+                                    </View>
+                                    {selectedStatus === option && (
+                                        <Ionicons name="checkmark-circle" size={20} color={BLUE} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     )}
-                </ScrollView>
 
-                {errors.photos ? (
-                    <Text className="text-xs text-red-500 mt-2">
-                        {errors.photos.message}
+                    {errors.completionStatus && (
+                        <View className="flex-row items-center mt-1.5">
+                            <Ionicons name="alert-circle" size={13} color="#ef4444" />
+                            <Text className="text-xs text-red-500 ml-1">
+                                {errors.completionStatus.message}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+
+                {/* ─ Any Comment ─ */}
+                <View className="mb-5">
+                    <Text className="text-[15px] font-bold text-gray-800 mb-1">
+                        Any Comment
                     </Text>
-                ) : (
-                    <View className="h-4" />
-                )}
-            </View>
+                    <Controller
+                        control={control}
+                        name="comment"
+                        render={({ field: { onChange, onBlur, value } }) => (
+                            <TextInput
+                                style={{
+                                    backgroundColor: '#f8fafc',
+                                    borderWidth: 1,
+                                    borderColor: '#e2e8f0',
+                                    borderRadius: 14,
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 14,
+                                    fontSize: 15,
+                                    color: '#1a1a1a',
+                                    minHeight: 100,
+                                    textAlignVertical: 'top',
+                                }}
+                                placeholder="Write if any comment (optional)"
+                                placeholderTextColor="#94a3b8"
+                                multiline
+                                numberOfLines={4}
+                                value={value}
+                                onChangeText={onChange}
+                                onBlur={onBlur}
+                            />
+                        )}
+                    />
+                </View>
 
-            {/* Location Notice */}
-            <View className="bg-amber-50 rounded-xl p-3 flex-row items-start">
-                <Ionicons name="location-outline" size={18} color="#d97706" />
-                <Text className="text-xs text-amber-700 ml-2 flex-1">
-                    Your GPS location will be captured when you submit this update for
-                    verification purposes.
-                </Text>
+                {/* ─ Photos ─ */}
+                <View className="mb-5">
+                    <Text className="text-[15px] font-bold text-gray-800 mb-0.5">
+                        Photos of project status <Text className="text-red-500">*</Text>
+                    </Text>
+                    <Text className="text-xs text-gray-400 mb-3">
+                        {photos.length}/{MAX_PHOTOS} photos — at least 1 required
+                    </Text>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={{ overflow: 'visible' }}
+                        contentContainerStyle={{
+                            gap: 10,
+                            paddingRight: 16,
+                            paddingTop: 8,
+                            paddingLeft: 2,
+                            paddingBottom: 4,
+                        }}
+                    >
+                        {photos.map((uri, idx) => (
+                            <View key={idx} style={{ position: 'relative' }}>
+                                <Image
+                                    source={{ uri }}
+                                    style={{
+                                        width: 88,
+                                        height: 88,
+                                        borderRadius: 14,
+                                        borderWidth: 1,
+                                        borderColor: '#e2e8f0',
+                                    }}
+                                />
+                                <TouchableOpacity
+                                    style={{
+                                        position: 'absolute',
+                                        top: -6,
+                                        right: -6,
+                                        backgroundColor: '#ef4444',
+                                        borderRadius: 12,
+                                        width: 22,
+                                        height: 22,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        elevation: 3,
+                                        shadowColor: '#ef4444',
+                                        shadowOffset: { width: 0, height: 1 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 3,
+                                    }}
+                                    onPress={() => removePhoto(idx)}
+                                >
+                                    <Ionicons name="close" size={13} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+
+                        {photos.length < MAX_PHOTOS && (
+                            <>
+                                {/* Pick from gallery */}
+                                <TouchableOpacity
+                                    onPress={pickPhotos}
+                                    style={{
+                                        width: 88,
+                                        height: 88,
+                                        borderRadius: 14,
+                                        borderWidth: 2,
+                                        borderColor: '#cbd5e1',
+                                        borderStyle: 'dashed',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f8fafc',
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="images-outline" size={24} color="#94a3b8" />
+                                    <Text style={{ fontSize: 9, color: '#94a3b8', marginTop: 3, fontWeight: '600' }}>Gallery</Text>
+                                </TouchableOpacity>
+
+                                {/* Take photo */}
+                                <TouchableOpacity
+                                    onPress={takePhoto}
+                                    style={{
+                                        width: 88,
+                                        height: 88,
+                                        borderRadius: 14,
+                                        borderWidth: 2,
+                                        borderColor: '#cbd5e1',
+                                        borderStyle: 'dashed',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f8fafc',
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="camera-outline" size={24} color="#94a3b8" />
+                                    <Text style={{ fontSize: 9, color: '#94a3b8', marginTop: 3, fontWeight: '600' }}>Camera</Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </ScrollView>
+
+                    {errors.photos && (
+                        <View className="flex-row items-center mt-2">
+                            <Ionicons name="alert-circle" size={13} color="#ef4444" />
+                            <Text className="text-xs text-red-500 ml-1">
+                                {errors.photos.message}
+                            </Text>
+                        </View>
+                    )}
+                </View>
+
+                {/* ─ GPS Notice ─ */}
+                <View
+                    className="flex-row items-start px-3 py-3 rounded-xl mb-4"
+                    style={{ backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fef3c7' }}
+                >
+                    <Ionicons name="location-outline" size={16} color="#d97706" style={{ marginTop: 1 }} />
+                    <Text className="text-xs ml-2 flex-1" style={{ color: '#92400e', lineHeight: 18 }}>
+                        Your GPS location will be captured when you submit for verification purposes.
+                    </Text>
+                </View>
             </View>
         </ScrollView>
     );
@@ -386,14 +615,26 @@ export default function UpdateProjectStatusScreen() {
     return (
         <>
             {/* Page title */}
-            <View className="flex-row items-center px-4 py-3" style={{ backgroundColor: BLUE }}>
-                <TouchableOpacity onPress={() => router.back()} className="mr-3">
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
+            <View
+                className="flex-row items-center px-4 py-3.5"
+                style={{ backgroundColor: BLUE }}
+            >
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="mr-3"
+                    style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        backgroundColor: 'rgba(255,255,255,0.15)',
+                        alignItems: 'center', justifyContent: 'center',
+                    }}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="arrow-back" size={22} color="#fff" />
                 </TouchableOpacity>
-                <Text className="text-white text-lg font-semibold">Update Project Status</Text>
+                <Text className="text-white text-lg font-bold">Update Project Status</Text>
             </View>
 
-            <View className="flex-1 bg-[#f0f4f8]">
+            <View className="flex-1 bg-white">
                 {Platform.OS === 'ios' ? (
                     <KeyboardAvoidingView behavior="padding" className="flex-1">
                         {bodyContent}
@@ -404,24 +645,31 @@ export default function UpdateProjectStatusScreen() {
 
                 {/* Submit Button */}
                 <View
-                    className="px-4 pb-6 pt-2"
                     style={{
                         position: 'absolute',
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        backgroundColor: '#f0f4f8',
+                        paddingHorizontal: 20,
+                        paddingBottom: 24,
+                        paddingTop: 12,
+                        backgroundColor: '#fff',
+                        borderTopWidth: 1,
+                        borderTopColor: '#f1f5f9',
                     }}
                 >
                     <TouchableOpacity
-                        className={`rounded-xl py-4 items-center ${
-                            submitMutation.isPending ? 'bg-gray-400' : ''
-                        }`}
-                        style={
-                            !submitMutation.isPending
-                                ? { backgroundColor: BLUE, elevation: 4 }
-                                : undefined
-                        }
+                        style={{
+                            borderRadius: 14,
+                            paddingVertical: 16,
+                            alignItems: 'center',
+                            backgroundColor: submitMutation.isPending ? '#94a3b8' : BLUE,
+                            elevation: submitMutation.isPending ? 0 : 4,
+                            shadowColor: BLUE,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 8,
+                        }}
                         onPress={handleSubmit(onSubmit, onFormError)}
                         disabled={submitMutation.isPending}
                         activeOpacity={0.85}
@@ -434,9 +682,12 @@ export default function UpdateProjectStatusScreen() {
                                 </Text>
                             </View>
                         ) : (
-                            <Text className="text-white text-base font-bold">
-                                Submit Update
-                            </Text>
+                            <View className="flex-row items-center">
+                                <Ionicons name="cloud-upload-outline" size={20} color="#fff" />
+                                <Text className="text-white text-base font-bold ml-2">
+                                    Submit
+                                </Text>
+                            </View>
                         )}
                     </TouchableOpacity>
                 </View>

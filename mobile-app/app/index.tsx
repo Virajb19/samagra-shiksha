@@ -7,7 +7,6 @@
  * - Loading → Splash screen
  */
 
-import { useEffect } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '../src/lib/store';

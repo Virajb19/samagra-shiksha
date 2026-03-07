@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Loader2, FileText, Search, Save, FilterX, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { Loader2, FileText, Search, Save, FilterX, Image as ImageIcon, ChevronLeft, ChevronRight, Clock, User } from 'lucide-react';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
@@ -14,7 +14,7 @@ import {
   projectManagementFirestore,
   ProjectsResponse,
 } from '@/services/firebase/project-management.firestore';
-import type { Project, PABYear } from '@/types';
+import type { Project, PABYear, ProjectUpdate } from '@/types';
 import {
   Select,
   SelectContent,
@@ -75,67 +75,155 @@ type EditableRow = {
 
 const PAGE_SIZE = 20;
 
+// ─── Photo slide — one entry per photo, linked back to its update ─────────
+type PhotoSlide = {
+  url: string;
+  progress: number;
+  comment: string | null;
+  userName: string;
+  date: string;
+};
+
 // ─── Photo Viewer Dialog ───────────────────────────────────────────────
-function ProjectPhotoDialog({ photos, open, onOpenChange }: { photos: string[]; open: boolean; onOpenChange: (o: boolean) => void }) {
+function ProjectPhotoDialog({ projectId, open, onOpenChange }: { projectId: string; open: boolean; onOpenChange: (o: boolean) => void }) {
     const [idx, setIdx] = useState(0);
-    const prev = () => setIdx((i) => (i === 0 ? photos.length - 1 : i - 1));
-    const next = () => setIdx((i) => (i === photos.length - 1 ? 0 : i + 1));
+    const prev = () => setIdx((i) => (i === 0 ? slides.length - 1 : i - 1));
+    const next = () => setIdx((i) => (i === slides.length - 1 ? 0 : i + 1));
     useEffect(() => { if (open) setIdx(0); }, [open]);
-    if (!photos.length) return null;
+
+    // Fetch project updates when dialog opens
+    const { data: updates = [], isLoading } = useQuery<ProjectUpdate[]>({
+        queryKey: ['project-updates', projectId],
+        queryFn: () => projectManagementFirestore.getProjectUpdates(projectId),
+        enabled: open && !!projectId,
+        staleTime: 60_000,
+    });
+
+    // Flatten updates into photo slides
+    const slides: PhotoSlide[] = useMemo(() => {
+        const result: PhotoSlide[] = [];
+        for (const update of updates) {
+            for (const url of update.photos) {
+                result.push({
+                    url,
+                    progress: update.completion_status,
+                    comment: update.comment ?? null,
+                    userName: update.user_name,
+                    date: new Date(update.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+                });
+            }
+        }
+        return result;
+    }, [updates]);
+
+    if (!open) return null;
+
+    const current = slides[idx];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-2xl">
                 <DialogHeader className="p-4 pb-0">
                     <DialogTitle className="text-slate-900 dark:text-white text-lg">
-                        Photo {idx + 1} of {photos.length}
+                        {isLoading ? 'Loading photos...' : slides.length === 0 ? 'No photos found' : `Photo ${idx + 1} of ${slides.length}`}
                     </DialogTitle>
                 </DialogHeader>
-                <div className="relative flex items-center justify-center min-h-[400px] p-4 bg-slate-50 dark:bg-slate-800/50 mx-4 rounded-xl">
-                    <AnimatePresence mode="wait">
-                        <motion.img key={idx} src={photos[idx]} alt={`Photo ${idx + 1}`}
-                            className="max-h-[500px] max-w-full object-contain rounded-lg shadow-md"
-                            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} />
-                    </AnimatePresence>
-                    {photos.length > 1 && (
-                        <>
-                            <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
-                                <ChevronLeft className="h-5 w-5" />
-                            </button>
-                            <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
-                                <ChevronRight className="h-5 w-5" />
-                            </button>
-                        </>
-                    )}
-                </div>
-                {photos.length > 1 && (
-                    <div className="flex gap-2 px-4 pb-4 overflow-x-auto justify-center">
-                        {photos.map((photo, i) => (
-                            <button key={i} onClick={() => setIdx(i)}
-                                className={cn('w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all shadow-sm',
-                                    i === idx ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-600 opacity-60 hover:opacity-100')}>
-                                <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
-                            </button>
-                        ))}
+
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                        <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
                     </div>
+                ) : slides.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+                        <ImageIcon className="h-12 w-12" />
+                        <span className="text-sm">No update photos for this project</span>
+                    </div>
+                ) : (
+                    <>
+                        <div className="relative flex items-center justify-center min-h-[400px] p-4 bg-slate-50 dark:bg-slate-800/50 mx-4 rounded-xl">
+                            <AnimatePresence mode="wait">
+                                <motion.img key={idx} src={current.url} alt={`Photo ${idx + 1}`}
+                                    className="max-h-[500px] max-w-full object-contain rounded-lg shadow-md"
+                                    initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} />
+                            </AnimatePresence>
+                            {slides.length > 1 && (
+                                <>
+                                    <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
+                                        <ChevronLeft className="h-5 w-5" />
+                                    </button>
+                                    <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
+                                        <ChevronRight className="h-5 w-5" />
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Progress + Comment Info Bar */}
+                        <div className="mx-4 mb-2 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center gap-4 mb-2">
+                                {/* Progress badge */}
+                                <div className={cn(
+                                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white',
+                                    current.progress >= 75 ? 'bg-emerald-500' : current.progress >= 40 ? 'bg-amber-500' : 'bg-red-500',
+                                )}>
+                                    {current.progress}% Complete
+                                </div>
+                                {/* JE name */}
+                                <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                                    <User className="h-3.5 w-3.5" />
+                                    {current.userName}
+                                </span>
+                                {/* Date */}
+                                <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 ml-auto">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    {current.date}
+                                </span>
+                            </div>
+                            {current.comment && (
+                                <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                                    &ldquo;{current.comment}&rdquo;
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Thumbnail strip */}
+                        {slides.length > 1 && (
+                            <div className="flex gap-2 px-4 pb-4 overflow-x-auto justify-center">
+                                {slides.map((s, i) => (
+                                    <button key={i} onClick={() => setIdx(i)}
+                                        className={cn('relative w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all shadow-sm',
+                                            i === idx ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-600 opacity-60 hover:opacity-100')}>
+                                        <img src={s.url} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+                                        {/* Tiny progress indicator */}
+                                        <span className={cn(
+                                            'absolute bottom-0 left-0 right-0 text-[8px] font-bold text-center text-white py-px',
+                                            s.progress >= 75 ? 'bg-emerald-500/80' : s.progress >= 40 ? 'bg-amber-500/80' : 'bg-red-500/80',
+                                        )}>
+                                            {s.progress}%
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </DialogContent>
         </Dialog>
     );
 }
 
-function ProjectPhotoCell({ photos }: { photos: string[] }) {
+function ProjectPhotoCell({ projectId, hasPhotos }: { projectId: string; hasPhotos: boolean }) {
     const [open, setOpen] = useState(false);
-    if (!photos?.length) return <span className="text-slate-400">—</span>;
+    if (!hasPhotos) return <span className="text-slate-400">—</span>;
     return (
         <>
             <button onClick={() => setOpen(true)}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors">
                 <ImageIcon className="h-3.5 w-3.5" />
-                View ({photos.length})
+                View
             </button>
-            <ProjectPhotoDialog photos={photos} open={open} onOpenChange={setOpen} />
+            <ProjectPhotoDialog projectId={projectId} open={open} onOpenChange={setOpen} />
         </>
     );
 }
@@ -569,7 +657,7 @@ export default function ProjectDetailsPage() {
 
                         {/* Photos (read-only, set by Junior Engineer) */}
                         <td className="py-2 px-2 text-center">
-                          <ProjectPhotoCell photos={project.photos} />
+                          <ProjectPhotoCell projectId={project.id} hasPhotos={project.status !== 'Not Started'} />
                         </td>
 
                         {/* Progress bar + % Utilized */}
