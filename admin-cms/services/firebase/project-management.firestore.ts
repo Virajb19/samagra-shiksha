@@ -228,7 +228,7 @@ export const projectManagementFirestore = {
 
   // ── Projects CRUD ──
 
-  // Get all projects (paginated, server-side filtered)
+  // Get all projects (cursor paginated, server-side filtered)
   async getProjects(
     limit = 20,
     cursor: string | null = null,

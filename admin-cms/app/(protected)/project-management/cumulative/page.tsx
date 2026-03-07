@@ -55,7 +55,7 @@ export default function CumulativeTablePage() {
   const distParam = districtFilter !== 'all' ? districtFilter : undefined;
   const catParam = categoryFilter !== 'all' ? categoryFilter : undefined;
 
-  const { data: cumulativeData = [], isLoading, isFetching } = useGetCumulativeData(
+  const { data: cumulativeData = [], isLoading, isFetching, isRefetching } = useGetCumulativeData(
     pabParam, distParam, catParam,
   );
 
@@ -118,8 +118,6 @@ export default function CumulativeTablePage() {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  const isRefetching = isFetching && !isLoading;
 
   return (
     <motion.div className="space-y-6 p-2" variants={containerVariants} initial={false} animate="visible">

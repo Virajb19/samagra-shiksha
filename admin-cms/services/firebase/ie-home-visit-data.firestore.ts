@@ -15,6 +15,8 @@ import {
     limit as queryLimit,
     startAfter,
     getDocs,
+    getDoc,
+    doc,
     getCountFromServer,
     Timestamp,
     type DocumentData,
@@ -128,36 +130,36 @@ export const ieHomeVisitDataFirestore = {
         const db = getFirebaseFirestore();
         const colRef = collection(db, 'ie_home_visit_data');
 
-        const constraints = buildConstraints(district, date);
+        const baseConstraints = buildConstraints(district, date);
 
         // Total count
-        const countSnap = await getCountFromServer(query(colRef, ...constraints));
+        const countSnap = await getCountFromServer(query(colRef, ...baseConstraints));
         const total = countSnap.data().count;
 
-        const pageConstraints = [...constraints];
+        // Fetch data
+        const constraints: QueryConstraint[] = [
+            ...baseConstraints,
+            queryLimit(PAGE_SIZE + 1),
+        ];
 
         if (cursor) {
-            try {
-                const { ts, id } = JSON.parse(cursor);
-                pageConstraints.push(startAfter(Timestamp.fromDate(new Date(ts)), id));
-            } catch {
-                pageConstraints.push(startAfter(Timestamp.fromDate(new Date(cursor))));
+            const cursorDoc = await getDoc(doc(db, 'ie_home_visit_data', cursor));
+            if (cursorDoc.exists()) {
+                constraints.push(startAfter(cursorDoc));
             }
         }
 
-        pageConstraints.push(queryLimit(PAGE_SIZE + 1));
-
-        const snap = await getDocs(query(colRef, ...pageConstraints));
+        const snap = await getDocs(query(colRef, ...constraints));
         const hasMore = snap.docs.length > PAGE_SIZE;
-        const docs = hasMore ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
+        const docs = snap.docs.slice(0, PAGE_SIZE);
         const data = docs.map((d) => toRow(d.id, d.data()));
 
-        const lastDoc = docs[docs.length - 1];
-        const nextCursor = lastDoc
-            ? JSON.stringify({ ts: toIso(lastDoc.data().created_at), id: lastDoc.id })
-            : null;
-
-        return { data, total, nextCursor, hasMore };
+        return {
+            data,
+            total,
+            nextCursor: data.length > 0 ? data[data.length - 1].id : null,
+            hasMore,
+        };
     },
 
     /**

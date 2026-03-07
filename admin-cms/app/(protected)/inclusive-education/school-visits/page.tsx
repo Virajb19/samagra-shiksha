@@ -1,10 +1,17 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Search, GraduationCap, Eye } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, GraduationCap, Image as ImageIcon, ChevronLeft, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
+
+import { motion, AnimatePresence } from 'framer-motion';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import {
     Select,
     SelectContent,
@@ -22,6 +29,7 @@ import {
 } from '@/services/firebase/ie-school-visit-data.firestore';
 import { masterDataFirestore } from '@/services/firebase/master-data.firestore';
 import { RetryButton } from '@/components/RetryButton';
+import { cn } from '@/lib/utils';
 
 // ─── Animation Variants ────────────────────────────────────────────────
 const containerVariants = {
@@ -36,6 +44,17 @@ const cardVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
 };
+
+// ─── Frozen / Sticky Column Config ─────────────────────────────────────
+const FROZEN_KEYS = new Set(['sl', 'school', 'district', 'ebrc']);
+const FROZEN_STYLES: Record<string, { width: string; left: string }> = {
+    sl: { width: 'w-[60px] min-w-[60px]', left: 'left-0' },
+    school: { width: 'w-[200px] min-w-[200px]', left: 'left-[60px]' },
+    district: { width: 'w-[160px] min-w-[160px]', left: 'left-[260px]' },
+    ebrc: { width: 'w-[130px] min-w-[130px]', left: 'left-[420px]' },
+};
+const FROZEN_BG_EVEN = 'bg-white dark:bg-slate-900';
+const FROZEN_BG_ODD = 'bg-slate-50 dark:bg-slate-800';
 
 // ─── XLSX columns ──────────────────────────────────────────────────────
 const XLSX_COLUMNS = [
@@ -57,9 +76,93 @@ const XLSX_COLUMNS = [
     { key: 'created_at', label: 'Date' },
 ];
 
+// ─── Table columns ─────────────────────────────────────────────────────
+const TABLE_COLUMNS = [
+    { key: 'sl', label: 'Sl.' },
+    { key: 'school', label: 'School' },
+    { key: 'district', label: 'District' },
+    { key: 'ebrc', label: 'EBRC' },
+    { key: 'photos', label: 'Photos' },
+    { key: 'submitted_by_name', label: 'Submitted By' },
+    { key: 'rci_number', label: 'RCI Number' },
+    { key: 'name_of_cwsn', label: 'Name of CwSN' },
+    { key: 'type_of_disability', label: 'Disability Type' },
+    { key: 'gender', label: 'Gender' },
+    { key: 'activities_topics', label: 'Activities / Topics' },
+    { key: 'therapy_type', label: 'Therapy Type' },
+    { key: 'therapy_brief', label: 'Therapy (in brief)' },
+    { key: 'expected_outcome', label: 'Expected Outcome' },
+    { key: 'was_goal_achieved', label: 'Was Goal Achieved?' },
+];
+
+// ─── Photo Viewer Dialog ───────────────────────────────────────────────
+function PhotoViewerDialog({ photos, open, onOpenChange }: { photos: string[]; open: boolean; onOpenChange: (o: boolean) => void }) {
+    const [idx, setIdx] = useState(0);
+    const prev = () => setIdx((i) => (i === 0 ? photos.length - 1 : i - 1));
+    const next = () => setIdx((i) => (i === photos.length - 1 ? 0 : i + 1));
+    useEffect(() => { if (open) setIdx(0); }, [open]);
+    if (!photos.length) return null;
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-2xl">
+                <DialogHeader className="p-4 pb-0">
+                    <DialogTitle className="text-slate-900 dark:text-white text-lg">
+                        Photo {idx + 1} of {photos.length}
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="relative flex items-center justify-center min-h-[400px] p-4 bg-slate-50 dark:bg-slate-800/50 mx-4 rounded-xl">
+                    <AnimatePresence mode="wait">
+                        <motion.img key={idx} src={photos[idx]} alt={`Photo ${idx + 1}`}
+                            className="max-h-[500px] max-w-full object-contain rounded-lg shadow-md"
+                            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} />
+                    </AnimatePresence>
+                    {photos.length > 1 && (
+                        <>
+                            <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                            <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white text-slate-700 shadow-lg border border-slate-200 dark:bg-slate-700/90 dark:hover:bg-slate-700 dark:text-white dark:border-slate-600 transition-colors">
+                                <ChevronRight className="h-5 w-5" />
+                            </button>
+                        </>
+                    )}
+                </div>
+                {photos.length > 1 && (
+                    <div className="flex gap-2 px-4 pb-4 overflow-x-auto justify-center">
+                        {photos.map((photo, i) => (
+                            <button key={i} onClick={() => setIdx(i)}
+                                className={cn('w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all shadow-sm',
+                                    i === idx ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-600 opacity-60 hover:opacity-100')}>
+                                <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+// ─── Photo Cell ────────────────────────────────────────────────────────
+function PhotoCell({ photos }: { photos: string[] }) {
+    const [open, setOpen] = useState(false);
+    if (!photos?.length) return <span className="text-slate-400">—</span>;
+    return (
+        <>
+            <button onClick={() => setOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 transition-colors">
+                <ImageIcon className="h-3.5 w-3.5" />
+                View ({photos.length})
+            </button>
+            <PhotoViewerDialog photos={photos} open={open} onOpenChange={setOpen} />
+        </>
+    );
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 export default function SchoolVisitsPage() {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const [districtFilter, setDistrictFilter] = useState<string>('all');
     const [schoolFilter, setSchoolFilter] = useState<string>('all');
@@ -84,11 +187,9 @@ export default function SchoolVisitsPage() {
                 districtFilter !== 'all' ? districtFilter : undefined,
                 schoolFilter !== 'all' ? schoolFilter : undefined,
             ),
-        getNextPageParam: (lastPage) => {
-            if (!lastPage.hasMore) return undefined;
-            return lastPage.nextCursor ?? undefined;
-        },
+        getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
         initialPageParam: undefined as string | undefined,
+        placeholderData: (prev) => prev,
     });
 
     // Flatten pages
@@ -117,33 +218,6 @@ export default function SchoolVisitsPage() {
 
     const hasFilters = districtFilter !== 'all' || schoolFilter !== 'all' || searchQuery.trim() !== '';
 
-    // Load more
-    const loadMore = useCallback(() => {
-        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-    // Infinite scroll
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-        const handleScroll = () => {
-            const { scrollTop, scrollHeight, clientHeight } = container;
-            if (scrollHeight - scrollTop - clientHeight < 300) loadMore();
-        };
-        container.addEventListener('scroll', handleScroll, { passive: true });
-        return () => container.removeEventListener('scroll', handleScroll);
-    }, [loadMore]);
-
-    // Auto-load if not scrollable
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container || allRows.length === 0) return;
-        const timer = setTimeout(() => {
-            if (container.scrollHeight <= container.clientHeight && hasNextPage && !isFetchingNextPage) loadMore();
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [data, hasNextPage, isFetchingNextPage, loadMore, allRows.length]);
-
     // XLSX export
     const handleDownloadXlsx = async () => {
         const all = await ieSchoolVisitDataFirestore.fetchAll(
@@ -158,7 +232,7 @@ export default function SchoolVisitsPage() {
             {/* Header */}
             <motion.div variants={itemVariants}>
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                         <motion.div
                             className="p-2 bg-linear-to-br from-teal-500 to-cyan-600 rounded-lg"
                             whileHover={{ scale: 1.05, rotate: 5 }}
@@ -170,11 +244,11 @@ export default function SchoolVisitsPage() {
                             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">IE School Visits</h1>
                             <p className="text-slate-500 dark:text-slate-400 text-sm">Inclusive Education school visit records</p>
                         </div>
+                        <span className="bg-gradient-to-r from-teal-500/15 to-cyan-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/25 px-4 py-1.5 text-sm font-semibold rounded-full">
+                            {total} Records
+                        </span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Badge className="bg-slate-700/50 text-slate-300 hover:bg-slate-700/50 px-3 py-1">
-                            {total} Records
-                        </Badge>
                         <DownloadXlsxButton onDownload={handleDownloadXlsx} disabled={total === 0} />
                         <RefreshTableButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter]} isFetching={isFetching && !isFetchingNextPage} />
                     </div>
@@ -233,10 +307,20 @@ export default function SchoolVisitsPage() {
 
             {/* Table */}
             <motion.div
-                className="bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-xl"
+                className="relative bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-xl"
                 variants={cardVariants}
             >
-                {isError ? (
+                {/* Refresh blur overlay */}
+                {isFetching && !isFetchingNextPage && allRows.length > 0 && (
+                    <div className="absolute inset-0 z-[70] bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
+                        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-6 py-3 rounded-full shadow-lg border border-slate-200 dark:border-slate-700">
+                            <Loader2 className="h-5 w-5 animate-spin text-teal-500" />
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Refreshing...</span>
+                        </div>
+                    </div>
+                )}
+
+                {isError && allRows.length === 0 ? (
                     <div className="text-center py-16 bg-white dark:bg-transparent">
                         <GraduationCap className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
                         <div className="text-slate-600 dark:text-slate-400 text-lg mb-2">Failed to load school visit data</div>
@@ -249,110 +333,175 @@ export default function SchoolVisitsPage() {
                         <p className="text-slate-500 text-sm mt-2">Adjust your filters or search query</p>
                     </div>
                 ) : (
-                    <div ref={scrollContainerRef} className="max-h-[70vh] overflow-y-auto overflow-x-auto relative">
-                        {/* Inline refreshing overlay */}
-                        {isFetching && !isFetchingNextPage && allRows.length > 0 && (
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700">
-                                    <div className='size-5 border-2 border-t-[3px] border-slate-300 dark:border-white/20 border-t-teal-400 rounded-full animate-spin' />
-                                    <span className="text-slate-700 dark:text-slate-300 text-sm font-medium">Refreshing...</span>
-                                </div>
-                            </div>
-                        )}
-                        <table className="w-full min-w-[1400px]">
-                            <thead className="sticky top-0 z-10">
-                                <tr className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-800 dark:to-blue-700 text-white">
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap w-14">Sl.</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[180px]">School</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">District</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">EBRC</th>
-                                    <th className="text-center py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Photos</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Submitted By</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">RCI Number</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Name of CwSN</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Disability Type</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Gender</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[180px]">Activities / Topics</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Therapy Type</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[200px]">Therapy (in brief)</th>
-                                    <th className="text-left py-3.5 px-4 font-semibold text-xs whitespace-nowrap min-w-[200px]">Expected Outcome</th>
-                                    <th className="text-center py-3.5 px-4 font-semibold text-xs whitespace-nowrap">Was Goal Achieved?</th>
+                    <div className="overflow-x-auto">
+                        <table className="w-max min-w-full border-separate border-spacing-0">
+                            <thead className="sticky top-0 z-50">
+                                <tr>
+                                    {TABLE_COLUMNS.map((col, i) => {
+                                        const isFrozen = FROZEN_KEYS.has(col.key);
+                                        const frozen = FROZEN_STYLES[col.key];
+                                        const isLastFrozen = col.key === 'ebrc';
+                                        const isWide = col.key === 'type_of_disability' || col.key === 'therapy_type';
+                                        return (
+                                            <th key={col.key} className={cn(
+                                                'py-3.5 px-4 text-left text-xs font-semibold whitespace-nowrap bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-800 dark:to-blue-700 text-white border-b border-blue-500/30',
+                                                isFrozen && frozen && `sticky ${frozen.left} ${frozen.width} z-[60]`,
+                                                isFrozen && 'bg-blue-600',
+                                                isLastFrozen && 'border-r-2 border-r-blue-400/60 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.15)]',
+                                                col.key === 'photos' && 'text-center',
+                                                col.key === 'was_goal_achieved' && 'text-center',
+                                                col.key === 'school' && 'min-w-[180px]',
+                                                isWide && 'min-w-[200px]',
+                                                col.key === 'activities_topics' && 'min-w-[180px]',
+                                                col.key === 'therapy_brief' && 'min-w-[200px]',
+                                                col.key === 'expected_outcome' && 'min-w-[200px]',
+                                                i === 0 && 'rounded-tl-lg',
+                                                i === TABLE_COLUMNS.length - 1 && 'rounded-tr-lg',
+                                            )}>
+                                                {col.label}
+                                            </th>
+                                        );
+                                    })}
                                 </tr>
                             </thead>
                             <tbody>
                                 {isLoading ? (
-                                    Array.from({ length: 8 }).map((_, i) => (
-                                        <tr key={i} className="border-b border-slate-200 dark:border-slate-700 animate-pulse">
-                                            {Array.from({ length: 15 }).map((_, j) => (
-                                                <td key={j} className="py-4 px-4"><div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full" /></td>
-                                            ))}
-                                        </tr>
-                                    ))
+                                    Array.from({ length: 20 }).map((_, i) => {
+                                        const isEven = i % 2 === 0;
+                                        return (
+                                            <tr key={i} className={cn(
+                                                'animate-pulse',
+                                                isEven ? 'bg-white dark:bg-slate-900/50' : 'bg-slate-50/80 dark:bg-slate-800/30',
+                                            )} style={{ animationDelay: `${i * 50}ms` }}>
+                                                {TABLE_COLUMNS.map((col, j) => {
+                                                    const widths = ['w-8', 'w-28', 'w-20', 'w-16', 'w-14', 'w-24', 'w-16', 'w-28', 'w-20', 'w-12', 'w-32', 'w-20', 'w-32', 'w-32', 'w-16'];
+                                                    return (
+                                                        <td key={col.key} className="py-3.5 px-4">
+                                                            <div className={cn(
+                                                                'h-4 rounded-full',
+                                                                widths[j] ?? 'w-20',
+                                                                j === 0 ? 'h-6 w-8 rounded-full bg-slate-200/80 dark:bg-slate-700/60'
+                                                                    : 'bg-gradient-to-r from-slate-200 via-slate-200 to-slate-200 dark:from-slate-700/60 dark:via-slate-600/40 dark:to-slate-700/60',
+                                                            )} />
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
-                                    filteredRows.map((row, index) => (
-                                        <motion.tr
-                                            key={row.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
-                                            className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
-                                        >
-                                            <td className="py-3.5 px-4">
-                                                <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-full text-xs font-mono">
-                                                    {index + 1}
-                                                </span>
-                                            </td>
-                                            <td className="py-3.5 px-4">
-                                                <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">{row.school}</span>
-                                            </td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.district}</td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.ebrc}</td>
-                                            <td className="py-3.5 px-4 text-center">
-                                                <Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-0 text-xs">
-                                                    <Eye className="h-3 w-3 mr-1" />
-                                                    {row.photos.length}
-                                                </Badge>
-                                            </td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.submitted_by_name}</td>
-                                            <td className="py-3.5 px-4 text-sm font-mono text-slate-600 dark:text-slate-400">{row.rci_number}</td>
-                                            <td className="py-3.5 px-4 text-sm font-medium text-slate-800 dark:text-slate-200">{row.name_of_cwsn}</td>
-                                            <td className="py-3.5 px-4">
-                                                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0 text-xs">
-                                                    {row.type_of_disability}
-                                                </Badge>
-                                            </td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.gender}</td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.activities_topics}</td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.therapy_type}</td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.therapy_brief}</td>
-                                            <td className="py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300">{row.expected_outcome}</td>
-                                            <td className="py-3.5 px-4 text-center">
-                                                <Badge className={`border-0 text-xs ${row.was_goal_achieved === 'Yes'
-                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                    : row.was_goal_achieved === 'No'
-                                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                                    }`}>
-                                                    {row.was_goal_achieved}
-                                                </Badge>
-                                            </td>
-                                        </motion.tr>
-                                    ))
+                                    filteredRows.map((row, index) => {
+                                        const isEven = index % 2 === 0;
+                                        const rowBg = isEven ? 'bg-white dark:bg-slate-900/50' : 'bg-slate-50/80 dark:bg-slate-800/30';
+                                        const frozenBg = isEven ? FROZEN_BG_EVEN : FROZEN_BG_ODD;
+                                        return (
+                                            <motion.tr
+                                                key={row.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
+                                                className={cn('transition-colors', rowBg, 'hover:bg-blue-50/60 dark:hover:bg-blue-900/20')}
+                                            >
+                                                {TABLE_COLUMNS.map((col) => {
+                                                    const isFrozen = FROZEN_KEYS.has(col.key);
+                                                    const frozen = FROZEN_STYLES[col.key];
+                                                    const isLastFrozen = col.key === 'ebrc';
+
+                                                    return (
+                                                        <td key={col.key} className={cn(
+                                                            'py-3.5 px-4 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap',
+                                                            'border-b border-slate-100 dark:border-slate-800',
+                                                            isFrozen && frozen && `sticky ${frozen.left} ${frozen.width} z-[40]`,
+                                                            isFrozen && frozenBg,
+                                                            isLastFrozen && 'border-r-2 border-r-slate-200 dark:border-r-slate-700 shadow-[4px_0_8px_-2px_rgba(0,0,0,0.08)]',
+                                                        )}>
+                                                            {col.key === 'sl' ? (
+                                                                <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-1 rounded-full text-xs font-mono">
+                                                                    {index + 1}
+                                                                </span>
+                                                            ) : col.key === 'school' ? (
+                                                                <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">{row.school}</span>
+                                                            ) : col.key === 'district' ? (
+                                                                row.district
+                                                            ) : col.key === 'ebrc' ? (
+                                                                row.ebrc
+                                                            ) : col.key === 'photos' ? (
+                                                                <PhotoCell photos={row.photos} />
+                                                            ) : col.key === 'submitted_by_name' ? (
+                                                                row.submitted_by_name
+                                                            ) : col.key === 'rci_number' ? (
+                                                                <span className="font-mono text-slate-600 dark:text-slate-400">{row.rci_number}</span>
+                                                            ) : col.key === 'name_of_cwsn' ? (
+                                                                <span className="font-medium text-slate-800 dark:text-slate-200">{row.name_of_cwsn}</span>
+                                                            ) : col.key === 'type_of_disability' ? (
+                                                                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0 text-xs">
+                                                                    {row.type_of_disability}
+                                                                </Badge>
+                                                            ) : col.key === 'gender' ? (
+                                                                row.gender
+                                                            ) : col.key === 'activities_topics' ? (
+                                                                row.activities_topics
+                                                            ) : col.key === 'therapy_type' ? (
+                                                                row.therapy_type
+                                                            ) : col.key === 'therapy_brief' ? (
+                                                                row.therapy_brief
+                                                            ) : col.key === 'expected_outcome' ? (
+                                                                row.expected_outcome
+                                                            ) : col.key === 'was_goal_achieved' ? (
+                                                                <Badge className={`border-0 text-xs ${row.was_goal_achieved === 'Yes'
+                                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                                                    : row.was_goal_achieved === 'No'
+                                                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                                    }`}>
+                                                                    {row.was_goal_achieved}
+                                                                </Badge>
+                                                            ) : null}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </motion.tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                )}
 
-                        {/* Load more / loading indicator */}
-                        {isFetchingNextPage && (
-                            <div className="flex items-center justify-center py-6 gap-3">
-                                <div className='size-5 border-2 border-t-[3px] border-slate-300 dark:border-white/20 border-t-teal-400 rounded-full animate-spin' />
-                                <span className="text-slate-500 dark:text-slate-400 text-sm">Loading more...</span>
-                            </div>
-                        )}
-                        {!hasNextPage && allRows.length > 0 && !isFetchingNextPage && (
-                            <div className="text-center py-4 text-slate-400 dark:text-slate-500 text-sm">
-                                All {total} records loaded
-                            </div>
+                {/* Load More Button */}
+                {allRows.length > 0 && (
+                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-transparent flex justify-center">
+                        {hasNextPage ? (
+                            <motion.button
+                                onClick={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
+                                disabled={isFetchingNextPage}
+                                className="px-6 py-2.5 text-sm text-white bg-teal-600 hover:bg-teal-700 rounded-full transition-all font-medium disabled:opacity-70 shadow-md shadow-teal-500/20 flex items-center gap-2"
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.97 }}
+                            >
+                                {isFetchingNextPage ? (
+                                    <>
+                                        <Loader2 className="size-4 animate-spin" />
+                                        Loading more...
+                                    </>
+                                ) : (
+                                    <>
+                                        <motion.span
+                                            animate={{ y: [0, 4, 0] }}
+                                            transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                                        >
+                                            <ChevronDown className="size-4" />
+                                        </motion.span>
+                                        Load More
+                                        <span className="bg-white/20 text-white font-bold px-2 py-0.5 rounded-full text-xs">
+                                            {total - allRows.length}
+                                        </span>
+                                    </>
+                                )}
+                            </motion.button>
+                        ) : (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Showing all {allRows.length} records</p>
                         )}
                     </div>
                 )}
