@@ -169,3 +169,32 @@ export async function completeIEResourcePersonProfile(params: {
     await storeUserData(updatedUser);
     return updatedUser;
 }
+
+// ── Junior Engineer ──
+
+/** Complete profile for Junior Engineer. */
+export async function completeJuniorEngineerProfile(params: {
+    userId: string;
+    districtId: string;
+    yearsOfExperience: number;
+    ebrc: string;
+    currentUser: User;
+}): Promise<User> {
+    const { userId, districtId, yearsOfExperience, ebrc, currentUser } = params;
+    await updateDoc(doc(db, 'users', userId), {
+        district_id: districtId,
+        years_of_experience: yearsOfExperience,
+        ebrc,
+        has_completed_profile: true,
+        updated_at: Timestamp.now(),
+    });
+    const updatedUser: User = {
+        ...currentUser,
+        district_id: districtId,
+        years_of_experience: yearsOfExperience,
+        ebrc,
+        has_completed_profile: true,
+    };
+    await storeUserData(updatedUser);
+    return updatedUser;
+}

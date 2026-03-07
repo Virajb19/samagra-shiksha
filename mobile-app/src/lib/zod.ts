@@ -169,6 +169,25 @@ export const NSCBAVProfileSchema = z.object({
 
 export type NSCBAVProfileFormData = z.infer<typeof NSCBAVProfileSchema>;
 
+/**
+ * Junior Engineer Complete Profile schema
+ * Fields: districtId, yearsOfExperience, ebrc
+ * Note: No responsibilities for Junior Engineers
+ */
+export const JuniorEngineerProfileSchema = z.object({
+    districtId: z.string().min(1, 'Please select a district'),
+    yearsOfExperience: z
+        .string()
+        .min(1, 'Please enter years of experience')
+        .refine((v) => {
+            const n = parseInt(v, 10);
+            return !isNaN(n) && n >= 0 && n <= 60;
+        }, 'Experience must be between 0 and 60'),
+    ebrc: z.string().min(1, 'Please enter your EBRC'),
+});
+
+export type JuniorEngineerProfileFormData = z.infer<typeof JuniorEngineerProfileSchema>;
+
 // ── Create Event Schema ──────────────────────────────────
 
 /**

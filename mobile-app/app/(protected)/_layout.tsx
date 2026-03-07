@@ -80,6 +80,10 @@ export default function ProtectedLayout() {
                 if (!currentRoute.includes('ie-resource-person')) {
                     router.replace('/(protected)/ie-resource-person/(tabs)/home');
                 }
+            } else if (user.role === 'JUNIOR_ENGINEER') {
+                if (!currentRoute.includes('junior-engineer')) {
+                    router.replace('/(protected)/junior-engineer/(tabs)/home');
+                }
             }
         }
     }, [isAuthenticated, isLoading, user, segments]);
@@ -175,6 +179,12 @@ export default function ProtectedLayout() {
             />
             <Stack.Screen
                 name="ie-resource-person"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="junior-engineer"
                 options={{
                     headerShown: false,
                 }}

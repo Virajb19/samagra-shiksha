@@ -555,7 +555,7 @@ function seedBulkUsers(): void {
 
       case USER_ROLES.JUNIOR_ENGINEER:
         userDoc.district_id = u.districtId;
-        userDoc.responsibilities = pickResponsibilities(randomInt(2, 4));
+        userDoc.ebrc = randomElement(ebrcNames);
         userDoc.years_of_experience = randomInt(1, 30);
         break;
     }
