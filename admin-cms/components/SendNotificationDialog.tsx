@@ -32,7 +32,8 @@ import {
   type NotificationType,
   notificationTypes,
 } from '@/lib/zod';
-import noticesApi from '@/services/notices.service';
+import { noticeFirestore } from '@/services/firebase/notice.firestore';
+import { getAdminId } from '@/services/notices.service';
 import { showSuccessToast } from './ui/custom-toast';
 import { User } from '@/types';
 
@@ -48,7 +49,6 @@ export function SendNotificationDialog({
   open,
   onOpenChange,
   recipientUserIds,
-  selectedUsers = [],
   singleUser = false,
 }: SendNotificationDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +139,8 @@ export function SendNotificationDialog({
           break;
       }
 
-      const response = await noticesApi.sendNotice(payload);
+      const adminId = getAdminId();
+      const response = await noticeFirestore.sendNotice(adminId, payload);
       return response;
     },
     onSuccess: (data) => {

@@ -18,8 +18,8 @@ import {
 } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { getFileURL } from '@/services/firebase/notice.firestore';
-import noticesApi, { type Notice, type NoticeType, noticeTypeLabels } from '@/services/notices.service';
+import { getFileURL, noticeFirestore } from '@/services/firebase/notice.firestore';
+import { type Notice, type NoticeType, noticeTypeLabels } from '@/services/notices.service';
 
 interface ViewNoticeButtonProps {
   notice: Notice;
@@ -45,7 +45,7 @@ export function ViewNoticeButton({ notice }: ViewNoticeButtonProps) {
   // Fetch full notice details (with recipients) only when dialog is open
   const { data: fullNotice, isLoading: isLoadingDetails } = useQuery({
     queryKey: ['notices', notice.id, 'details'],
-    queryFn: () => noticesApi.getById(notice.id),
+    queryFn: () => noticeFirestore.getById(notice.id),
     enabled: showDialog,
     staleTime: 1000 * 60 * 5,
   });

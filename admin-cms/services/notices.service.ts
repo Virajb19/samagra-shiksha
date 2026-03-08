@@ -97,84 +97,12 @@ export interface NoticesFilters {
 }
 
 // ── Helper: get current admin ID from Firebase Auth ──
-function getAdminId(): string {
+export function getAdminId(): string {
   const auth = getFirebaseAuth();
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error("Not authenticated");
   return uid;
 }
-
-const noticesApi = {
-  /**
-   * Get all notices with optional filters and pagination
-   */
-  getAll: async (filters?: NoticesFilters, limit = 50, offset = 0): Promise<{ data: Notice[]; total: number; hasMore: boolean }> => {
-    // For offset-based, convert to cursor=null (first page) — we don't support offset in Firestore
-    const result = await noticeFirestore.getAll(filters, limit, null);
-    return { data: result.data, total: result.total, hasMore: result.hasMore };
-  },
-
-  /**
-   * Get all notices with cursor-based pagination
-   */
-  getAllCursor: async (filters?: NoticesFilters, limit = 50, cursor?: string): Promise<CursorNoticesResponse> => {
-    return noticeFirestore.getAllCursor(filters, limit, cursor);
-  },
-
-  /**
-   * Get a single notice by ID
-   */
-  getById: async (id: string): Promise<Notice> => {
-    return noticeFirestore.getById(id);
-  },
-
-  /**
-   * Create a new notice
-   */
-  create: async (payload: CreateNoticePayload): Promise<Notice> => {
-    const adminId = getAdminId();
-    return noticeFirestore.create(adminId, payload);
-  },
-
-  /**
-   * Update an existing notice
-   */
-  update: async (id: string, payload: UpdateNoticePayload): Promise<Notice> => {
-    return noticeFirestore.update(id, payload);
-  },
-
-  /**
-   * Delete a notice
-   */
-  delete: async (id: string): Promise<{ success: boolean; message: string }> => {
-    return noticeFirestore.delete(id);
-  },
-
-  /**
-   * Toggle active status of a notice
-   */
-  toggleActive: async (id: string): Promise<Notice> => {
-    return noticeFirestore.toggleActive(id);
-  },
-
-  /**
-   * Send notice to users (creates a targeted notice)
-   */
-  sendNotice: async (payload: {
-    user_ids: string[];
-    title: string;
-    message: string;
-    type: string;
-    file_url?: string;
-    file_name?: string;
-    file_size?: number;
-  }): Promise<{ success: boolean; message: string }> => {
-    const adminId = getAdminId();
-    return noticeFirestore.sendNotice(adminId, payload);
-  },
-};
-
-export default noticesApi;
 
 // React Query Hooks
 export const NOTICES_QUERY_KEY = 'notices';
@@ -195,14 +123,14 @@ export interface CursorNoticesResponse {
 export function useGetNotices(filters?: NoticesFilters, limit = 50, offset = 0) {
   return useQuery({
     queryKey: [NOTICES_QUERY_KEY, filters, limit, offset],
-    queryFn: () => noticesApi.getAll(filters, limit, offset),
+    queryFn: () => noticeFirestore.getAll(filters, limit, null),
   });
 }
 
 export function useGetNoticesInfinite(filters?: NoticesFilters, pageSize = 50) {
   return useInfiniteQuery<NoticesResponse>({
     queryKey: [NOTICES_QUERY_KEY, 'infinite', filters],
-    queryFn: ({ pageParam = 0 }) => noticesApi.getAll(filters, pageSize, pageParam as number),
+    queryFn: ({ pageParam = 0 }) => noticeFirestore.getAll(filters, pageSize, null),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;
       return allPages.length * pageSize;
@@ -216,7 +144,7 @@ export function useGetNoticesInfinite(filters?: NoticesFilters, pageSize = 50) {
 export function useGetNoticesCursorInfinite(filters?: NoticesFilters, pageSize = 50) {
   return useInfiniteQuery<CursorNoticesResponse>({
     queryKey: [NOTICES_QUERY_KEY, 'cursor', filters],
-    queryFn: ({ pageParam }) => noticesApi.getAllCursor(filters, pageSize, pageParam as string | undefined),
+    queryFn: ({ pageParam }) => noticeFirestore.getAllCursor(filters, pageSize, pageParam as string | undefined),
     getNextPageParam: (lastPage) => {
       if (!lastPage.hasMore) return undefined;
       return lastPage.nextCursor ?? undefined;
@@ -228,7 +156,7 @@ export function useGetNoticesCursorInfinite(filters?: NoticesFilters, pageSize =
 export function useGetNoticeById(id: string) {
   return useQuery({
     queryKey: [NOTICES_QUERY_KEY, id],
-    queryFn: () => noticesApi.getById(id),
+    queryFn: () => noticeFirestore.getById(id),
     enabled: !!id,
   });
 }
@@ -236,7 +164,7 @@ export function useGetNoticeById(id: string) {
 export function useDeleteNotice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => noticesApi.delete(id),
+    mutationFn: (id: string) => noticeFirestore.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [NOTICES_QUERY_KEY] });
     },
@@ -246,7 +174,7 @@ export function useDeleteNotice() {
 export function useToggleNoticeActive() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => noticesApi.toggleActive(id),
+    mutationFn: (id: string) => noticeFirestore.toggleActive(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [NOTICES_QUERY_KEY] });
     },

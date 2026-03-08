@@ -17,7 +17,8 @@ import { ViewNoticeButton } from '@/components/ViewNoticeButton';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
 import { TableRowsSkeleton } from '@/components/TableSkeleton';
 import { useQueryClient } from '@tanstack/react-query';
-import noticesApi, { type Notice, type NoticeType, type CursorNoticesResponse, noticeTypeLabels, NOTICES_QUERY_KEY, useGetNoticesCursorInfinite } from '@/services/notices.service';
+import { noticeFirestore } from '@/services/firebase/notice.firestore';
+import { type Notice, type NoticeType, type CursorNoticesResponse, noticeTypeLabels, NOTICES_QUERY_KEY, useGetNoticesCursorInfinite } from '@/services/notices.service';
 import { useDebounceValue } from 'usehooks-ts';
 
 // Animation variants
@@ -190,25 +191,10 @@ export default function NotificationsPage() {
 
     const filters = { type: typeValue };
     
-    // queryClient.prefetchInfiniteQuery({
-    //     queryKey: [NOTICES_QUERY_KEY, 'infinite', filters],
-    //     queryFn: ({ pageParam = 0 }) =>
-    //       noticesApi.getAll(filters, pageSize, pageParam as number),
-    //     getNextPageParam: (
-    //       lastPage: { hasMore: boolean },
-    //       allPages: unknown[]
-    //     ) => {
-    //       if (!lastPage.hasMore) return undefined;
-    //       return allPages.length * pageSize;
-    //     },
-    //     initialPageParam: 0,
-    //     staleTime: 1000 * 60 * 7, // Already set in queryClient globally
-    // });
-
     queryClient.prefetchInfiniteQuery({
       queryKey: [NOTICES_QUERY_KEY, 'cursor', filters],
       queryFn: ({ pageParam }) =>
-        noticesApi.getAllCursor(filters, pageSize, pageParam as string | undefined),
+        noticeFirestore.getAllCursor(filters, pageSize, pageParam as string | undefined),
       getNextPageParam: (lastPage: CursorNoticesResponse) => {
         if (!lastPage.hasMore) return undefined;
         return lastPage.nextCursor ?? undefined;

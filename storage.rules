@@ -15,8 +15,6 @@ service firebase.storage {
       return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN'];
     }
 
-
-
     // Max upload size: 10MB (only applies to uploads, not deletes)
     function isValidSize() {
       return request.resource != null && request.resource.size < 10 * 1024 * 1024;

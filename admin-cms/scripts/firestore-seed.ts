@@ -732,11 +732,41 @@ function seedNotices(): void {
 
 function seedNoticeRecipients(): void {
   console.log('📬 Creating notice recipients...');
-  const pool = ids.noticeIds.slice(0, 500);
   const seen = new Set<string>();
   let count = 0;
 
-  for (const noticeId of pool) {
+  // Guarantee: first teacher + first headmaster are recipients in the first 100 notices
+  const guaranteedUsers = [
+    ...(ids.teacherIds.length > 0 ? [ids.teacherIds[0]] : []),
+    ...(ids.headmasterIds.length > 0 ? [ids.headmasterIds[0]] : []),
+  ];
+  const GUARANTEED_NOTICE_COUNT = Math.min(100, ids.noticeIds.length);
+
+  for (let ni = 0; ni < ids.noticeIds.length; ni++) {
+    const noticeId = ids.noticeIds[ni];
+
+    // Add guaranteed users to the first 100 notices
+    if (ni < GUARANTEED_NOTICE_COUNT) {
+      for (const gUserId of guaranteedUsers) {
+        const key = `${noticeId}-${gUserId}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const isRead = randomBool(0.4);
+        const status = randomElement(INVITATION_STATUSES);
+        const id = newId('notice_recipients');
+        writer.set(db.collection('notice_recipients').doc(id), {
+          id, notice_id: noticeId, user_id: gUserId, is_read: isRead,
+          read_at: isRead ? TS() : null,
+          status,
+          reject_reason: status === 'REJECTED' ? randomElement(['Schedule conflict', 'Unable to attend', 'Personal reasons', 'Already committed elsewhere']) : null,
+          responded_at: status !== 'PENDING' ? TS() : null,
+          created_at: TS(),
+        });
+        count++;
+      }
+    }
+
+    // Add 2-6 random recipients per notice
     const n = randomInt(2, 6);
     for (let j = 0; j < n; j++) {
       const userId = randomElement([...ids.teacherIds.slice(0, 3000), ...ids.headmasterIds.slice(0, 1000)]);
@@ -744,15 +774,20 @@ function seedNoticeRecipients(): void {
       if (seen.has(key)) continue;
       seen.add(key);
       const isRead = randomBool(0.4);
+      const status = randomElement(INVITATION_STATUSES);
       const id = newId('notice_recipients');
       writer.set(db.collection('notice_recipients').doc(id), {
         id, notice_id: noticeId, user_id: userId, is_read: isRead,
         read_at: isRead ? TS() : null,
+        status,
+        reject_reason: status === 'REJECTED' ? randomElement(['Schedule conflict', 'Unable to attend', 'Personal reasons', 'Already committed elsewhere']) : null,
+        responded_at: status !== 'PENDING' ? TS() : null,
+        created_at: TS(),
       });
       count++;
     }
   }
-  console.log(`✅ ${count} notice recipients`);
+  console.log(`✅ ${count} notice recipients (guaranteed ${guaranteedUsers.length} users in first ${GUARANTEED_NOTICE_COUNT} notices)`);
 }
 
 // ────────────────────── 18. CIRCULARS ──────────────────────

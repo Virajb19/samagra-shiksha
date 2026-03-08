@@ -7,7 +7,6 @@
  * Collection: `notices`
  * Sub-collection (M2M): `notice_recipients` (notice_id ↔ user_id)
  *
- * @see Backend Reference: backend/src/notices/admin-notices.service.ts
  */
 
 "use client";
@@ -15,6 +14,7 @@
 import {
     collection,
     doc,
+    documentId,
     query,
     orderBy,
     limit as queryLimit,
@@ -280,6 +280,9 @@ export const noticeFirestore = {
                         },
                         is_read: rData.is_read ?? false,
                         read_at: rData.read_at ? toIso(rData.read_at) : null,
+                        status: rData.status ?? "PENDING",
+                        reject_reason: rData.reject_reason ?? null,
+                        responded_at: rData.responded_at ? toIso(rData.responded_at) : null,
                     };
                 })
             );
@@ -530,6 +533,9 @@ export const noticeFirestore = {
                 user_id: uid,
                 is_read: false,
                 read_at: null,
+                status: "PENDING",
+                reject_reason: null,
+                responded_at: null,
                 created_at: serverTimestamp(),
             });
         }
@@ -549,5 +555,256 @@ export const noticeFirestore = {
             success: true,
             message: `Notice sent to ${payload.user_ids.length} user${payload.user_ids.length === 1 ? "" : "s"} successfully`,
         };
+    },
+
+    /**
+     * Get all unique INVITATION notice titles (for the filter dropdown).
+     * Lightweight query — only fetches active invitation notices.
+     */
+    async getInvitationNoticeTitles(): Promise<string[]> {
+        await waitForAuthReady();
+        const db = getFirebaseFirestore();
+        const noticesQ = query(
+            collection(db, "notices"),
+            where("type", "==", "INVITATION"),
+            where("is_active", "==", true),
+            orderBy("created_at", "desc")
+        );
+        const snap = await getDocs(noticesQ);
+        const titles: string[] = [];
+        for (const d of snap.docs) {
+            const t = d.data().title ?? "";
+            if (t && !titles.includes(t)) titles.push(t);
+        }
+        return titles;
+    },
+
+    /**
+     * Get invitation notices with their recipients (flattened: one row per recipient).
+     *
+     * **True server-side cursor pagination** on `notice_recipients`:
+     * - Queries `notice_recipients` directly with `orderBy / limit / startAfter`.
+     * - Applies server-side `where("status", …)` when a status filter is set.
+     * - When a search term is provided, first resolves matching INVITATION notice IDs
+     *   by title, then constrains recipients to those IDs.
+     * - Lazily fetches only the notice documents referenced by the current page.
+     */
+    async getInvitations(
+        filters?: { search?: string; status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' },
+        limit = 50,
+        cursor?: string | null
+    ): Promise<{
+        data: Array<{
+            notice_id: string;
+            recipient_id: string;
+            user_id: string;
+            user_name: string;
+            title: string;
+            venue: string | null;
+            event_time: string | null;
+            event_date: string | null;
+            file_url: string | null;
+            file_name: string | null;
+            status: string;
+            reject_reason: string | null;
+            responded_at: string | null;
+            created_at: string;
+        }>;
+        total: number;
+        hasMore: boolean;
+        nextCursor: string | null;
+    }> {
+        await waitForAuthReady();
+        await devDelay("read", "notices.getInvitations");
+        const db = getFirebaseFirestore();
+        const recipientsCol = collection(db, "notice_recipients");
+
+        // ── 1. Resolve target notice IDs (only when search or to scope to INVITATION type) ──
+
+        // Always scope to INVITATION-type notices
+        const noticesQ = query(
+            collection(db, "notices"),
+            where("type", "==", "INVITATION"),
+            where("is_active", "==", true)
+        );
+        const noticesSnap = await getDocs(noticesQ);
+
+        let targetNoticeIds: string[] = [];
+        if (filters?.search?.trim()) {
+            const s = filters.search.trim().toLowerCase();
+            for (const d of noticesSnap.docs) {
+                if ((d.data().title ?? "").toLowerCase().includes(s)) {
+                    targetNoticeIds.push(d.id);
+                }
+            }
+        } else {
+            targetNoticeIds = noticesSnap.docs.map((d) => d.id);
+        }
+
+        if (targetNoticeIds.length === 0) {
+            return { data: [], total: 0, hasMore: false, nextCursor: null };
+        }
+
+        // ── 2. Build the recipients query with server-side constraints ──
+
+        // Helper: run a paginated query over notice-ID chunks (Firestore `in` max 30)
+        const buildChunkedQueries = (
+            noticeIdChunks: string[][],
+            extraConstraints: QueryConstraint[],
+            pageLimit?: number,
+            cursorConstraints?: QueryConstraint[]
+        ) => {
+            return noticeIdChunks.map((chunk) => {
+                const constraints: QueryConstraint[] = [
+                    where("notice_id", "in", chunk),
+                    ...extraConstraints,
+                    orderBy("created_at", "desc"),
+                    orderBy(documentId()),
+                    ...(cursorConstraints ?? []),
+                ];
+                if (pageLimit) constraints.push(queryLimit(pageLimit));
+                return query(recipientsCol, ...constraints);
+            });
+        };
+
+        // Chunk notice IDs
+        const noticeIdChunks: string[][] = [];
+        for (let i = 0; i < targetNoticeIds.length; i += 30) {
+            noticeIdChunks.push(targetNoticeIds.slice(i, i + 30));
+        }
+
+        // Status filter
+        const statusConstraints: QueryConstraint[] = filters?.status
+            ? [where("status", "==", filters.status)]
+            : [];
+
+        // ── 2a. Total count ──
+        let total = 0;
+        for (const chunk of noticeIdChunks) {
+            const countQ = query(
+                recipientsCol,
+                where("notice_id", "in", chunk),
+                ...statusConstraints
+            );
+            const countSnap = await getCountFromServer(countQ);
+            total += countSnap.data().count;
+        }
+
+        // ── 2b. Cursor ──
+        const cursorConstraints: QueryConstraint[] = [];
+        if (cursor) {
+            try {
+                const { ts, id } = JSON.parse(cursor);
+                cursorConstraints.push(startAfter(Timestamp.fromDate(new Date(ts)), id));
+            } catch {
+                // ignore bad cursor
+            }
+        }
+
+        // ── 2c. Fetch the page ──
+        // When there is only one chunk we can do a clean server-side paginated query.
+        // With multiple chunks we fetch from each and merge (still limited per-chunk).
+
+        let allPageDocs: Array<{ id: string; data: DocumentData }> = [];
+
+        if (noticeIdChunks.length === 1) {
+            // Single chunk — straightforward server-side pagination
+            const queries = buildChunkedQueries(
+                noticeIdChunks,
+                statusConstraints,
+                limit + 1,
+                cursorConstraints
+            );
+            const snap = await getDocs(queries[0]);
+            allPageDocs = snap.docs.map((d) => ({ id: d.id, data: d.data() }));
+        } else {
+            // Multiple chunks — fetch (limit+1) from each, merge, sort, truncate
+            const queries = buildChunkedQueries(
+                noticeIdChunks,
+                statusConstraints,
+                limit + 1,
+                cursorConstraints
+            );
+            const snaps = await Promise.all(queries.map((q) => getDocs(q)));
+            for (const snap of snaps) {
+                for (const d of snap.docs) {
+                    allPageDocs.push({ id: d.id, data: d.data() });
+                }
+            }
+            // Sort merged results by created_at desc
+            allPageDocs.sort((a, b) => {
+                const aTs = a.data.created_at?.seconds ?? 0;
+                const bTs = b.data.created_at?.seconds ?? 0;
+                return bTs - aTs;
+            });
+            // Apply cursor manually for multi-chunk (startAfter was per-chunk)
+            // This is fine because each chunk already applied the cursor.
+            allPageDocs = allPageDocs.slice(0, limit + 1);
+        }
+
+        const hasMore = allPageDocs.length > limit;
+        const pageDocs = hasMore ? allPageDocs.slice(0, limit) : allPageDocs;
+
+        // ── 3. Lazy-load only the notices referenced by this page ──
+        const uniqueNoticeIds = [...new Set(pageDocs.map((r) => r.data.notice_id))];
+        const noticeMap = new Map<string, DocumentData>();
+        for (const nid of uniqueNoticeIds) {
+            const nDoc = noticesSnap.docs.find((d) => d.id === nid);
+            if (nDoc) {
+                noticeMap.set(nid, { id: nid, ...nDoc.data() });
+            } else {
+                // Fallback: fetch individually (shouldn't happen often)
+                const snap = await getDoc(doc(db, "notices", nid));
+                if (snap.exists()) noticeMap.set(nid, { id: nid, ...snap.data() });
+            }
+        }
+
+        // ── 4. Resolve user names ──
+        const userIds = [...new Set(pageDocs.map((r) => r.data.user_id as string))];
+        const userNameMap = new Map<string, string>();
+        for (const uid of userIds) {
+            const name = await getUserName(uid);
+            userNameMap.set(uid, name ?? "Unknown");
+        }
+
+        // ── 5. Build rows ──
+        const data = pageDocs.map((r) => {
+            const notice = noticeMap.get(r.data.notice_id);
+            return {
+                notice_id: r.data.notice_id,
+                recipient_id: r.id,
+                user_id: r.data.user_id,
+                user_name: userNameMap.get(r.data.user_id) ?? "Unknown",
+                title: notice?.title ?? "",
+                venue: notice?.venue ?? null,
+                event_time: notice?.event_time ?? null,
+                event_date: notice?.event_date ? toIso(notice.event_date) : null,
+                file_url: notice?.file_url ?? null,
+                file_name: notice?.file_name ?? null,
+                status: r.data.status ?? "PENDING",
+                reject_reason: r.data.reject_reason ?? null,
+                responded_at: r.data.responded_at ? toIso(r.data.responded_at) : null,
+                created_at: toIso(r.data.created_at),
+            };
+        });
+
+        // ── 6. Compute next cursor ──
+        const lastDoc = pageDocs[pageDocs.length - 1];
+        const nextCursor = hasMore && lastDoc
+            ? JSON.stringify({ ts: toIso(lastDoc.data.created_at), id: lastDoc.id })
+            : null;
+
+        return { data, total, hasMore, nextCursor };
+    },
+
+    /**
+     * Delete a specific invitation recipient (remove from notice_recipients).
+     */
+    async deleteInvitationRecipient(recipientId: string): Promise<{ success: boolean; message: string }> {
+        await waitForAuthReady();
+        await devDelay("write", "notices.deleteInvitationRecipient");
+        const db = getFirebaseFirestore();
+        await deleteDoc(doc(db, "notice_recipients", recipientId));
+        return { success: true, message: "Invitation recipient removed" };
     },
 };

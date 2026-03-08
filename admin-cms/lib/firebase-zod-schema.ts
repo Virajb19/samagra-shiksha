@@ -190,6 +190,9 @@ export const NoticeRecipientDocSchema = z.object({
   user_id: uuid,
   is_read: bool.default(false),
   read_at: dateTimeLike.nullable().optional(),
+  status: InvitationStatusSchema.default("PENDING"),
+  reject_reason: z.string().max(200).nullable().optional(),
+  responded_at: dateTimeLike.nullable().optional(),
 });
 
 export const CircularDocSchema = z.object({
@@ -251,17 +254,6 @@ export const SubjectDocSchema = z.object({
   is_active: bool.default(true),
   created_at: dateTimeLike,
   updated_at: dateTimeLike,
-});
-
-export const FacultyAttendanceDocSchema = z.object({
-  id: uuid,
-  user_id: uuid,
-  image_url: z.string().min(1),
-  image_hash: z.string().min(1),
-  latitude: decimalLike,
-  longitude: decimalLike,
-  date: dateTimeLike,
-  created_at: dateTimeLike,
 });
 
 // ── Project Management ──
@@ -677,7 +669,6 @@ export const CollectionSchemas = {
   notification_logs: NotificationLogDocSchema,
   user_stars: UserStarDocSchema,
   subjects: SubjectDocSchema,
-  faculty_attendances: FacultyAttendanceDocSchema,
   project_schools: ProjectSchoolDocSchema,
   projects: ProjectDocSchema,
   project_updates: ProjectUpdateDocSchema,
@@ -726,7 +717,6 @@ export const Relations: RelationDef[] = [
   { from: "notification_logs", to: "users", type: "one-to-many", foreignKey: "user_id" },
   { from: "user_stars", to: "users", type: "many-to-many", foreignKey: "admin_id", note: "StarringAdmin" },
   { from: "user_stars", to: "users", type: "many-to-many", foreignKey: "starred_user_id", note: "StarredUser" },
-  { from: "faculty_attendances", to: "users", type: "one-to-many", foreignKey: "user_id" },
   { from: "project_schools", to: "districts", type: "one-to-many", foreignKey: "district_id" },
   { from: "projects", to: "project_schools", type: "one-to-many", foreignKey: "project_school_id" },
   { from: "project_updates", to: "projects", type: "one-to-many", foreignKey: "project_id" },
