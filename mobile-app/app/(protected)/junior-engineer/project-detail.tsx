@@ -5,7 +5,7 @@
  * "Update Project Status" button navigates to the update form.
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     View,
     Text,
@@ -14,14 +14,12 @@ import {
     Image,
     ActivityIndicator,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectUpdates } from '../../../src/services/project.service';
-import { getProjectsByDistrict } from '../../../src/services/project.service';
-import { getDistricts } from '../../../src/services/firebase/master-data.firestore';
-import { useAuthStore } from '../../../src/lib/store';
-import type { Project, ProjectUpdate, District } from '../../../src/types';
+import { getProjectById } from '../../../src/services/project.service';
+import type { Project, ProjectUpdate } from '../../../src/types';
 
 const BLUE = '#1565C0';
 
@@ -102,24 +100,13 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
 
 export default function ProjectDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { user } = useAuthStore();
 
-    // Fetch districts for lookup
-    const { data: districts = [] } = useQuery<District[]>({
-        queryKey: ['districts'],
-        queryFn: getDistricts,
+    // Fetch single project by ID directly
+    const { data: project, isLoading: projectLoading } = useQuery<Project | null>({
+        queryKey: ['project', id],
+        queryFn: () => getProjectById(id!),
+        enabled: !!id,
     });
-
-    const userDistrictName = districts.find(d => d.id === user?.district_id)?.name || '';
-
-    // Re-use the projects list query to get the specific project
-    const { data: allProjects = [], isLoading: projectLoading } = useQuery<Project[]>({
-        queryKey: ['projects-list', userDistrictName],
-        queryFn: () => getProjectsByDistrict(userDistrictName),
-        enabled: !!userDistrictName,
-    });
-
-    const project = allProjects.find(p => p.id === id);
 
     // Fetch updates for this project
     const { data: updates = [], isLoading: updatesLoading, refetch: refetchUpdates } = useQuery<ProjectUpdate[]>({
@@ -144,6 +131,14 @@ export default function ProjectDetailScreen() {
             </View>
         );
     }
+
+   useFocusEffect(
+        useCallback(() => {
+            if (id) {
+                refetchUpdates();
+            }
+        }, [id, refetchUpdates])
+   );
 
     const progressLabel = project.progress === 0 ? 'N/A' : project.status === 'Completed' ? 'Completed' : `${project.progress}%`;
     const isCompleted = project.status === 'Completed';

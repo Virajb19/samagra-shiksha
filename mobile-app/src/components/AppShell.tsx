@@ -1,13 +1,10 @@
 /**
  * AppShell — Persistent Top Bar + Bottom Tab Bar
  *
- * Wraps every role's Stack layout so that the Samagra Shiksha header
+ * Wraps the protected Stack layout so that the Samagra Shiksha header
  * and the bottom tab bar are ALWAYS visible on every screen.
  *
- * Usage in role _layout.tsx:
- *   <AppShell role="junior-engineer">
- *       <Stack screenOptions={{ headerShown: false }}> ... </Stack>
- *   </AppShell>
+ * Determines tab navigation paths from the current user's role.
  */
 
 import React from 'react';
@@ -15,6 +12,7 @@ import { View, Text, TouchableOpacity, Platform, StatusBar, Image } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '../lib/store';
 
 const BLUE = '#1565C0';
 
@@ -25,6 +23,18 @@ type RoleSlug =
     | 'nscbav-warden'
     | 'ie-resource-person'
     | 'junior-engineer';
+
+/** Map user role to the route slug used in navigation */
+function getRoleSlug(role?: string): RoleSlug {
+    switch (role) {
+        case 'HEADMASTER': return 'headmaster';
+        case 'KGBV_WARDEN': return 'kgbv-warden';
+        case 'NSCBAV_WARDEN': return 'nscbav-warden';
+        case 'IE_RESOURCE_PERSON': return 'ie-resource-person';
+        case 'JUNIOR_ENGINEER': return 'junior-engineer';
+        default: return 'teacher';
+    }
+}
 
 interface Tab {
     key: string;
@@ -47,15 +57,17 @@ function getActiveTab(pathname: string): string {
     return 'home';
 }
 
-export default function AppShell({ role, children }: { role: RoleSlug; children: React.ReactNode }) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
     const insets = useSafeAreaInsets();
     const pathname = usePathname();
     const activeTab = getActiveTab(pathname);
+    const { user } = useAuthStore();
+    const roleSlug = getRoleSlug(user?.role);
 
     const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || insets.top) : insets.top;
 
     const handleTabPress = (tabKey: string) => {
-        router.navigate(`/(protected)/${role}/(tabs)/${tabKey}` as any);
+        router.navigate(`/(protected)/${roleSlug}/(tabs)/${tabKey}` as any);
     };
 
     return (

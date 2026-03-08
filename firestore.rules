@@ -16,10 +16,6 @@ service cloud.firestore {
       return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN'];
     }
 
-    function isCoordinatorOrAbove() {
-      return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN', 'SUBJECT_COORDINATOR', 'ASSISTANT'];
-    }
-
     function isHeadmaster() {
       return isAuth() && getRole() == 'HEADMASTER';
     }
@@ -70,44 +66,44 @@ service cloud.firestore {
 
     // ── Audit Logs (append-only, no edits/deletes) ──
     match /audit_logs/{logId} {
-      allow read: if isCoordinatorOrAbove();
+      allow read: if isAdmin();
       allow create: if isAuth();
       allow update, delete: if false;
     }
 
     // ── Helpdesk Tickets ──
     match /helpdesk_tickets/{ticketId} {
-      allow read: if isCoordinatorOrAbove();
+      allow read: if isAdmin();
       allow create: if isAuth();
-      allow update: if isCoordinatorOrAbove();
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     // ── Notices ──
     match /notices/{noticeId} {
       allow read: if isAuth();
-      allow create, update: if isCoordinatorOrAbove();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     // ── Notice Recipients ──
     match /notice_recipients/{recipientId} {
       allow read: if isAuth();
-      allow create, update: if isCoordinatorOrAbove();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     // ── Circulars ──
     match /circulars/{circularId} {
       allow read: if isAuth();
-      allow create, update: if isCoordinatorOrAbove();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     // ── Circular Schools (join table) ──
     match /circular_schools/{csId} {
       allow read: if isAuth();
-      allow create, update: if isCoordinatorOrAbove();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -138,7 +134,7 @@ service cloud.firestore {
     // ── Project Updates (submitted by Junior Engineers) ──
     match /project_updates/{updateId} {
       allow read: if isAuth();
-      allow create: if isAuth();
+      allow create: if isAuth() && getRole() == 'JUNIOR_ENGINEER';
       allow update, delete: if isAdmin();
     }
 
@@ -188,6 +184,13 @@ service cloud.firestore {
     match /nscbav_form_data/{docId} {
       allow read: if isAuth();
       allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Vocational Education Form Data (submitted by teachers) ──
+    match /vocational_education_form_data/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && getRole() == 'TEACHER';
       allow update, delete: if isAdmin();
     }
 

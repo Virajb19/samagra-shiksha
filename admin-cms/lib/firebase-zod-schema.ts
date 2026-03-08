@@ -618,6 +618,49 @@ export const IEHomeVisitDataDocSchema = z.object({
   created_at: dateTimeLike,
 });
 
+// ── Vocational Education Form Data (submitted by teachers from mobile app) ──
+
+const VocationalClassEnrolmentSchema = z.object({
+  boys: z.string(),
+  girls: z.string(),
+});
+
+export const VocationalEducationFormDataDocSchema = z.object({
+  id: uuid,
+  // School info
+  school_id: uuid,
+  school_name: z.string().min(1),
+  district: z.string().min(1),
+  udise: z.string().min(1),
+  submitted_by: uuid,
+  submitted_by_name: z.string().min(1),
+  submitted_by_role: z.string().min(1),
+  // Form fields
+  trade: z.string().min(1),
+  class_9: VocationalClassEnrolmentSchema,
+  class_10: VocationalClassEnrolmentSchema,
+  class_11: VocationalClassEnrolmentSchema,
+  class_12: VocationalClassEnrolmentSchema,
+  is_lab_setup: z.string(),
+  lab_photo: z.string().nullable().optional(),
+  lab_not_setup_reason: z.string().nullable().optional(),
+  is_guest_lecture_done: z.string(),
+  guest_lecture_photo: z.string().nullable().optional(),
+  guest_lecture_not_done_reason: z.string().nullable().optional(),
+  is_industrial_visit_done: z.string(),
+  industrial_visit_photo: z.string().nullable().optional(),
+  industrial_visit_not_done_reason: z.string().nullable().optional(),
+  is_internship_done: z.string(),
+  internship_report: z.string().nullable().optional(),
+  internship_not_done_reason: z.string().nullable().optional(),
+  best_practices: z.string(),
+  best_practice_photos: z.array(z.string()),
+  success_stories: z.string(),
+  success_story_photos: z.array(z.string()),
+  // Metadata
+  created_at: dateTimeLike,
+});
+
 export const CollectionSchemas = {
   users: UserDocSchema,
   audit_logs: AuditLogDocSchema,
@@ -647,6 +690,7 @@ export const CollectionSchemas = {
   nscbav_form_data: NSCBAVFormDataDocSchema,
   ie_school_visit_data: IESchoolVisitDataDocSchema,
   ie_home_visit_data: IEHomeVisitDataDocSchema,
+  vocational_education_form_data: VocationalEducationFormDataDocSchema,
 } as const;
 
 type RelationType = "one-to-one" | "one-to-many" | "many-to-many";
@@ -697,6 +741,7 @@ export const Relations: RelationDef[] = [
   { from: "ie_school_visit_data", to: "schools", type: "one-to-many", foreignKey: "school_id" },
   { from: "ie_school_visit_data", to: "districts", type: "one-to-many", foreignKey: "district_id" },
   { from: "ie_home_visit_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
+  { from: "vocational_education_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
 ];
 
 export function parseDoc<K extends keyof typeof CollectionSchemas>(

@@ -24,7 +24,6 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/lib/store';
-import FormBottomBar from '../../src/components/FormBottomBar';
 import {
     getTeacherForms,
     getWardenForms,
@@ -64,46 +63,15 @@ export default function ActivityFormsScreen() {
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+            <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
 
-            {/* Blue Header */}
-            <View style={{ backgroundColor: BLUE, paddingTop: 14, paddingBottom: 24, paddingHorizontal: 18 }}>
-                {/* Top — Logo Row */}
-                <View className="flex-row items-center justify-between mb-3">
-                    <View className="flex-row items-center">
-                        <Image
-                            source={{ uri: 'https://samagrashiksha.nagaland.gov.in/assets/img/logo-removebg.png' }}
-                            style={{ width: 40, height: 40, marginRight: 10 }}
-                            resizeMode="contain"
-                        />
-                        <View>
-                            <Text className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</Text>
-                            <Text className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</Text>
-                            <Text className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</Text>
-                        </View>
-                    </View>
-                    <Image
-                        source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Emblem_of_Nagaland.svg/200px-Emblem_of_Nagaland.svg.png' }}
-                        style={{ width: 42, height: 42 }}
-                        resizeMode="contain"
-                    />
-                </View>
-
-                <Text className="text-white text-[28px] font-extrabold mb-1">Activities Forms</Text>
-                {params.schoolCode && (
-                    <Text className="text-white text-xs opacity-90 font-medium">
+            {params.schoolCode && (
+                <View className="px-4 py-2 bg-[#e8f4fd]">
+                    <Text className="text-xs text-[#1565C0] font-medium">
                         {params.schoolCode}{params.schoolName ? ` - ${params.schoolName}` : ''}
                     </Text>
-                )}
-            </View>
-
-            {/* Back Button */}
-            <TouchableOpacity
-                onPress={() => router.back()}
-                style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
-            >
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
+                </View>
+            )}
 
             {/* Forms List */}
             <ScrollView
@@ -134,7 +102,6 @@ export default function ActivityFormsScreen() {
                     ))
                 )}
             </ScrollView>
-            <FormBottomBar />
         </View>
     );
 }
@@ -159,6 +126,8 @@ function FormCard({ form, index }: { form: ActivityForm; index: number }) {
                     router.push('/(protected)/kgbv-form' as any);
                 } else if (form.name === 'NSCBAV') {
                     router.push('/(protected)/nscbav-form' as any);
+                } else if (form.name === 'Vocational Education') {
+                    router.push('/(protected)/vocational-education-form' as any);
                 }
             }}
             className="bg-white rounded-2xl mb-3 px-4 py-4 flex-row items-center"

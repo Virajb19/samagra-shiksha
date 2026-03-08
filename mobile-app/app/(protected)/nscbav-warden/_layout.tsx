@@ -1,18 +1,15 @@
 /**
  * NSCBAV Warden Routes Layout
- * Stack nav wrapped in AppShell for persistent top/bottom bars.
+ * Stack nav — AppShell is provided globally by the protected layout.
  */
 
 import { Stack } from 'expo-router';
-import AppShell from '../../../src/components/AppShell';
 
 export default function NSCBAVWardenLayout() {
     return (
-        <AppShell role="nscbav-warden">
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#f3f4f6' } }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="complete-profile" />
-            </Stack>
-        </AppShell>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#f3f4f6' } }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="complete-profile" />
+        </Stack>
     );
 }

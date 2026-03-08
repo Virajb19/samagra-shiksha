@@ -15,90 +15,107 @@ service firebase.storage {
       return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN'];
     }
 
-    function isCoordinatorOrAbove() {
-      return isAuth() && getRole() in ['ADMIN', 'SUPER_ADMIN', 'SUBJECT_COORDINATOR', 'ASSISTANT'];
-    }
 
-    // Max upload size: 10MB
+
+    // Max upload size: 10MB (only applies to uploads, not deletes)
     function isValidSize() {
-      return request.resource.size < 10 * 1024 * 1024;
+      return request.resource != null && request.resource.size < 10 * 1024 * 1024;
     }
 
     // ── Profile Photos ──
-    // Any authenticated user can read; only the owner can upload to their folder
+    // Any authenticated user can read; only the owner can upload/delete in their folder
     match /profile-photos/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.auth.uid == userId && isValidSize();
+      allow create, update: if isAuth() && request.auth.uid == userId && isValidSize();
+      allow delete: if isAuth() && request.auth.uid == userId;
     }
 
     // ── Notice Attachments ──
     // Any authenticated user can read; coordinators+ can upload
     match /notices/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isCoordinatorOrAbove() && isValidSize();
+      allow create, update: if isAdmin() && isValidSize();
+      allow delete: if isAdmin();
     }
 
     // ── Circular Attachments ──
     // Any authenticated user can read; coordinators+ can upload
     match /circulars/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isCoordinatorOrAbove() && isValidSize();
+      allow create, update: if isAdmin() && isValidSize();
+      allow delete: if isAdmin();
     }
 
     // ── ICT Form Files ──
     // Any authenticated user can read/write (userId in path is Firestore doc ID, not Auth UID)
     match /ict-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── Library Form Files ──
     // Any authenticated user can read/write; max 10 MB per file
     match /library-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── Science Lab Form Files ──
     // Any authenticated user can read/write; max 10 MB per file
     match /science-lab-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── Self Defense Form Files ──
     // Any authenticated user can read/write; max 5 MB per file
     match /self-defense-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── KGBV Form Files ──
     // Any authenticated user can read/write; max 5 MB per file
     match /kgbv-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── NSCBAV Form Files ──
     // Any authenticated user can read/write; max 5 MB per file
     match /nscbav-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── IE Visit Form Files ──
     // Any authenticated user can read/write; max 10 MB per file
     match /ie-visit-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAuth();
+    }
+
+    // ── Vocational Education Form Files ──
+    // Any authenticated user can read; max 10 MB per file
+    match /vocational-education-form-files/{userId}/{allPaths=**} {
+      allow read: if isAuth();
+      allow create, update: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── Project Update Files ──
     // Any authenticated user can read; only Junior Engineers can upload; max 10 MB per file
     match /project-update-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow write: if isAuth() && getRole() == 'JUNIOR_ENGINEER' && request.resource.size < 10 * 1024 * 1024;
+      allow create, update: if isAuth() && getRole() == 'JUNIOR_ENGINEER' && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAuth() && getRole() == 'JUNIOR_ENGINEER';
     }
 
     // ── Deny everything else by default ──

@@ -10,7 +10,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { getColleagues } from '../../../src/services/firebase/faculty.firestore';
+import { getColleagues, getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../../src/lib/store';
 
 interface Colleague {
@@ -18,6 +18,7 @@ interface Colleague {
     name: string;
     email: string;
     phone: string;
+    role?: string;
     highest_qualification?: string;
     years_of_experience?: number;
     subjects?: string[];
@@ -34,11 +35,14 @@ export default function ColleaguesScreen() {
         refetch,
         isRefetching,
     } = useQuery<Colleague[]>({
-        queryKey: ['colleagues'],
+        queryKey: ['colleagues', user?.id],
         queryFn: async () => {
-            const data = await getColleagues(user!.faculty!.school_id, user!.id);
-            return data;
+            // First fetch the faculty record to get the school_id
+            const faculty = await getFacultyByUserId(user!.id);
+            if (!faculty?.school_id) return [];
+            return await getColleagues(faculty.school_id, user!.id);
         },
+        enabled: !!user?.id,
     });
 
     // Refetch colleagues when screen gains focus

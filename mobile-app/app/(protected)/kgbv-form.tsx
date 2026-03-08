@@ -50,7 +50,6 @@ import {
 } from '../../src/services/firebase/kgbv-form.firestore';
 import { getDistricts } from '../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../src/lib/store';
-import FormBottomBar from '../../src/components/FormBottomBar';
 
 const BLUE = '#1565C0';
 
@@ -305,7 +304,6 @@ export default function KGBVFormScreen() {
                         <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
                     </TouchableOpacity>
                 </ScrollView>
-                <FormBottomBar />
             </View>
         );
     }
@@ -622,7 +620,6 @@ export default function KGBVFormScreen() {
                     {renderFormContent()}
                 </ScrollView>
             )}
-            <FormBottomBar />
         </View>
     );
 }

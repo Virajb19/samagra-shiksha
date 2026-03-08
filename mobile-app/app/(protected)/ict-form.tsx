@@ -45,7 +45,6 @@ import {
 import { submitICTForm, getICTFormSubmissions, type ICTFormSubmission } from '../../src/services/firebase/ict-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
-import FormBottomBar from '../../src/components/FormBottomBar';
 
 const BLUE = '#1565C0';
 
@@ -550,7 +549,6 @@ export default function ICTFormScreen() {
                         <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
                     </TouchableOpacity>
                 </ScrollView>
-                <FormBottomBar />
             </View>
         );
     }
@@ -622,7 +620,6 @@ export default function ICTFormScreen() {
                     {renderPageContent()}
                 </ScrollView>
             )}
-            <FormBottomBar />
         </View>
     );
 }

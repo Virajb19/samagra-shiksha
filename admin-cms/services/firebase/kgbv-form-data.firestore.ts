@@ -239,9 +239,3 @@ export const kgbvFormDataFirestore = {
         return snap.docs.map((d) => toRow(d.id, d.data()));
     },
 };
-        constraints.push(orderBy('created_at', 'desc'));
-
-        const snap = await getDocs(query(colRef, ...constraints));
-        return snap.docs.map((d) => toRow(d.id, d.data()));
-    },
-};

@@ -43,7 +43,6 @@ import {
 } from '../../src/services/firebase/science-lab-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
-import FormBottomBar from '../../src/components/FormBottomBar';
 
 const BLUE = '#1565C0';
 const MAX_PHOTOS = 10;
@@ -317,7 +316,6 @@ export default function ScienceLabFormScreen() {
                         <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
                     </TouchableOpacity>
                 </ScrollView>
-                <FormBottomBar />
             </View>
         );
     }
@@ -424,7 +422,6 @@ export default function ScienceLabFormScreen() {
                     {renderFormContent()}
                 </ScrollView>
             )}
-            <FormBottomBar />
         </View>
     );
 }

@@ -338,3 +338,37 @@ export async function uploadIEVisitFormFile(
         return { success: false, error: errorMessage };
     }
 }
+
+/**
+ * Upload a Vocational Education form file to Firebase Storage.
+ *
+ * Path: `vocational-education-form-files/<userId>/<subfolder>/<timestamp>_<filename>`
+ *
+ * @param fileUri   – Local URI of the file (image)
+ * @param userId    – Firebase Auth UID
+ * @param subfolder – Optional subfolder name (e.g. 'photos', 'lab', 'guest-lecture')
+ * @returns Upload result with download URL
+ */
+export async function uploadVocationalEducationFormFile(
+    fileUri: string,
+    userId: string,
+    subfolder: string = 'photos',
+): Promise<UploadResult> {
+    try {
+        console.log('[Storage] Uploading vocational education form file...');
+        const storage = getFirebaseStorage();
+        const uriParts = fileUri.split('/');
+        const fileName = uriParts[uriParts.length - 1] || `vocational_${Date.now()}.jpg`;
+        const storagePath = `vocational-education-form-files/${userId}/${subfolder}/${Date.now()}_${fileName}`;
+        const blob = await uriToBlob(fileUri);
+        const storageRef = ref(storage, storagePath);
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+        console.log('[Storage] Vocational education form file upload successful:', downloadURL);
+        return { success: true, fileUrl: downloadURL };
+    } catch (error) {
+        console.error('[Storage] Vocational education form file upload failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';
+        return { success: false, error: errorMessage };
+    }
+}

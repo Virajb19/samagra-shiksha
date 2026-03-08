@@ -86,6 +86,19 @@ function docToProjectUpdate(docId: string, data: Record<string, unknown>): Proje
     };
 }
 
+// ── Single Project Fetch ──
+
+/**
+ * Get a single project by its document ID.
+ */
+export async function getProjectById(projectId: string): Promise<Project | null> {
+    const db = getFirebaseDb();
+    const docRef = doc(db, 'projects', projectId);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return docToProject(snap.id, snap.data() as Record<string, unknown>);
+}
+
 // ── Queries ──
 
 /**

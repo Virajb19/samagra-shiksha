@@ -23,6 +23,8 @@ import {
     Platform,
     KeyboardAvoidingView,
     Animated,
+    Modal,
+    Pressable,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,6 +69,7 @@ export default function UpdateProjectStatusScreen() {
     const queryClient = useQueryClient();
 
     const [showStatusPicker, setShowStatusPicker] = useState(false);
+    const [showPhotoDialog, setShowPhotoDialog] = useState(false);
     const [locationGranted, setLocationGranted] = useState<boolean | null>(null);
     const [liveAddress, setLiveAddress] = useState<string>('Fetching location...');
 
@@ -544,47 +547,23 @@ export default function UpdateProjectStatusScreen() {
                         ))}
 
                         {photos.length < MAX_PHOTOS && (
-                            <>
-                                {/* Pick from gallery */}
-                                <TouchableOpacity
-                                    onPress={pickPhotos}
-                                    style={{
-                                        width: 88,
-                                        height: 88,
-                                        borderRadius: 14,
-                                        borderWidth: 2,
-                                        borderColor: '#cbd5e1',
-                                        borderStyle: 'dashed',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        backgroundColor: '#f8fafc',
-                                    }}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons name="images-outline" size={24} color="#94a3b8" />
-                                    <Text style={{ fontSize: 9, color: '#94a3b8', marginTop: 3, fontWeight: '600' }}>Gallery</Text>
-                                </TouchableOpacity>
-
-                                {/* Take photo */}
-                                <TouchableOpacity
-                                    onPress={takePhoto}
-                                    style={{
-                                        width: 88,
-                                        height: 88,
-                                        borderRadius: 14,
-                                        borderWidth: 2,
-                                        borderColor: '#cbd5e1',
-                                        borderStyle: 'dashed',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        backgroundColor: '#f8fafc',
-                                    }}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons name="camera-outline" size={24} color="#94a3b8" />
-                                    <Text style={{ fontSize: 9, color: '#94a3b8', marginTop: 3, fontWeight: '600' }}>Camera</Text>
-                                </TouchableOpacity>
-                            </>
+                            <TouchableOpacity
+                                onPress={() => setShowPhotoDialog(true)}
+                                style={{
+                                    width: 88,
+                                    height: 88,
+                                    borderRadius: 14,
+                                    borderWidth: 2,
+                                    borderColor: '#cbd5e1',
+                                    borderStyle: 'dashed',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#f8fafc',
+                                }}
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="add" size={32} color="#94a3b8" />
+                            </TouchableOpacity>
                         )}
                     </ScrollView>
 
@@ -644,6 +623,95 @@ export default function UpdateProjectStatusScreen() {
                 )}
 
                 {/* Submit Button */}
+
+                {/* Photo Source Picker Dialog */}
+                <Modal
+                    visible={showPhotoDialog}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowPhotoDialog(false)}
+                >
+                    <Pressable
+                        onPress={() => setShowPhotoDialog(false)}
+                        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center' }}
+                    >
+                        <Pressable
+                            onPress={(e) => e.stopPropagation()}
+                            style={{
+                                backgroundColor: '#fff',
+                                borderRadius: 20,
+                                paddingVertical: 28,
+                                paddingHorizontal: 24,
+                                width: '80%',
+                                maxWidth: 320,
+                                elevation: 10,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 8 },
+                                shadowOpacity: 0.2,
+                                shadowRadius: 16,
+                            }}
+                        >
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 20 }}>
+                                Add Photo
+                            </Text>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 20 }}>
+                                {/* Camera Option */}
+                                <TouchableOpacity
+                                    onPress={() => { setShowPhotoDialog(false); setTimeout(takePhoto, 200); }}
+                                    activeOpacity={0.7}
+                                    style={{
+                                        alignItems: 'center',
+                                        backgroundColor: '#eff6ff',
+                                        borderRadius: 16,
+                                        paddingVertical: 20,
+                                        paddingHorizontal: 24,
+                                        flex: 1,
+                                    }}
+                                >
+                                    <View style={{
+                                        width: 52, height: 52, borderRadius: 26, backgroundColor: BLUE,
+                                        alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+                                    }}>
+                                        <Ionicons name="camera" size={26} color="#fff" />
+                                    </View>
+                                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#1e3a5f' }}>Camera</Text>
+                                </TouchableOpacity>
+
+                                {/* Gallery Option */}
+                                <TouchableOpacity
+                                    onPress={() => { setShowPhotoDialog(false); setTimeout(pickPhotos, 200); }}
+                                    activeOpacity={0.7}
+                                    style={{
+                                        alignItems: 'center',
+                                        backgroundColor: '#f0fdf4',
+                                        borderRadius: 16,
+                                        paddingVertical: 20,
+                                        paddingHorizontal: 24,
+                                        flex: 1,
+                                    }}
+                                >
+                                    <View style={{
+                                        width: 52, height: 52, borderRadius: 26, backgroundColor: '#22c55e',
+                                        alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+                                    }}>
+                                        <Ionicons name="images" size={26} color="#fff" />
+                                    </View>
+                                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#166534' }}>Gallery</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Cancel */}
+                            <TouchableOpacity
+                                onPress={() => setShowPhotoDialog(false)}
+                                style={{ marginTop: 16, paddingVertical: 10, alignItems: 'center' }}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={{ fontSize: 14, fontWeight: '600', color: '#94a3b8' }}>Cancel</Text>
+                            </TouchableOpacity>
+                        </Pressable>
+                    </Pressable>
+                </Modal>
                 <View
                     style={{
                         position: 'absolute',

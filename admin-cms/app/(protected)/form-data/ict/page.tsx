@@ -26,7 +26,7 @@ import {
     FilterX,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchICTFormDataPage, clearICTFormDataCursorCache, fetchAllICTFormData, type ICTFormDataRow } from '@/services/firebase/ict-form-data.client';
+import { ictFormDataFirestore, type ICTFormDataRow } from '@/services/firebase/ict-form-data.client';
 import { downloadXlsx } from '@/lib/download-xlsx';
 import { Input } from '@/components/ui/input';
 import {
@@ -184,13 +184,13 @@ export default function ICTFormDataPage() {
     const hasFilters = district !== 'all' || !!date;
 
     // Reset page & cursor cache when filters change
-    useEffect(() => { clearICTFormDataCursorCache(); setCurrentPage(1); }, [district, date]);
+    useEffect(() => { ictFormDataFirestore.clearCursorCache(); setCurrentPage(1); }, [district, date]);
 
     const {
         data, isLoading, isFetching, isError, refetch, isPlaceholderData,
     } = useQuery({
         queryKey: ['ict-form-data', currentPage, activeDistrict, activeDate],
-        queryFn: () => fetchICTFormDataPage(currentPage, activeDistrict, activeDate),
+        queryFn: () => ictFormDataFirestore.fetchPage(currentPage, activeDistrict, activeDate),
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -214,7 +214,7 @@ export default function ICTFormDataPage() {
         if (currentPage < totalPages) {
             queryClient.prefetchQuery({
                 queryKey: ['ict-form-data', currentPage + 1, activeDistrict, activeDate],
-                queryFn: () => fetchICTFormDataPage(currentPage + 1, activeDistrict, activeDate),
+                queryFn: () => ictFormDataFirestore.fetchPage(currentPage + 1, activeDistrict, activeDate),
             });
         }
     }, [currentPage, totalPages, activeDistrict, activeDate, queryClient]);
@@ -239,7 +239,7 @@ export default function ICTFormDataPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <RefreshTableButton queryKey={['ict-form-data', currentPage, activeDistrict, activeDate]} isFetching={isFetching} />
-                    <DownloadXlsxButton onDownload={async () => { const rows = await fetchAllICTFormData(activeDistrict, activeDate); downloadXlsx(rows, ICT_COLUMNS, 'ICT_Form_Data'); }} disabled={!hasData} />
+                    <DownloadXlsxButton onDownload={async () => { const rows = await ictFormDataFirestore.fetchAll(activeDistrict, activeDate); downloadXlsx(rows, ICT_COLUMNS, 'ICT_Form_Data'); }} disabled={!hasData} />
                 </div>
             </motion.div>
 

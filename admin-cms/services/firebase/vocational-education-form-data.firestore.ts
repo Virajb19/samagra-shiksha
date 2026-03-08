@@ -1,10 +1,10 @@
 /**
- * ICT Form Data — Client-Side Firestore Service
+ * Vocational Education Form Data — Client-Side Firestore Service
  *
  * Cursor-based pagination using the client SDK.
- * Used by useInfiniteQuery in the ICTFormData component.
+ * Used by useQuery in the Vocational Education form data page.
  *
- * Collection: `ict_form_data`
+ * Collection: `vocational_education_form_data`
  */
 
 'use client';
@@ -28,34 +28,42 @@ import { devDelay } from '@/lib/dev-delay';
 
 // ────────────────────── Types ──────────────────────
 
-export interface ICTFormDataRow {
+export interface VocationalFormDataRow {
     id: string;
     school: string;
     district: string;
     udise: string;
     submitted_by_name: string;
-    have_smart_tvs: string;
-    have_ups: string;
-    have_pendrives: string;
-    ict_materials_working: string;
-    smart_tvs_wall_mounted: string;
-    smart_tvs_location: string;
-    photos_of_materials: string[];
-    smart_class_in_routine: string;
-    school_routine: string;
-    weekly_smart_class: string;
-    has_logbook: string;
-    logbook: string;
-    students_benefited: string;
-    noticed_impact: string;
-    is_smart_class_benefiting: string;
-    how_program_helped: string;
-    observations: string;
+    trade: string;
+    class_9_boys: string;
+    class_9_girls: string;
+    class_10_boys: string;
+    class_10_girls: string;
+    class_11_boys: string;
+    class_11_girls: string;
+    class_12_boys: string;
+    class_12_girls: string;
+    is_lab_setup: string;
+    lab_photo: string;
+    lab_not_setup_reason: string;
+    is_guest_lecture_done: string;
+    guest_lecture_photo: string;
+    guest_lecture_not_done_reason: string;
+    is_industrial_visit_done: string;
+    industrial_visit_photo: string;
+    industrial_visit_not_done_reason: string;
+    is_internship_done: string;
+    internship_report: string;
+    internship_not_done_reason: string;
+    best_practices: string;
+    best_practice_photos: string[];
+    success_stories: string;
+    success_story_photos: string[];
     created_at: string;
 }
 
-export interface ICTFormDataPage {
-    rows: ICTFormDataRow[];
+export interface VocationalFormDataPage {
+    rows: VocationalFormDataRow[];
     totalCount: number;
     totalPages: number;
     page: number;
@@ -81,30 +89,38 @@ function toIso(value: unknown): string {
     return new Date().toISOString();
 }
 
-function toRow(docId: string, d: DocumentData): ICTFormDataRow {
+function toRow(docId: string, d: DocumentData): VocationalFormDataRow {
     return {
         id: docId,
         school: d.school_name ?? '',
         district: d.district ?? '',
         udise: d.udise ?? '',
         submitted_by_name: d.submitted_by_name ?? '',
-        have_smart_tvs: d.have_smart_tvs ?? '',
-        have_ups: d.have_ups ?? '',
-        have_pendrives: d.have_pendrives ?? '',
-        ict_materials_working: d.ict_materials_working ?? '',
-        smart_tvs_wall_mounted: d.smart_tvs_wall_mounted ?? '',
-        smart_tvs_location: d.smart_tvs_location ?? '',
-        photos_of_materials: d.photos_of_materials ?? [],
-        smart_class_in_routine: d.smart_class_in_routine ?? '',
-        school_routine: d.school_routine ?? '',
-        weekly_smart_class: d.weekly_smart_class ?? '',
-        has_logbook: d.has_logbook ?? '',
-        logbook: d.logbook ?? '',
-        students_benefited: d.students_benefited ?? '',
-        noticed_impact: d.noticed_impact ?? '',
-        is_smart_class_benefiting: d.is_smart_class_benefiting ?? '',
-        how_program_helped: d.how_program_helped ?? '',
-        observations: d.observations ?? '',
+        trade: d.trade ?? '',
+        class_9_boys: d.class_9?.boys ?? '0',
+        class_9_girls: d.class_9?.girls ?? '0',
+        class_10_boys: d.class_10?.boys ?? '0',
+        class_10_girls: d.class_10?.girls ?? '0',
+        class_11_boys: d.class_11?.boys ?? '0',
+        class_11_girls: d.class_11?.girls ?? '0',
+        class_12_boys: d.class_12?.boys ?? '0',
+        class_12_girls: d.class_12?.girls ?? '0',
+        is_lab_setup: d.is_lab_setup ?? '',
+        lab_photo: d.lab_photo ?? '',
+        lab_not_setup_reason: d.lab_not_setup_reason ?? '',
+        is_guest_lecture_done: d.is_guest_lecture_done ?? '',
+        guest_lecture_photo: d.guest_lecture_photo ?? '',
+        guest_lecture_not_done_reason: d.guest_lecture_not_done_reason ?? '',
+        is_industrial_visit_done: d.is_industrial_visit_done ?? '',
+        industrial_visit_photo: d.industrial_visit_photo ?? '',
+        industrial_visit_not_done_reason: d.industrial_visit_not_done_reason ?? '',
+        is_internship_done: d.is_internship_done ?? '',
+        internship_report: d.internship_report ?? '',
+        internship_not_done_reason: d.internship_not_done_reason ?? '',
+        best_practices: d.best_practices ?? '',
+        best_practice_photos: d.best_practice_photos ?? [],
+        success_stories: d.success_stories ?? '',
+        success_story_photos: d.success_story_photos ?? [],
         created_at: toIso(d.created_at),
     };
 }
@@ -113,7 +129,6 @@ function toRow(docId: string, d: DocumentData): ICTFormDataRow {
 
 const PAGE_SIZE = 20;
 
-// Key: serialized filter params (without page), Value: Map<pageNumber, lastDocSnapshot>
 const cursorCache = new Map<string, Map<number, DocumentSnapshot>>();
 
 function getCursorCacheKey(district?: string, date?: string): string {
@@ -122,24 +137,24 @@ function getCursorCacheKey(district?: string, date?: string): string {
 
 // ────────────────────── Service Object ──────────────────────
 
-export const ictFormDataFirestore = {
+export const vocationalFormDataFirestore = {
     /** Clear cursor cache — call when filters change */
     clearCursorCache() {
         cursorCache.clear();
     },
 
     /**
-     * Fetch a page of ICT form data using Firestore client SDK with cursor-cached pagination.
+     * Fetch a page of Vocational Education form data with cursor-cached pagination.
      */
     async fetchPage(
         page: number = 1,
         district?: string,
         date?: string,
-    ): Promise<ICTFormDataPage> {
-        await devDelay('read', 'fetching ICT form data');
+    ): Promise<VocationalFormDataPage> {
+        await devDelay('read', 'fetching vocational education form data');
         await waitForAuthReady();
         const db = getFirebaseFirestore();
-        const colRef = collection(db, 'ict_form_data');
+        const colRef = collection(db, 'vocational_education_form_data');
 
         const constraints: Parameters<typeof query>[1][] = [];
 
@@ -162,7 +177,7 @@ export const ictFormDataFirestore = {
         const totalCount = countSnap.data().count;
         const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-        // ── Cursor cache setup ──
+        // Cursor cache setup
         const cacheKey = getCursorCacheKey(district, date);
         if (!cursorCache.has(cacheKey)) {
             cursorCache.set(cacheKey, new Map());
@@ -232,15 +247,15 @@ export const ictFormDataFirestore = {
     },
 
     /**
-     * Fetch ALL ICT form data rows (no pagination) for XLSX export.
+     * Fetch ALL vocational education form data rows (no pagination) for XLSX export.
      */
     async fetchAll(
         district?: string,
         date?: string,
-    ): Promise<ICTFormDataRow[]> {
+    ): Promise<VocationalFormDataRow[]> {
         await waitForAuthReady();
         const db = getFirebaseFirestore();
-        const colRef = collection(db, 'ict_form_data');
+        const colRef = collection(db, 'vocational_education_form_data');
 
         const constraints: Parameters<typeof query>[1][] = [];
         if (district && district !== 'all') {

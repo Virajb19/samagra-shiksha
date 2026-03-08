@@ -43,7 +43,7 @@ export async function getFacultyByUserId(userId: string): Promise<any | null> {
     return { id: fDoc.id, ...fData, school };
 }
 
-/** Fetch all faculty (colleagues) at a given school. */
+/** Fetch all faculty (colleagues) at a given school, including the headmaster. */
 export async function getColleagues(schoolId: string, excludeUserId?: string): Promise<any[]> {
     const snap = await getDocs(query(collection(db, 'faculties'), where('school_id', '==', schoolId)));
     const results: any[] = [];
@@ -51,8 +51,19 @@ export async function getColleagues(schoolId: string, excludeUserId?: string): P
         const fData = fDoc.data();
         if (excludeUserId && fData.user_id === excludeUserId) continue;
         const uSnap = await getDoc(doc(db, 'users', fData.user_id));
-        const user = uSnap.exists() ? { id: uSnap.id, name: uSnap.data().name, profile_image_url: uSnap.data().profile_image_url } : null;
-        results.push({ id: fDoc.id, ...fData, user });
+        if (!uSnap.exists()) continue;
+        const uData = uSnap.data();
+        results.push({
+            id: fDoc.id,
+            name: uData.name ?? '',
+            email: uData.email ?? '',
+            phone: uData.phone ?? '',
+            role: uData.role ?? 'TEACHER',
+            profile_image_url: uData.profile_image_url ?? null,
+            highest_qualification: fData.highest_qualification ?? undefined,
+            years_of_experience: fData.years_of_experience ?? undefined,
+            subjects: fData.subjects ?? [],
+        });
     }
     return results;
 }

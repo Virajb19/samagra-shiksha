@@ -31,7 +31,6 @@ import { IESchoolVisitFormSchema, type IESchoolVisitFormData } from '../../../sr
 import { submitIESchoolVisitForm } from '../../../src/services/firebase/ie-visit-form.firestore';
 import { getDistricts, getSchools } from '../../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../../src/lib/store';
-import FormBottomBar from '../../../src/components/FormBottomBar';
 
 const BLUE = '#1565C0';
 
@@ -386,7 +385,6 @@ export default function IESchoolVisitFormScreen() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
-            <FormBottomBar />
         </KeyboardAvoidingView>
     );
 }

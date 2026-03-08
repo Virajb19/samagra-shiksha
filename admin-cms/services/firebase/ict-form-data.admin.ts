@@ -102,13 +102,10 @@ function toRow(docId: string, d: FirebaseFirestore.DocumentData): ICTFormDataRow
     };
 }
 
-// ────────────────────── Server-Side API ──────────────────────
+// ────────────────────── Internal Helpers ──────────────────────
 
 const DEFAULT_PAGE_SIZE = 10;
 
-/**
- * Build a base Firestore query with optional filters applied.
- */
 function buildBaseQuery(
     db: FirebaseFirestore.Firestore,
     district?: string,
@@ -123,9 +120,6 @@ function buildBaseQuery(
     return q;
 }
 
-/**
- * Get total count of documents matching the filters.
- */
 async function getFilteredCount(
     db: FirebaseFirestore.Firestore,
     district?: string,
@@ -134,57 +128,56 @@ async function getFilteredCount(
     return snap.data().count;
 }
 
-/**
- * Fetch ICT form data from Firestore (server-side) with cursor-based pagination.
- *
- * @param cursor  - Document ID to start after (null for first page)
- * @param pageSize - Number of items per page
- * @param district - Optional district filter
- * @param date     - Optional date filter (ISO prefix match)
- */
-export async function getICTFormData(
-    cursor?: string | null,
-    pageSize: number = DEFAULT_PAGE_SIZE,
-    district?: string,
-    date?: string,
-): Promise<PaginatedICTFormData> {
-    await devDelay('read', 'reading ICT table data');
-    const db = getAdminFirestore();
+// ────────────────────── Service Object ──────────────────────
 
-    // Get total count (for display)
-    const totalCount = await getFilteredCount(db, district);
+export const ictFormDataAdmin = {
+    /**
+     * Fetch ICT form data from Firestore (server-side) with cursor-based pagination.
+     */
+    async getData(
+        cursor?: string | null,
+        pageSize: number = DEFAULT_PAGE_SIZE,
+        district?: string,
+        date?: string,
+    ): Promise<PaginatedICTFormData> {
+        await devDelay('read', 'reading ICT table data');
+        const db = getAdminFirestore();
 
-    // Build paginated query
-    let q = buildBaseQuery(db, district);
+        // Get total count (for display)
+        const totalCount = await getFilteredCount(db, district);
 
-    // If a cursor is provided, start after that document
-    if (cursor) {
-        const cursorDoc = await db.collection('ict_form_data').doc(cursor).get();
-        if (cursorDoc.exists) {
-            q = q.startAfter(cursorDoc);
+        // Build paginated query
+        let q = buildBaseQuery(db, district);
+
+        // If a cursor is provided, start after that document
+        if (cursor) {
+            const cursorDoc = await db.collection('ict_form_data').doc(cursor).get();
+            if (cursorDoc.exists) {
+                q = q.startAfter(cursorDoc);
+            }
         }
-    }
 
-    // Fetch one extra doc to determine if there's a next page
-    q = q.limit(pageSize + 1);
+        // Fetch one extra doc to determine if there's a next page
+        q = q.limit(pageSize + 1);
 
-    const snap = await q.get();
-    const allDocs = snap.docs;
-    const hasNextPage = allDocs.length > pageSize;
-    const pageDocs = hasNextPage ? allDocs.slice(0, pageSize) : allDocs;
+        const snap = await q.get();
+        const allDocs = snap.docs;
+        const hasNextPage = allDocs.length > pageSize;
+        const pageDocs = hasNextPage ? allDocs.slice(0, pageSize) : allDocs;
 
-    let rows = pageDocs.map((doc) => toRow(doc.id, doc.data()));
+        let rows = pageDocs.map((doc) => toRow(doc.id, doc.data()));
 
-    // Date filtering in JS (Firestore Timestamps don't support prefix matching)
-    if (date) {
-        rows = rows.filter((row) => row.created_at.startsWith(date));
-    }
+        // Date filtering in JS (Firestore Timestamps don't support prefix matching)
+        if (date) {
+            rows = rows.filter((row) => row.created_at.startsWith(date));
+        }
 
-    return {
-        rows,
-        nextCursor: hasNextPage ? pageDocs[pageDocs.length - 1]?.id ?? null : null,
-        currentCursor: pageDocs[0]?.id ?? null,
-        totalCount,
-        pageSize,
-    };
-}
+        return {
+            rows,
+            nextCursor: hasNextPage ? pageDocs[pageDocs.length - 1]?.id ?? null : null,
+            currentCursor: pageDocs[0]?.id ?? null,
+            totalCount,
+            pageSize,
+        };
+    },
+};

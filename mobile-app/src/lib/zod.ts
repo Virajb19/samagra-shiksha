@@ -689,3 +689,119 @@ export const ProjectStatusUpdateSchema = z.object({
 });
 
 export type ProjectStatusUpdateFormData = z.infer<typeof ProjectStatusUpdateSchema>;
+
+// ── Vocational Education Activity Form Schema ──────────────────────────────
+
+/**
+ * Trade options for the Vocational Education form.
+ */
+export const VOCATIONAL_TRADE_OPTIONS = [
+    'Agriculture',
+    'Automotive',
+    'Beauty & Wellness',
+    'Electronics',
+    'Healthcare',
+    'Plumbing',
+    'IT & ITeS',
+    'Multiskill',
+    'Tourism & Hospitality',
+    'Retail',
+] as const;
+
+/**
+ * Class enrolment — boys and girls count per class (9–12).
+ */
+const ClassEnrolmentSchema = z.object({
+    boys: z
+        .string()
+        .min(1, 'Please enter number of boys')
+        .refine((v) => { const n = parseInt(v, 10); return !isNaN(n) && n >= 0; }, 'Must be a valid number'),
+    girls: z
+        .string()
+        .min(1, 'Please enter number of girls')
+        .refine((v) => { const n = parseInt(v, 10); return !isNaN(n) && n >= 0; }, 'Must be a valid number'),
+});
+
+/**
+ * Vocational Education Activity Form — Single page form.
+ *
+ * Fields based on the screenshots:
+ * - Trade (dropdown)
+ * - Class 9–12 enrolment (Boys/Girls per class)
+ * - Is Lab Setup completely? (Yes/No → photo or reason)
+ * - Is Guest Lecture done? (Yes/No → photo or reason)
+ * - Is Industrial Visit done? (Yes/No → photo or reason)
+ * - Is Internship done? (Yes/No → report or reason)
+ * - Best Practices (text, max 100 words)
+ * - Photos of Best Practices (at least 1 image)
+ * - Success Stories (text, max 100 words)
+ * - Photos of Success Stories (at least 1 image)
+ */
+export const VocationalEducationFormSchema = z.object({
+    trade: z.string().min(1, 'Please select a trade'),
+
+    // Class enrolment
+    class9: ClassEnrolmentSchema,
+    class10: ClassEnrolmentSchema,
+    class11: ClassEnrolmentSchema,
+    class12: ClassEnrolmentSchema,
+
+    // Lab setup
+    isLabSetup: z.enum(['Yes', 'No'], { message: 'Please select whether lab is set up' }),
+    labPhoto: z.string().optional(),
+    labNotSetupReason: z.string().optional(),
+
+    // Guest lecture
+    isGuestLectureDone: z.enum(['Yes', 'No'], { message: 'Please select whether guest lecture is done' }),
+    guestLecturePhoto: z.string().optional(),
+    guestLectureNotDoneReason: z.string().optional(),
+
+    // Industrial visit
+    isIndustrialVisitDone: z.enum(['Yes', 'No'], { message: 'Please select whether industrial visit is done' }),
+    industrialVisitPhoto: z.string().optional(),
+    industrialVisitNotDoneReason: z.string().optional(),
+
+    // Internship
+    isInternshipDone: z.enum(['Yes', 'No'], { message: 'Please select whether internship is done' }),
+    internshipReport: z.string().optional(),
+    internshipNotDoneReason: z.string().optional(),
+
+    // Best practices
+    bestPractices: z.string().min(1, 'Please enter best practices'),
+    bestPracticePhotos: z.array(z.string()).min(1, 'Please upload at least 1 photo of best practices').max(10, 'Maximum 10 photos allowed'),
+
+    // Success stories
+    successStories: z.string().min(1, 'Please enter success stories'),
+    successStoryPhotos: z.array(z.string()).min(1, 'Please upload at least 1 photo of success stories').max(10, 'Maximum 10 photos allowed'),
+}).superRefine((data, ctx) => {
+    // Lab setup conditional validation
+    if (data.isLabSetup === 'Yes' && !data.labPhoto) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please upload a lab photo', path: ['labPhoto'] });
+    }
+    if (data.isLabSetup === 'No' && (!data.labNotSetupReason || !data.labNotSetupReason.trim())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter reason why lab was not set up', path: ['labNotSetupReason'] });
+    }
+    // Guest lecture conditional validation
+    if (data.isGuestLectureDone === 'Yes' && !data.guestLecturePhoto) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please upload a guest lecture photo', path: ['guestLecturePhoto'] });
+    }
+    if (data.isGuestLectureDone === 'No' && (!data.guestLectureNotDoneReason || !data.guestLectureNotDoneReason.trim())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter reason why guest lecture was not conducted', path: ['guestLectureNotDoneReason'] });
+    }
+    // Industrial visit conditional validation
+    if (data.isIndustrialVisitDone === 'Yes' && !data.industrialVisitPhoto) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please upload an industrial visit photo', path: ['industrialVisitPhoto'] });
+    }
+    if (data.isIndustrialVisitDone === 'No' && (!data.industrialVisitNotDoneReason || !data.industrialVisitNotDoneReason.trim())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter reason why industrial visit was not conducted', path: ['industrialVisitNotDoneReason'] });
+    }
+    // Internship conditional validation
+    if (data.isInternshipDone === 'Yes' && (!data.internshipReport || !data.internshipReport.trim())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter internship report', path: ['internshipReport'] });
+    }
+    if (data.isInternshipDone === 'No' && (!data.internshipNotDoneReason || !data.internshipNotDoneReason.trim())) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please enter reason why internship was not conducted', path: ['internshipNotDoneReason'] });
+    }
+});
+
+export type VocationalEducationFormData = z.infer<typeof VocationalEducationFormSchema>;

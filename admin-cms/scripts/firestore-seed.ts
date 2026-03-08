@@ -1768,6 +1768,90 @@ function seedSelfDefenseFormData(): void {
   console.log(`✅ ${count} Self Defense form submissions`);
 }
 
+// ── Vocational Education Form Data ──
+
+const VOCATIONAL_FORM_COUNT = Number(process.env.SEED_VOCATIONAL_FORMS || 45);
+const VOCATIONAL_TRADES = [
+  'Agriculture', 'Automotive', 'Beauty & Wellness', 'Electronics & Hardware',
+  'Healthcare', 'Plumbing', 'IT & ITeS', 'Multiskill',
+  'Tourism & Hospitality', 'Retail',
+];
+const VOCATIONAL_PHOTO_URLS = [
+  'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800&q=80',
+  'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&q=80',
+  'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80',
+  'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+];
+const VOCATIONAL_BEST_PRACTICES = [
+  'Students actively participate in trade practical sessions',
+  'Regular industry exposure visits conducted for students',
+  'Guest lecturers from industry invited every month',
+  'Lab equipped with modern tools and regularly maintained',
+  'Students placed in internships at local businesses',
+];
+const VOCATIONAL_SUCCESS_STORIES = [
+  'Students from Agriculture trade started their own organic farm',
+  'Healthcare trade students volunteered at community health camp',
+  'IT students developed a mobile app for the school',
+  'Tourism students organized a cultural heritage walk for the community',
+  'Electronics students repaired school equipment saving maintenance costs',
+];
+
+function seedVocationalEducationFormData(): void {
+  console.log(`🎓 Creating ${VOCATIONAL_FORM_COUNT} Vocational Education form submissions...`);
+  let count = 0;
+  const teacherPool = ids.teacherIds.slice(0, 2000);
+
+  for (let i = 0; i < VOCATIONAL_FORM_COUNT; i++) {
+    const schoolIdx = randomInt(0, Math.min(ids.schoolIds.length - 1, 200));
+    const schoolId = ids.schoolIds[schoolIdx];
+    const districtId = ids.schoolDistrictMap.get(schoolId)!;
+    const districtName = nagalandDistricts.find((_, idx) => ids.districtIds[idx] === districtId)?.name ?? 'Nagaland';
+    const userId = randomElement(teacherPool);
+
+    const isLabSetup = randomElement(['Yes', 'No']);
+    const isGuestLectureDone = randomElement(['Yes', 'No']);
+    const isIndustrialVisitDone = randomElement(['Yes', 'No']);
+    const isInternshipDone = randomElement(['Yes', 'No']);
+
+    const id = newId('vocational_education_form_data');
+    writer.set(db.collection('vocational_education_form_data').doc(id), {
+      id,
+      school_id: schoolId,
+      school_name: `School #${schoolIdx + 1}, ${districtName}`,
+      district: districtName,
+      udise: `11${String(randomInt(10000000, 99999999))}`,
+      submitted_by: userId,
+      submitted_by_name: generateName(),
+      submitted_by_role: 'TEACHER',
+      trade: randomElement(VOCATIONAL_TRADES),
+      class_9: { boys: String(randomInt(5, 40)), girls: String(randomInt(5, 40)) },
+      class_10: { boys: String(randomInt(5, 40)), girls: String(randomInt(5, 40)) },
+      class_11: { boys: String(randomInt(5, 35)), girls: String(randomInt(5, 35)) },
+      class_12: { boys: String(randomInt(5, 30)), girls: String(randomInt(5, 30)) },
+      is_lab_setup: isLabSetup,
+      lab_photo: isLabSetup === 'Yes' ? randomElement(VOCATIONAL_PHOTO_URLS) : '',
+      lab_not_setup_reason: isLabSetup === 'No' ? 'Awaiting equipment delivery from state office' : '',
+      is_guest_lecture_done: isGuestLectureDone,
+      guest_lecture_photo: isGuestLectureDone === 'Yes' ? randomElement(VOCATIONAL_PHOTO_URLS) : '',
+      guest_lecture_not_done_reason: isGuestLectureDone === 'No' ? 'No industry professional available in the area' : '',
+      is_industrial_visit_done: isIndustrialVisitDone,
+      industrial_visit_photo: isIndustrialVisitDone === 'Yes' ? randomElement(VOCATIONAL_PHOTO_URLS) : '',
+      industrial_visit_not_done_reason: isIndustrialVisitDone === 'No' ? 'Transport and logistics issues' : '',
+      is_internship_done: isInternshipDone,
+      internship_report: isInternshipDone === 'Yes' ? 'Students completed 2-week internship at local enterprises and gained hands-on experience' : '',
+      internship_not_done_reason: isInternshipDone === 'No' ? 'No suitable local enterprises available for internship placement' : '',
+      best_practices: randomElement(VOCATIONAL_BEST_PRACTICES),
+      best_practice_photos: [randomElement(VOCATIONAL_PHOTO_URLS)],
+      success_stories: randomElement(VOCATIONAL_SUCCESS_STORIES),
+      success_story_photos: [randomElement(VOCATIONAL_PHOTO_URLS)],
+      created_at: admin.firestore.Timestamp.fromDate(generateDate(2025, 2026)),
+    });
+    count++;
+  }
+  console.log(`✅ ${count} Vocational Education form submissions`);
+}
+
 // ── KGBV Form Data ──
 
 const KGBV_FORM_COUNT = Number(process.env.SEED_KGBV_FORMS || 40);
@@ -2095,6 +2179,7 @@ async function main(): Promise<void> {
   seedLibraryFormData();
   seedScienceLabFormData();
   seedSelfDefenseFormData();
+  seedVocationalEducationFormData();
   seedKGBVFormData();
   seedNSCBAVFormData();
   seedIESchoolVisitData();
@@ -2135,7 +2220,8 @@ async function main(): Promise<void> {
   console.log(`📚 Library Form Submissions: ${LIBRARY_FORM_COUNT}`);
   console.log(`🔬 Science Lab Submissions:  ${SCIENCE_LAB_FORM_COUNT}`);
   console.log(`🥋 Self Defense Submissions: ${SELF_DEFENSE_FORM_COUNT}`);
-  console.log(`🏫 KGBV Form Submissions:    ${KGBV_FORM_COUNT}`);
+  console.log(`� Vocational Ed. Submissions: ${VOCATIONAL_FORM_COUNT}`);
+  console.log(`�🏫 KGBV Form Submissions:    ${KGBV_FORM_COUNT}`);
   console.log(`🏠 NSCBAV Form Submissions:  ${NSCBAV_FORM_COUNT}`);
   console.log(`🏫 IE School Visit Forms:    ${IE_SCHOOL_VISIT_COUNT}`);
   console.log(`🏠 IE Home Visit Forms:      ${IE_HOME_VISIT_COUNT}`);

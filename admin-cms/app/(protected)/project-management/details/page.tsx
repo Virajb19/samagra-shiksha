@@ -183,7 +183,7 @@ function ProjectPhotoDialog({ projectId, open, onOpenChange }: { projectId: stri
                                 </span>
                             </div>
                             {current.comment && (
-                                <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                                <p className="text-sm text-slate-700 dark:text-slate-300">
                                     &ldquo;{current.comment}&rdquo;
                                 </p>
                             )}
