@@ -7,6 +7,7 @@ import { firebaseUsersAdminApi } from "@/services/firebase/users-admin.firestore
 import { PaginatedSchoolsResponse, UserFilterParams } from "@/services/contracts";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject, listAll } from "firebase/storage";
 import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 import { getFirebaseStorage, getFirebaseAuth, getFirebaseFirestore } from "@/lib/firebase";
 import { auditLogsFirestore } from "./firebase/audit-logs.firestore";
 
@@ -144,13 +145,17 @@ export async function uploadProfilePhoto(
 
   const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
 
+  // Sync photo URL to Firebase Auth profile (persists across logout/login)
+  await updateProfile(currentUser, { photoURL: downloadUrl });
+
   // Update Firestore user document with new photo URL
   const db = getFirebaseFirestore();
   const usersQuery = await getDocs(
     query(collection(db, "users"), where("email", "==", currentUser.email))
   );
   if (!usersQuery.empty) {
-    await updateDoc(usersQuery.docs[0].ref, { profile_image_url: downloadUrl });
+    const docRef = usersQuery.docs[0].ref;
+    await updateDoc(docRef, { profile_image_url: downloadUrl });
   }
 
   // Audit log: profile photo updated

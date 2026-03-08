@@ -141,8 +141,8 @@ service cloud.firestore {
     // ── Activity Forms ──
     match /activity_forms/{formId} {
       allow read: if isAuth();
-      allow update: if isAdmin();
-      allow create, delete: if false;
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // ── ICT Form Data (submitted forms) ──
@@ -204,6 +204,13 @@ service cloud.firestore {
     // ── IE Home Visit Data (submitted by IE Resource Persons) ──
     match /ie_home_visit_data/{docId} {
       allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Audit Logs ──
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
       allow create: if isAuth();
       allow update, delete: if isAdmin();
     }

@@ -160,7 +160,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         loading: false,
       });
     } catch {
-      set({ role: null, userName: null, userEmail: null, userProfilePic: null, isAuthenticated: false, loading: false });
+      // Keep cached profile pic on transient auth errors
+      const cachedPic = typeof window !== 'undefined' ? localStorage.getItem('userProfilePic') : null;
+      set({ role: null, userName: null, userEmail: null, userProfilePic: cachedPic, isAuthenticated: false, loading: false });
     } finally {
       set({ loading: false });
     }
