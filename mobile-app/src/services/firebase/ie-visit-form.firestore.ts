@@ -6,8 +6,8 @@
  */
 
 import {
-    collection,
-    addDoc,
+    doc,
+    setDoc,
     serverTimestamp,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '../../lib/firebase';
@@ -71,9 +71,10 @@ export async function submitIESchoolVisitForm(
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'ie_school_visit_data'), docData);
-    console.log('[IE School Visit] Submission saved with ID:', docRef.id);
-    return docRef.id;
+    const docId = `${userInfo.userId}_ie_school_visit`;
+    await setDoc(doc(db, 'ie_school_visit_data', docId), docData);
+    console.log('[IE School Visit] Submission saved/updated with ID:', docId);
+    return docId;
 }
 
 /**
@@ -110,7 +111,8 @@ export async function submitIEHomeVisitForm(
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'ie_home_visit_data'), docData);
-    console.log('[IE Home Visit] Submission saved with ID:', docRef.id);
-    return docRef.id;
+    const docId = `${userInfo.userId}_ie_home_visit`;
+    await setDoc(doc(db, 'ie_home_visit_data', docId), docData);
+    console.log('[IE Home Visit] Submission saved/updated with ID:', docId);
+    return docId;
 }

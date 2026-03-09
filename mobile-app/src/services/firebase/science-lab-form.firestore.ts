@@ -7,7 +7,8 @@
 
 import {
     collection,
-    addDoc,
+    doc,
+    setDoc,
     getDocs,
     query,
     where,
@@ -100,9 +101,10 @@ export async function submitScienceLabForm(
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'science_lab_form_data'), docData);
-    console.log('[Science Lab Form] Submission saved with ID:', docRef.id);
-    return docRef.id;
+    const docId = `${userInfo.userId}_science_lab`;
+    await setDoc(doc(db, 'science_lab_form_data', docId), docData);
+    console.log('[Science Lab Form] Submission saved/updated with ID:', docId);
+    return docId;
 }
 
 /**

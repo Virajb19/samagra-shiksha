@@ -7,7 +7,8 @@
 
 import {
     collection,
-    addDoc,
+    doc,
+    setDoc,
     getDocs,
     query,
     where,
@@ -79,9 +80,10 @@ export async function submitSelfDefenseForm(
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'self_defense_form_data'), docData);
-    console.log('[Self Defense Form] Submission saved with ID:', docRef.id);
-    return docRef.id;
+    const docId = `${userInfo.userId}_self_defense`;
+    await setDoc(doc(db, 'self_defense_form_data', docId), docData);
+    console.log('[Self Defense Form] Submission saved/updated with ID:', docId);
+    return docId;
 }
 
 /**

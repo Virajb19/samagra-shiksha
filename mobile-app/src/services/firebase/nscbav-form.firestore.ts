@@ -7,7 +7,8 @@
 
 import {
     collection,
-    addDoc,
+    doc,
+    setDoc,
     getDocs,
     query,
     where,
@@ -75,9 +76,10 @@ export async function submitNSCBAVForm(
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'nscbav_form_data'), docData);
-    console.log('[NSCBAV Form] Submission saved with ID:', docRef.id);
-    return docRef.id;
+    const docId = `${userInfo.userId}_nscbav`;
+    await setDoc(doc(db, 'nscbav_form_data', docId), docData);
+    console.log('[NSCBAV Form] Submission saved/updated with ID:', docId);
+    return docId;
 }
 
 /**

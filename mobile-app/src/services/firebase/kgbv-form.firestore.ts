@@ -7,7 +7,8 @@
 
 import {
     collection,
-    addDoc,
+    doc,
+    setDoc,
     getDocs,
     query,
     where,
@@ -80,9 +81,10 @@ export async function submitKGBVForm(
         created_at: serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'kgbv_form_data'), docData);
-    console.log('[KGBV Form] Submission saved with ID:', docRef.id);
-    return docRef.id;
+    const docId = `${userInfo.userId}_kgbv`;
+    await setDoc(doc(db, 'kgbv_form_data', docId), docData);
+    console.log('[KGBV Form] Submission saved/updated with ID:', docId);
+    return docId;
 }
 
 /**
