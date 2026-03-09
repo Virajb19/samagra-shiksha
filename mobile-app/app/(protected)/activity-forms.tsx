@@ -29,6 +29,7 @@ import {
     getWardenForms,
     type ActivityForm,
 } from '../../src/services/firebase/activity-forms.firestore';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 
@@ -43,6 +44,9 @@ export default function ActivityFormsScreen() {
     const params = useLocalSearchParams<{ schoolName?: string; schoolCode?: string }>();
 
     const isWarden = user?.role === 'KGBV_WARDEN' || user?.role === 'NSCBAV_WARDEN';
+    const isHeadmaster = user?.role === 'HEADMASTER';
+
+    const [blockedFormName, setBlockedFormName] = useState<string | null>(null);
 
     const { data: forms, isLoading, error, refetch } = useQuery({
         queryKey: ['activity-forms', isWarden ? 'warden' : 'teacher'],
@@ -98,15 +102,23 @@ export default function ActivityFormsScreen() {
                     </View>
                 ) : (
                     forms.map((form, index) => (
-                        <FormCard key={form.id} form={form} index={index + 1} />
+                        <FormCard key={form.id} form={form} index={index + 1} isHeadmaster={isHeadmaster} onBlocked={(name) => setBlockedFormName(name)} />
                     ))
                 )}
             </ScrollView>
+
+            {/* Headmaster blocked modal */}
+            <NotAuthorizedDialog
+                visible={!!blockedFormName}
+                onClose={() => setBlockedFormName(null)}
+                formName={blockedFormName ?? ''}
+                message={`As a Headmaster, you are not required to fill the ${blockedFormName} form. Only Teachers, Wardens, and IE Resource Persons can submit forms.`}
+            />
         </View>
     );
 }
 
-function FormCard({ form, index }: { form: ActivityForm; index: number }) {
+function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm; index: number; isHeadmaster: boolean; onBlocked: (name: string) => void }) {
     const isActive = form.status === 'Active';
 
     return (
@@ -114,6 +126,10 @@ function FormCard({ form, index }: { form: ActivityForm; index: number }) {
             activeOpacity={isActive ? 0.7 : 1}
             onPress={() => {
                 if (!isActive) return;
+                if (isHeadmaster) {
+                    onBlocked(form.name);
+                    return;
+                }
                 if (form.name === 'ICT') {
                     router.push('/(protected)/ict-form' as any);
                 } else if (form.name === 'Library') {
