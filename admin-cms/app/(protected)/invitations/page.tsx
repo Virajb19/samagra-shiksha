@@ -53,6 +53,7 @@ interface InvitationRow {
 interface InvitationsFilters {
   search?: string;
   status?: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  date?: string;
 }
 
 interface InvitationsResponse {
@@ -200,13 +201,15 @@ export default function InvitationsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useDebounceValue('', 500);
 
+  const [dateFilter, setDateFilter] = useState('');
+
   const pageSize = 50;
   const queryClient = useQueryClient();
 
   // Build filter — if a specific notice is selected, use its title as search
   const searchFilter = selectedNotice !== 'all' ? selectedNotice : searchQuery || undefined;
 
-  const filters: InvitationsFilters = { search: searchFilter, status: statusFilter };
+  const filters: InvitationsFilters = { search: searchFilter, status: statusFilter, date: dateFilter || undefined };
 
   // ── useInfiniteQuery: server-side cursor pagination ──
   const {
@@ -367,10 +370,10 @@ export default function InvitationsPage() {
           <div className="flex-1 min-w-[200px]">
             <label className="text-slate-500 dark:text-slate-400 text-sm mb-2 flex items-center gap-2">
               <Search className="h-4 w-4" />
-              Search Invitations
+              Search by Name
             </label>
             <Input
-              placeholder="Search by notice title..."
+              placeholder="Search by recipient name..."
               value={searchInput}
               onChange={(e) => {
                 setSearchInput(e.target.value);
@@ -399,14 +402,28 @@ export default function InvitationsPage() {
             </Select>
           </div>
 
+          <div className="min-w-[180px]">
+            <label className="text-slate-500 dark:text-slate-400 text-sm mb-2 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Event Date
+            </label>
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800/50 border-blue-400 dark:border-blue-500 text-slate-900 dark:text-white focus:border-blue-500"
+            />
+          </div>
+
           {/* Clear Filters Button */}
           <ClearFiltersButton
-            hasActiveFilters={!!(searchInput || statusFilter || selectedNotice !== 'all')}
+            hasActiveFilters={!!(searchInput || statusFilter || selectedNotice !== 'all' || dateFilter)}
             onClear={() => {
               setSearchInput('');
               setSearchQuery('');
               setSelectedNotice('all');
               setStatusFilter(undefined);
+              setDateFilter('');
             }}
           />
         </div>

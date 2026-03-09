@@ -11,7 +11,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Platform, StatusBar, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname, router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../lib/store';
 
 const BLUE = '#1565C0';
@@ -39,14 +39,14 @@ function getRoleSlug(role?: string): RoleSlug {
 interface Tab {
     key: string;
     label: string;
-    iconFocused: keyof typeof Ionicons.glyphMap;
-    iconDefault: keyof typeof Ionicons.glyphMap;
+    iconFocused: keyof typeof MaterialIcons.glyphMap;
+    iconDefault: keyof typeof MaterialIcons.glyphMap;
 }
 
 const TABS: Tab[] = [
-    { key: 'home', label: 'Home', iconFocused: 'grid', iconDefault: 'grid-outline' },
-    { key: 'events', label: 'Events', iconFocused: 'calendar', iconDefault: 'calendar-outline' },
-    { key: 'circulars', label: 'Circulars', iconFocused: 'document-text', iconDefault: 'document-text-outline' },
+    { key: 'home', label: 'Home', iconFocused: 'dashboard', iconDefault: 'dashboard' },
+    { key: 'events', label: 'Events', iconFocused: 'event', iconDefault: 'event' },
+    { key: 'circulars', label: 'Circulars', iconFocused: 'description', iconDefault: 'description' },
     { key: 'settings', label: 'Settings', iconFocused: 'person', iconDefault: 'person-outline' },
 ];
 
@@ -116,7 +116,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             activeOpacity={0.7}
                             className="flex-1 items-center py-1"
                         >
-                            <Ionicons
+                            <MaterialIcons
                                 name={isActive ? tab.iconFocused : tab.iconDefault}
                                 size={24}
                                 color={isActive ? BLUE : '#9ca3af'}

@@ -14,7 +14,6 @@
 import {
     collection,
     doc,
-    documentId,
     query,
     orderBy,
     limit as queryLimit,
@@ -611,7 +610,7 @@ export const noticeFirestore = {
      * - No need to fetch notices or users — all data is on the recipient doc.
      */
     async getInvitations(
-        filters?: { search?: string; status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' },
+        filters?: { search?: string; status?: 'PENDING' | 'ACCEPTED' | 'REJECTED'; date?: string },
         limit = 50,
         cursor?: string | null
     ): Promise<{
@@ -650,9 +649,18 @@ export const noticeFirestore = {
             baseConstraints.push(where("status", "==", filters.status));
         }
 
-        // Search by denormalized notice_title (exact match)
+        // Search by denormalized user_name (exact match)
         if (filters?.search?.trim()) {
-            baseConstraints.push(where("notice_title", "==", filters.search.trim()));
+            baseConstraints.push(where("user_name", "==", filters.search.trim()));
+        }
+
+        // Date filter on event_date (specific day in local timezone)
+        if (filters?.date) {
+            const [year, month, day] = filters.date.split("-").map(Number);
+            const dayStart = new Date(year, month - 1, day, 0, 0, 0, 0);
+            const dayEnd = new Date(year, month - 1, day, 23, 59, 59, 999);
+            baseConstraints.push(where("event_date", ">=", Timestamp.fromDate(dayStart)));
+            baseConstraints.push(where("event_date", "<=", Timestamp.fromDate(dayEnd)));
         }
 
         // ── Total count ──
@@ -664,12 +672,15 @@ export const noticeFirestore = {
             return { data: [], total: 0, hasMore: false, nextCursor: null };
         }
 
+        // ── Determine sort field: event_date when date filter is active, else created_at ──
+        const sortField = filters?.date ? "event_date" : "created_at";
+
         // ── Cursor ──
         const cursorConstraints: QueryConstraint[] = [];
         if (cursor) {
             try {
-                const { ts, id } = JSON.parse(cursor);
-                cursorConstraints.push(startAfter(Timestamp.fromDate(new Date(ts)), id));
+                const { ts } = JSON.parse(cursor);
+                cursorConstraints.push(startAfter(Timestamp.fromDate(new Date(ts))));
             } catch {
                 // ignore bad cursor
             }
@@ -679,8 +690,7 @@ export const noticeFirestore = {
         const pageQ = query(
             recipientsCol,
             ...baseConstraints,
-            orderBy("created_at", "desc"),
-            orderBy(documentId()),
+            orderBy(sortField, "desc"),
             ...cursorConstraints,
             queryLimit(limit + 1)
         );
@@ -713,7 +723,7 @@ export const noticeFirestore = {
         // ── Compute next cursor ──
         const lastDoc = pageDocs[pageDocs.length - 1];
         const nextCursor = hasMore && lastDoc
-            ? JSON.stringify({ ts: toIso(lastDoc.data().created_at), id: lastDoc.id })
+            ? JSON.stringify({ ts: toIso(lastDoc.data()[sortField]) })
             : null;
 
         return { data, total, hasMore, nextCursor };

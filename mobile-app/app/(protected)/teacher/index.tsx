@@ -30,7 +30,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getProfileStatus } from '../../../src/services/firebase/users.firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
-import ProfileCompletionBlocker from '../../../src/components/ProfileCompletionBlocker';
 
 const { width } = Dimensions.get('window');
 
@@ -61,7 +60,6 @@ function ActionCard({ title, icon, onPress, iconBgColor = '#e5e7eb', disabled = 
 
 export default function TeacherHomeScreen() {
     const { user } = useAuthStore();
-    const [showProfileModal, setShowProfileModal] = useState(false);
 
     // Fetch profile status from backend
     const { data: profileStatus, isLoading: loadingProfile, refetch: refetchProfile } = useQuery({
@@ -81,21 +79,9 @@ export default function TeacherHomeScreen() {
         }, [refetchProfile])
     );
 
-    // Show modal if profile not completed (after loading)
-    useEffect(() => {
-        if (!loadingProfile && !hasCompletedProfile) {
-            // Delay showing modal for smooth transition
-            const timer = setTimeout(() => {
-                setShowProfileModal(true);
-            }, 500);
-            return () => clearTimeout(timer);
-        } else {
-            setShowProfileModal(false);
-        }
-    }, [loadingProfile, hasCompletedProfile]);
+
 
     const handleCompleteProfile = () => {
-        setShowProfileModal(false);
         router.push('/(protected)/teacher/complete-profile');
     };
 
@@ -170,7 +156,7 @@ export default function TeacherHomeScreen() {
             {!loadingProfile && !hasCompletedProfile && (
                 <TouchableOpacity
                     className="bg-[#fef3c7] rounded-xl p-3 mt-4 flex-row items-center border border-[#fcd34d]"
-                    onPress={() => setShowProfileModal(true)}
+                    onPress={handleCompleteProfile}
                 >
                     <Ionicons name="alert-circle" size={20} color="#f59e0b" />
                     <Text className="flex-1 ml-2 text-sm text-[#92400e] font-medium">
@@ -238,14 +224,6 @@ export default function TeacherHomeScreen() {
                     </View>
                 </View>
             )}
-
-            {/* Profile Completion Modal */}
-            <ProfileCompletionBlocker
-                visible={showProfileModal && !hasCompletedProfile}
-                userName={user?.name}
-                userRole="TEACHER"
-            />
-
         </ScrollView>
     );
 }

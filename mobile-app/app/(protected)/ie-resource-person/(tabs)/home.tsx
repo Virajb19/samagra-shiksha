@@ -175,7 +175,7 @@ export default function IEResourcePersonHomeTabScreen() {
                         if (!hasCompletedProfile) router.push('/(protected)/ie-resource-person/complete-profile');
                         else router.push('/(protected)/ie-resource-person/view-profile');
                     }} />
-                    <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } Alert.alert('Coming Soon', 'Notices will be available soon.'); }} disabled={!hasCompletedProfile || !isActive} />
+                    <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/notices' as any); }} disabled={!hasCompletedProfile || !isActive} />
                     <ActionCard title="Home / School Visits" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } setShowVisitPicker(true); }} disabled={!hasCompletedProfile || !isActive} />
                 </View>
             </View>

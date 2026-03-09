@@ -230,7 +230,7 @@ export default function HeadmasterHomeScreen() {
                         iconName="megaphone-outline"
                         onPress={() => {
                             if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; }
-                            router.push('/(protected)/headmaster/notices');
+                            router.push('/(protected)/notices' as any);
                         }}
                         disabled={!hasCompletedProfile || !isActive}
                     />

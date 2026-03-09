@@ -15,7 +15,6 @@ export default function TeacherLayout() {
             <Stack.Screen name="helpdesk" />
             <Stack.Screen name="events" />
             <Stack.Screen name="colleagues" />
-            <Stack.Screen name="notices" />
             <Stack.Screen name="create-event" />
         </Stack>
     );

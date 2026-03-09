@@ -14,7 +14,6 @@ export default function HeadmasterLayout() {
             <Stack.Screen name="complete-profile" />
             <Stack.Screen name="edit-personal-details" />
             <Stack.Screen name="view-staffs" />
-            <Stack.Screen name="notices" />
             <Stack.Screen name="events/index" />
             <Stack.Screen name="events/create" />
             <Stack.Screen name="events/[id]" />

@@ -138,7 +138,7 @@ export default function NSCBAVWardenHomeTabScreen() {
                         if (!hasCompletedProfile) router.push('/(protected)/nscbav-warden/complete-profile');
                         else Alert.alert('Profile', 'Profile viewing coming soon.');
                     }} />
-                    <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } Alert.alert('Coming Soon', 'Notices will be available soon.'); }} disabled={!hasCompletedProfile || !isActive} />
+                    <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/notices' as any); }} disabled={!hasCompletedProfile || !isActive} />
                     <ActionCard title="Activities Forms" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/activity-forms' as any); }} disabled={!hasCompletedProfile || !isActive} />
                 </View>
             </View>

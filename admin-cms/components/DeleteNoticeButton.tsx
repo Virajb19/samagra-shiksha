@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import noticesService from '@/services/notices.service';
+import { noticeFirestore } from '@/services/firebase/notice.firestore';
 import { showErrorToast, showSuccessToast } from './ui/custom-toast';
 
 interface DeleteNoticeButtonProps {
@@ -26,7 +26,7 @@ export function DeleteNoticeButton({ noticeId, noticeTitle }: DeleteNoticeButton
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: () => noticesService.delete(noticeId),
+    mutationFn: () => noticeFirestore.delete(noticeId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notices'] });
       showSuccessToast(`Notice "${noticeTitle}" deleted`);

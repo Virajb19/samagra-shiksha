@@ -87,7 +87,7 @@ export default function TeacherCreateEventScreen() {
         mutationFn: async () => {
             let flyer_url: string | undefined = undefined;
             if (photo) {
-                const uploadResult = await uploadProfileImage(photo.uri);
+                const uploadResult = await uploadProfileImage(photo.uri, user!.id);
                 flyer_url = uploadResult.fileUrl || undefined;
             }
             return await createEvent({

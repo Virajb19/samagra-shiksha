@@ -255,7 +255,7 @@ export default function JuniorEngineerHomeTabScreen() {
                         iconName="megaphone-outline"
                         onPress={() => {
                             if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; }
-                            Alert.alert('Coming Soon', 'Notices will be available soon.');
+                            router.push('/(protected)/notices' as any);
                         }}
                         disabled={!hasCompletedProfile || !isActive}
                     />
