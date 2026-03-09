@@ -167,6 +167,7 @@ export default function UsersPage() {
   const { data: schools = [], isFetching: isFetchingSchools } = useQuery({
     queryKey: ['schools', districtFilter !== 'all' ? districtFilter : undefined],
     queryFn: () => masterDataFirestore.getSchools(districtFilter !== 'all' ? districtFilter : undefined),
+    enabled: districtFilter !== 'all',
   });
 
   // Fetch starred user IDs

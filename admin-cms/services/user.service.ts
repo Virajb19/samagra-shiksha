@@ -180,10 +180,11 @@ export const useGetDistricts = () => {
   });
 }
 
-export const useGetSchools = (districtId?: string) => {
+export const useGetSchools = (districtId?: string, enabled: boolean = true) => {
   return useQuery({
     queryKey: ["schools", districtId],
     queryFn: () => masterDataApi.getSchools(districtId),
+    enabled,
   });
 }
 

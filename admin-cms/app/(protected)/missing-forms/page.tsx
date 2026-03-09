@@ -130,6 +130,7 @@ export default function FormCompliancePage() {
     // ── Filter state ──
     const [districtFilter, setDistrictFilter] = useState<string>("all");
     const [schoolFilter, setSchoolFilter] = useState<string>("all");
+    const [schoolSearchQuery, setSchoolSearchQuery] = useState('');
     const [formTypeFilter, setFormTypeFilter] = useState<string>("all");
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -140,11 +141,12 @@ export default function FormCompliancePage() {
     // ── Reference data for dropdowns ──
     const { data: districts } = useGetDistricts();
     const activeDistrictId = districtFilter !== "all" ? districtFilter : undefined;
-    const { data: schools } = useGetSchools(activeDistrictId);
+    const { data: schools, isFetching: isFetchingSchools } = useGetSchools(activeDistrictId);
 
     const handleDistrictChange = (value: string) => {
         setDistrictFilter(value);
         setSchoolFilter("all");
+        setSchoolSearchQuery('');
     };
 
     // ── Build filters object ──
@@ -360,15 +362,54 @@ export default function FormCompliancePage() {
                         {/* School */}
                         <div>
                             <label className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">School</label>
-                            <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+                            <Select value={schoolFilter} onValueChange={(v) => { setSchoolFilter(v); setSchoolSearchQuery(''); }}>
                                 <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                                    <SelectValue placeholder="All Schools" />
+                                    {isFetchingSchools ? (
+                                        <span className="text-slate-400">Loading schools...</span>
+                                    ) : (
+                                        <SelectValue placeholder="All Schools" />
+                                    )}
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Schools</SelectItem>
-                                    {schools?.map((s) => (
-                                        <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
-                                    ))}
+                                <SelectContent className="p-0" position="popper" sideOffset={4}>
+                                    {isFetchingSchools ? (
+                                        <div className="flex items-center justify-center gap-2 py-6 text-slate-400">
+                                            <span className="text-sm">Loading schools...</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="bg-white dark:bg-slate-800 p-2 border-b border-slate-200 dark:border-slate-700">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search schools..."
+                                                    value={schoolSearchQuery}
+                                                    onChange={(e) => setSchoolSearchQuery(e.target.value)}
+                                                    className="w-full px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    onKeyDown={(e) => e.stopPropagation()}
+                                                />
+                                            </div>
+                                            <div className="max-h-60 overflow-y-auto p-1">
+                                                <SelectItem value="all">All Schools</SelectItem>
+                                                {(() => {
+                                                    const filtered = schoolSearchQuery
+                                                        ? (schools ?? []).filter(s => s.name?.toLowerCase().includes(schoolSearchQuery.toLowerCase()))
+                                                        : (schools ?? []);
+                                                    const capped = filtered.slice(0, 50);
+                                                    return (
+                                                        <>
+                                                            {capped.map((s) => (
+                                                                <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                                                            ))}
+                                                            {filtered.length > 50 && (
+                                                                <div className="px-3 py-2 text-xs text-slate-400 text-center">
+                                                                    Showing 50 of {filtered.length} — type to search
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
