@@ -151,7 +151,7 @@ export default function FormCompliancePage() {
     const filters: ComplianceFilters = useMemo(() => {
         const f: ComplianceFilters = {};
         if (districtFilter !== "all") f.district_id = districtFilter;
-        if (schoolFilter !== "all") f.school_id = schoolFilter;
+        if (schoolFilter !== "all") f.school_name = schoolFilter;
         if (formTypeFilter !== "all") f.form_type = formTypeFilter as FormType;
         if (statusFilter !== "all") f.status = statusFilter as ComplianceStatus;
         if (roleFilter !== "all") f.role = roleFilter;
@@ -367,7 +367,7 @@ export default function FormCompliancePage() {
                                 <SelectContent>
                                     <SelectItem value="all">All Schools</SelectItem>
                                     {schools?.map((s) => (
-                                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                        <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

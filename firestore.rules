@@ -151,64 +151,64 @@ service cloud.firestore {
     // ── ICT Form Data (submitted forms) ──
     match /ict_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── Library Form Data (submitted forms) ──
     match /library_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── Science Lab Form Data (submitted forms) ──
     match /science_lab_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── Self Defense Form Data (submitted forms) ──
     match /self_defense_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── KGBV Form Data (submitted by KGBV wardens) ──
     match /kgbv_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── NSCBAV Form Data (submitted by NSCBAV wardens) ──
     match /nscbav_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── Vocational Education Form Data (submitted by teachers) ──
     match /vocational_education_form_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth() && getRole() == 'TEACHER';
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth() && getRole() == 'TEACHER';
+      allow delete: if isAdmin();
     }
 
     // ── IE School Visit Data (submitted by IE Resource Persons) ──
     match /ie_school_visit_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── IE Home Visit Data (submitted by IE Resource Persons) ──
     match /ie_home_visit_data/{docId} {
       allow read: if isAuth();
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+      allow create, update: if isAuth();
+      allow delete: if isAdmin();
     }
 
     // ── Audit Logs ──

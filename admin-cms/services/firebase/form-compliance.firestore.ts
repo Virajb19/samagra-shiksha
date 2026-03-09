@@ -69,6 +69,7 @@ export interface ComplianceResponse {
 export interface ComplianceFilters {
   district_id?: string;
   school_id?: string;
+  school_name?: string;
   form_type?: FormType;
   status?: ComplianceStatus;
   role?: string;
@@ -96,6 +97,9 @@ function buildConstraints(filters: ComplianceFilters): QueryConstraint[] {
   }
   if (filters.school_id) {
     constraints.push(where("school_id", "==", filters.school_id));
+  }
+  if (filters.school_name) {
+    constraints.push(where("school_name", "==", filters.school_name));
   }
   if (filters.form_type) {
     constraints.push(where("form_type", "==", filters.form_type));
