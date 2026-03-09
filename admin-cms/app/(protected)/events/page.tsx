@@ -26,6 +26,7 @@ import { useGetEventsInfinite, useGetEventById } from '@/services/events.service
 import { DeleteEventButton } from '@/components/DeleteEventButton';
 import { useGetDistricts } from '@/services/user.service';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import { ClearFiltersButton } from '@/components/ClearFiltersButton';
 import { EventFilterParams, SchoolEventType, EventWithStats } from '@/services/events.service';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -702,6 +703,7 @@ export default function EventsPage() {
       </Dialog>
 
 
+      <GoToTopButton />
     </motion.div>
   );
 }

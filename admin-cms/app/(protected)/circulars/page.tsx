@@ -53,6 +53,7 @@ import { DeleteCircularButton } from '@/components/DeleteCircularButton';
 import { CircularFormSchema, circularFormSchema } from '@/lib/zod';
 import { showSuccessToast, showErrorToast } from '@/components/ui/custom-toast';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import { useDebounceValue } from 'usehooks-ts';
 import { useGetSubjects } from '@/services/user.service';
 
@@ -996,7 +997,7 @@ export default function CircularsPage() {
           )}
         </motion.div>
       </motion.div>
+      <GoToTopButton />
     </motion.div>
   );
 }
-

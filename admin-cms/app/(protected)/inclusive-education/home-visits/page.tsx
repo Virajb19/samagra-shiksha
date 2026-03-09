@@ -19,6 +19,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import { ClearFiltersButton } from '@/components/ClearFiltersButton';
 import { DownloadXlsxButton } from '@/components/DownLoadXlxsButton';
 import { downloadXlsx } from '@/lib/download-xlsx';
@@ -483,6 +484,7 @@ export default function HomeVisitsPage() {
                     </div>
                 )}
             </motion.div>
+      <GoToTopButton />
         </motion.div>
     );
 }

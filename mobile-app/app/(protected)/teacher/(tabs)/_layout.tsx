@@ -16,7 +16,6 @@ export default function TeacherTabsLayout() {
             <Tabs.Screen name="home" />
             <Tabs.Screen name="events" />
             <Tabs.Screen name="circulars" />
-            <Tabs.Screen name="notices" options={{ href: null }} />
             <Tabs.Screen name="settings" />
         </Tabs>
     );

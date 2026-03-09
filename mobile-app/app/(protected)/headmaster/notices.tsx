@@ -31,6 +31,7 @@ import {
     getUserRecipientMap,
     acceptInvitation,
     rejectInvitation,
+    getNoticeFileURL,
     type PaginatedNoticesResult,
 } from '../../../src/services/firebase/content.firestore';
 import { useAuthStore } from '../../../src/lib/store';
@@ -48,6 +49,8 @@ export default function NoticesScreen() {
     const [rejectModalVisible, setRejectModalVisible] = useState(false);
     const [rejectTarget, setRejectTarget] = useState<any>(null);
     const [rejectReason, setRejectReason] = useState('');
+    const [acceptModalVisible, setAcceptModalVisible] = useState(false);
+    const [acceptTarget, setAcceptTarget] = useState<any>(null);
 
     // Fetch recipient map (noticeId → RecipientInfo) for the user
     const {
@@ -235,7 +238,10 @@ export default function NoticesScreen() {
                                 <TouchableOpacity
                                     style={{ flex: 1, backgroundColor: '#10b981', paddingVertical: 10, borderRadius: 8, alignItems: 'center' }}
                                     disabled={acceptMutation.isPending}
-                                    onPress={() => acceptMutation.mutate(notice.recipient_id)}
+                                    onPress={() => {
+                                        setAcceptTarget(notice);
+                                        setAcceptModalVisible(true);
+                                    }}
                                 >
                                     <Text style={{ color: '#fff', fontWeight: '600', fontSize: 14 }}>
                                         {acceptMutation.isPending ? 'Accepting...' : 'Accept'}
@@ -281,8 +287,9 @@ export default function NoticesScreen() {
                         style={styles.fileAttachment}
                         onPress={async () => {
                             try {
-                                const canOpen = await Linking.canOpenURL(notice.file_url);
-                                if (canOpen) await Linking.openURL(notice.file_url);
+                                const downloadUrl = await getNoticeFileURL(notice.file_url);
+                                const canOpen = await Linking.canOpenURL(downloadUrl);
+                                if (canOpen) await Linking.openURL(downloadUrl);
                                 else Alert.alert('Error', 'Unable to open this file.');
                             } catch { Alert.alert('Error', 'Failed to open attachment.'); }
                         }}
@@ -365,18 +372,20 @@ export default function NoticesScreen() {
             />
 
             {/* Reject Reason Modal */}
-            <Modal visible={rejectModalVisible} transparent animationType="slide">
-                <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-                    <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 }}>
-                        <Text style={{ fontSize: 18, fontWeight: '700', color: '#1f2937', marginBottom: 4 }}>Reject Invitation</Text>
-                        <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 16 }}>
-                            Please provide a reason for rejecting this invitation.
-                        </Text>
+            <Modal visible={rejectModalVisible} transparent animationType="fade">
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 24 }}>
+                    <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 400 }}>
+                        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                            <View style={{ width: 56, height: 56, backgroundColor: '#fee2e2', borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                                <Ionicons name="close-circle-outline" size={32} color="#ef4444" />
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#1f2937' }}>Reject Invitation</Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 4 }}>
+                                Please provide a reason for rejecting this invitation.
+                            </Text>
+                        </View>
                         <TextInput
-                            style={{
-                                borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10,
-                                padding: 12, fontSize: 16, color: '#1f2937', minHeight: 100, textAlignVertical: 'top',
-                            }}
+                            style={{ borderWidth: 1, borderColor: '#d1d5db', borderRadius: 12, padding: 12, fontSize: 16, color: '#1f2937', minHeight: 100, textAlignVertical: 'top' }}
                             placeholder="Enter reason..."
                             placeholderTextColor="#9ca3af"
                             value={rejectReason}
@@ -389,16 +398,13 @@ export default function NoticesScreen() {
                         </Text>
                         <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
                             <TouchableOpacity
-                                style={{ flex: 1, backgroundColor: '#e5e7eb', paddingVertical: 14, borderRadius: 10, alignItems: 'center' }}
+                                style={{ flex: 1, backgroundColor: '#f3f4f6', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                                 onPress={() => { setRejectModalVisible(false); setRejectTarget(null); setRejectReason(''); }}
                             >
                                 <Text style={{ color: '#374151', fontWeight: '600' }}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={{
-                                    flex: 1, backgroundColor: '#ef4444', paddingVertical: 14, borderRadius: 10,
-                                    alignItems: 'center', opacity: !rejectReason.trim() || rejectMutation.isPending ? 0.5 : 1,
-                                }}
+                                style={{ flex: 1, backgroundColor: '#ef4444', paddingVertical: 14, borderRadius: 12, alignItems: 'center', opacity: !rejectReason.trim() || rejectMutation.isPending ? 0.5 : 1 }}
                                 disabled={!rejectReason.trim() || rejectMutation.isPending}
                                 onPress={() => {
                                     if (rejectTarget) {
@@ -408,6 +414,51 @@ export default function NoticesScreen() {
                             >
                                 <Text style={{ color: '#fff', fontWeight: '600' }}>
                                     {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Accept Confirmation Modal */}
+            <Modal visible={acceptModalVisible} transparent animationType="fade">
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 24 }}>
+                    <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 400 }}>
+                        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                            <View style={{ width: 56, height: 56, backgroundColor: '#d1fae5', borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                                <Ionicons name="checkmark-circle-outline" size={32} color="#10b981" />
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#1f2937' }}>Accept Invitation</Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 4 }}>
+                                Are you sure you want to accept this invitation?
+                            </Text>
+                        </View>
+                        {acceptTarget && (
+                            <View style={{ backgroundColor: '#f9fafb', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, fontWeight: '500', color: '#1f2937' }} numberOfLines={2}>{acceptTarget.title}</Text>
+                            </View>
+                        )}
+                        <View style={{ flexDirection: 'row', gap: 12 }}>
+                            <TouchableOpacity
+                                style={{ flex: 1, backgroundColor: '#f3f4f6', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
+                                onPress={() => { setAcceptModalVisible(false); setAcceptTarget(null); }}
+                            >
+                                <Text style={{ color: '#374151', fontWeight: '600' }}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{ flex: 1, backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center', opacity: acceptMutation.isPending ? 0.5 : 1 }}
+                                disabled={acceptMutation.isPending}
+                                onPress={() => {
+                                    if (acceptTarget) {
+                                        acceptMutation.mutate(acceptTarget.recipient_id, {
+                                            onSuccess: () => { setAcceptModalVisible(false); setAcceptTarget(null); },
+                                        });
+                                    }
+                                }}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: '600' }}>
+                                    {acceptMutation.isPending ? 'Accepting...' : 'Accept'}
                                 </Text>
                             </TouchableOpacity>
                         </View>

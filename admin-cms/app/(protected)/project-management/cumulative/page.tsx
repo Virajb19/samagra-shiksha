@@ -5,6 +5,7 @@ import { Loader2, BarChart3, TrendingUp, Download, Search, FilterX } from 'lucid
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import { TableRowsSkeleton } from '@/components/TableSkeleton';
 import {
   useGetCumulativeData,
@@ -495,6 +496,7 @@ export default function CumulativeTablePage() {
           </div>
         </div>
       </motion.div>
+      <GoToTopButton />
     </motion.div>
   );
 }

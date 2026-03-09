@@ -6,6 +6,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import {
   useGetAllProjectSchools,
   useUpdateProject,
@@ -803,6 +804,7 @@ export default function ProjectDetailsPage() {
           </div>
         )}
       </motion.div>
+      <GoToTopButton />
     </motion.div>
   );
 }

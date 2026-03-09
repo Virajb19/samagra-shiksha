@@ -193,6 +193,17 @@ export const NoticeRecipientDocSchema = z.object({
   status: InvitationStatusSchema.default("PENDING"),
   reject_reason: z.string().max(200).nullable().optional(),
   responded_at: dateTimeLike.nullable().optional(),
+  created_at: dateTimeLike,
+
+  // ── Denormalized fields (written at recipient creation time) ──
+  user_name: z.string().min(1),
+  notice_title: z.string().min(1),
+  notice_type: NoticeTypeSchema.default("GENERAL"),
+  venue: z.string().nullable().optional(),
+  event_time: z.string().nullable().optional(),
+  event_date: dateTimeLike.nullable().optional(),
+  file_url: z.string().nullable().optional(),
+  file_name: z.string().nullable().optional(),
 });
 
 export const CircularDocSchema = z.object({

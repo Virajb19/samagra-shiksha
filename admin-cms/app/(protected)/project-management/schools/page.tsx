@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/form';
 import { RetryButton } from '@/components/RetryButton';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import { TableRowsSkeleton } from '@/components/TableSkeleton';
 import {
   useCreateProjectSchool,
@@ -557,6 +558,7 @@ export default function ProjectSchoolsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <GoToTopButton />
     </motion.div>
   );
 }

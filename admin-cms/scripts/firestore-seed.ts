@@ -296,6 +296,9 @@ const ids = {
   eventIds: [] as string[],
   // Notice tracking
   noticeIds: [] as string[],
+  noticeMeta: [] as { id: string; title: string; type: string; venue: string | null; event_time: string | null; event_date: admin.firestore.Timestamp | null; file_url: string | null; file_name: string | null }[],
+  // User name tracking (for denormalized recipients)
+  userIdToName: new Map<string, string>(),
   // Circular tracking
   circularIds: [] as string[],
   circularMeta: [] as { id: string; isMultiSchool: boolean; districtId: string }[],
@@ -507,8 +510,10 @@ function seedBulkUsers(): void {
 
     // Base user fields — active users have completed profiles, inactive ones haven't
     const isActive = randomBool(0.95);
+    const userName = generateName();
+    ids.userIdToName.set(id, userName);
     const userDoc: Record<string, unknown> = {
-      id, name: generateName(), email: generateEmail(u.index), password: '12345678',
+      id, name: userName, email: generateEmail(u.index), password: '12345678',
       phone: generatePhone(u.index), role: u.role, gender: u.gender,
       is_active: isActive,
       has_completed_profile: isActive,
@@ -705,25 +710,32 @@ function seedNotices(): void {
     const type = randomElement(NOTICE_TYPES);
     const isSchoolLevel = randomBool(0.4);
     const id = newId('notices');
+    const title = `${type} Notice ${i + 1} - ${randomElement(['Exam', 'Holiday', 'Meeting', 'Training', 'NBSE Update'])}`;
+    const venue = type === 'INVITATION' ? `${randomElement(locations)}, ${nagalandDistricts[randomInt(0, 15)].name}` : null;
+    const event_time = type === 'INVITATION' ? `${randomInt(9, 16)}:00` : null;
+    const event_date = type === 'INVITATION' ? admin.firestore.Timestamp.fromDate(generateFutureDate(60)) : null;
+    const file_url = randomBool(0.3) ? `https://storage.example.com/notices/notice_${i}.pdf` : null;
+    const file_name = randomBool(0.3) ? `notice_${i}.pdf` : null;
     writer.set(db.collection('notices').doc(id), {
       id,
-      title: `${type} Notice ${i + 1} - ${randomElement(['Exam', 'Holiday', 'Meeting', 'Training', 'NBSE Update'])}`,
+      title,
       content: `This is an important ${type.toLowerCase()} notice. Please read carefully.`,
       type,
-      venue: type === 'INVITATION' ? `${randomElement(locations)}, ${nagalandDistricts[randomInt(0, 15)].name}` : null,
-      event_time: type === 'INVITATION' ? `${randomInt(9, 16)}:00` : null,
-      event_date: type === 'INVITATION' ? admin.firestore.Timestamp.fromDate(generateFutureDate(60)) : null,
+      venue,
+      event_time,
+      event_date,
       published_at: TS(),
       expires_at: randomBool(0.8) ? admin.firestore.Timestamp.fromDate(generateFutureDate(90)) : null,
       is_active: randomBool(0.95),
       is_targeted: randomBool(0.3),
       school_id: isSchoolLevel ? randomElement(ids.schoolIds) : null,
       created_by: randomElement(ids.adminIds),
-      file_url: randomBool(0.3) ? `https://storage.example.com/notices/notice_${i}.pdf` : null,
-      file_name: randomBool(0.3) ? `notice_${i}.pdf` : null,
+      file_url,
+      file_name,
       created_at: TS(), updated_at: TS(),
     });
     ids.noticeIds.push(id);
+    ids.noticeMeta.push({ id, title, type, venue, event_time, event_date, file_url, file_name });
   }
   console.log(`✅ ${ids.noticeIds.length} notices`);
 }
@@ -744,6 +756,7 @@ function seedNoticeRecipients(): void {
 
   for (let ni = 0; ni < ids.noticeIds.length; ni++) {
     const noticeId = ids.noticeIds[ni];
+    const noticeMeta = ids.noticeMeta[ni];
 
     // Add guaranteed users to the first 100 notices
     if (ni < GUARANTEED_NOTICE_COUNT) {
@@ -760,6 +773,15 @@ function seedNoticeRecipients(): void {
           status,
           reject_reason: status === 'REJECTED' ? randomElement(['Schedule conflict', 'Unable to attend', 'Personal reasons', 'Already committed elsewhere']) : null,
           responded_at: status !== 'PENDING' ? TS() : null,
+          // Denormalized fields
+          user_name: ids.userIdToName.get(gUserId) ?? 'Unknown',
+          notice_title: noticeMeta.title,
+          notice_type: noticeMeta.type,
+          venue: noticeMeta.venue,
+          event_time: noticeMeta.event_time,
+          event_date: noticeMeta.event_date,
+          file_url: noticeMeta.file_url,
+          file_name: noticeMeta.file_name,
           created_at: TS(),
         });
         count++;
@@ -782,6 +804,15 @@ function seedNoticeRecipients(): void {
         status,
         reject_reason: status === 'REJECTED' ? randomElement(['Schedule conflict', 'Unable to attend', 'Personal reasons', 'Already committed elsewhere']) : null,
         responded_at: status !== 'PENDING' ? TS() : null,
+        // Denormalized fields
+        user_name: ids.userIdToName.get(userId) ?? 'Unknown',
+        notice_title: noticeMeta.title,
+        notice_type: noticeMeta.type,
+        venue: noticeMeta.venue,
+        event_time: noticeMeta.event_time,
+        event_date: noticeMeta.event_date,
+        file_url: noticeMeta.file_url,
+        file_name: noticeMeta.file_name,
         created_at: TS(),
       });
       count++;

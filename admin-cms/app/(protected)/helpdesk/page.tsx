@@ -12,6 +12,7 @@ import { SetBackToPendingButton } from '@/components/SetBackToPendingButton';
 import { ExpandableText } from '@/components/ExpandableText';
 import { RetryButton } from '@/components/RetryButton';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
+import { GoToTopButton } from '@/components/GoToTopButton';
 import { TableRowsSkeleton } from '@/components/TableSkeleton';
 import { useDebounceValue } from 'usehooks-ts';
 
@@ -403,6 +404,7 @@ export default function HelpdeskPage() {
           </div>
         )}
       </motion.div>
+      <GoToTopButton />
     </motion.div>
   );
 }
