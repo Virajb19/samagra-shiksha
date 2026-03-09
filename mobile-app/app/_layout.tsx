@@ -25,21 +25,21 @@ SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
     error: (props: BaseToastProps) => (
-        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl mx-4 px-4 py-3.5 gap-3 border-l-4 border-l-red-500" style={{ elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
-            <View className="w-9 h-9 rounded-full bg-red-500 justify-center items-center">
+        <View className="flex-row items-center bg-red-500 rounded-2xl px-2 py-2 gap-3 border-l-4 border-l-red-500" style={{ left: 16, right: 16, position: 'absolute', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+            <View className="w-9 h-9 rounded-full bg-red-500 justify-center items-center shrink-0">
                 <Ionicons name="alert-circle" size={22} color="#fff" />
             </View>
-            <Text style={{ fontFamily: 'assets_fonts_latoregular' }} className="flex-1 text-white text-[15px] font-semibold leading-5" numberOfLines={3}>
+            <Text style={{ fontFamily: 'assets_fonts_latoregular' }} className="flex-1 shrink text-white text-[15px] font-semibold leading-5" numberOfLines={3}>
                 {props.text2 || props.text1}
             </Text>
         </View>
     ),
     success: (props: BaseToastProps) => (
-        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl mx-4 px-4 py-3.5 gap-3 border-l-4 border-l-green-500" style={{ elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
-            <View className="w-9 h-9 rounded-full bg-green-500 justify-center items-center">
+        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl px-4 py-2 gap-3 border-l-4 border-l-green-500" style={{ left: 16, right: 16, position: 'absolute', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+            <View className="w-9 h-9 rounded-full bg-green-500 justify-center items-center shrink-0">
                 <Ionicons name="checkmark-circle" size={22} color="#fff" />
             </View>
-            <Text style={{ fontFamily: 'assets_fonts_latoregular' }} className="flex-1 text-white text-[15px] font-semibold leading-5" numberOfLines={3}>
+            <Text style={{ fontFamily: 'assets_fonts_latoregular' }} className="flex-1 shrink text-white text-[15px] font-semibold leading-5" numberOfLines={3}>
                 {props.text2 || props.text1}
             </Text>
         </View>
@@ -99,7 +99,7 @@ export default function RootLayout() {
                         }}
                     />
                 </QueryClientProvider>
-                <Toast config={toastConfig} position="bottom" bottomOffset={40} />
+                <Toast config={toastConfig} position="bottom" bottomOffset={90} />
             </NotificationHandler>
         </SafeAreaProvider>
     );
