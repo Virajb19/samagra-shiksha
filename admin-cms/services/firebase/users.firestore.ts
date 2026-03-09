@@ -111,6 +111,13 @@ function applySupportedFilters(filters?: UserFilterParams): QueryConstraint[] {
     constraints.push(where("role", "==", filters.role));
   }
 
+  // District / school filter — all roles now have these denormalized on the user doc
+  if (filters.school_id) {
+    constraints.push(where("school_id", "==", filters.school_id));
+  } else if (filters.district_id) {
+    constraints.push(where("district_id", "==", filters.district_id));
+  }
+
   if (filters.is_active !== undefined) {
     constraints.push(where("is_active", "==", filters.is_active));
   }
@@ -268,189 +275,60 @@ export async function getUsersFromFirestore(filters?: UserFilterParams): Promise
   const currentPage = filters?.page ?? 1;
   const hasSearch = !!filters?.search?.trim();
 
-  // ── Roles that store district_id directly on the user doc (no faculty record) ──
-  const DIRECT_DISTRICT_ROLES = new Set([
-    "JUNIOR_ENGINEER", "KGBV_WARDEN", "NSCBAV_WARDEN", "IE_RESOURCE_PERSON",
-  ]);
 
-  // Determine if the current role filter uses direct district_id on user doc
-  const filterRole = filters?.role;
-  const filterRoles = filters?.roles;
-  const isDirectDistrictRole = filterRole
-    ? DIRECT_DISTRICT_ROLES.has(filterRole)
-    : filterRoles?.length
-      ? filterRoles.every((r) => DIRECT_DISTRICT_ROLES.has(r))
-      : false;
-
-  // ── District/school filter ──
-  // For "direct district" roles (JE, KGBV, NSCBAV, IE): add where("district_id") to Firestore query
-  // For faculty-based roles (HM, TEACHER): resolve user IDs via faculty → school → district join
-  // For "all" with district filter: do both paths and union results
-  let userIdWhitelist: Set<string> | null = null;
-  let directDistrictConstraint: QueryConstraint | null = null;
-
-  if (filters?.district_id || filters?.school_id) {
-    if (filters.school_id) {
-      // School filter always goes through faculty (only HM/TEACHER have schools)
-      const facSnap = await getDocs(
-        query(collection(db, "faculties"), where("school_id", "==", filters.school_id))
-      );
-      userIdWhitelist = new Set(facSnap.docs.map((d) => d.data().user_id as string));
-
-      if (userIdWhitelist.size === 0) {
-        return { data: [], total: 0, totalPages: 1, page: currentPage, limit: pageSize };
-      }
-    } else if (filters.district_id) {
-      if (isDirectDistrictRole) {
-        // Direct district roles: add district_id as a Firestore WHERE constraint (fast, no join)
-        directDistrictConstraint = where("district_id", "==", filters.district_id);
-      } else if (!filterRole && !filterRoles?.length) {
-        // "All" role + district filter: need both paths
-        // Path 1: Faculty-based users (HM/TEACHER via school)
-        const schoolSnap = await getDocs(
-          query(collection(db, "schools"), where("district_id", "==", filters.district_id))
-        );
-        const schoolIds = schoolSnap.docs.map((d) => d.id);
-        const allUserIds = new Set<string>();
-
-        // Run all faculty batches in parallel (batch size 30)
-        const facBatchPromises = [];
-        for (let i = 0; i < schoolIds.length; i += 30) {
-          const batch = schoolIds.slice(i, i + 30);
-          facBatchPromises.push(
-            getDocs(query(collection(db, "faculties"), where("school_id", "in", batch)))
-          );
-        }
-        const facBatchResults = await Promise.all(facBatchPromises);
-        facBatchResults.forEach((facSnap) => {
-          facSnap.forEach((d) => {
-            const uid = d.data().user_id;
-            if (uid) allUserIds.add(uid as string);
-          });
-        });
-
-        // Path 2: Direct district users (JE, KGBV, NSCBAV, IE)
-        const directSnap = await getDocs(
-          query(usersCollection, where("district_id", "==", filters.district_id))
-        );
-        directSnap.forEach((d) => allUserIds.add(d.id));
-
-        userIdWhitelist = allUserIds;
-        if (userIdWhitelist.size === 0) {
-          return { data: [], total: 0, totalPages: 1, page: currentPage, limit: pageSize };
-        }
-      } else {
-        // Faculty-based roles (HM, TEACHER, composite) with district filter
-        const schoolSnap = await getDocs(
-          query(collection(db, "schools"), where("district_id", "==", filters.district_id))
-        );
-        const schoolIds = schoolSnap.docs.map((d) => d.id);
-        if (schoolIds.length === 0) {
-          return { data: [], total: 0, totalPages: 1, page: currentPage, limit: pageSize };
-        }
-        const allUserIds = new Set<string>();
-
-        // Run all faculty batches in parallel (batch size 30)
-        const facBatchPromises = [];
-        for (let i = 0; i < schoolIds.length; i += 30) {
-          const batch = schoolIds.slice(i, i + 30);
-          facBatchPromises.push(
-            getDocs(query(collection(db, "faculties"), where("school_id", "in", batch)))
-          );
-        }
-        const facBatchResults = await Promise.all(facBatchPromises);
-        facBatchResults.forEach((facSnap) => {
-          facSnap.forEach((d) => {
-            const uid = d.data().user_id;
-            if (uid) allUserIds.add(uid as string);
-          });
-        });
-
-        userIdWhitelist = allUserIds;
-        if (userIdWhitelist.size === 0) {
-          return { data: [], total: 0, totalPages: 1, page: currentPage, limit: pageSize };
-        }
-      }
-    }
-  }
-
-  // ── Build base Firestore constraints (excluding district/school — handled above) ──
+  // ── All constraints (role, district, school, active, sort) handled by applySupportedFilters ──
   const usersConstraints = applySupportedFilters(filters);
 
-  // Inject direct district constraint for roles that store district_id on user doc
-  if (directDistrictConstraint) {
-    usersConstraints.unshift(directDistrictConstraint);
-  }
+  // ── Server-side search: exact match on name, email, or phone ──
+  // Firestore has no partial/fuzzy text search, so we run parallel exact-match
+  // queries on each searchable field and merge the results.
+  if (hasSearch) {
+    const searchTerm = filters!.search!.trim();
 
-  // ── If we have a whitelist from district/school filter, use batched "in" queries ──
-  if (userIdWhitelist) {
-    const whitelistArr = Array.from(userIdWhitelist);
-
-    // Build lightweight constraints — skip orderBy since we sort in-memory after merging batches.
-    // Combining documentId() "in" with orderBy forces Firestore to scan a composite index, which is slow.
-    const lightConstraints: QueryConstraint[] = [];
+    // Build base constraints WITHOUT orderBy (we sort in-memory after merging)
+    const searchBaseConstraints: QueryConstraint[] = [];
     if (filters?.roles?.length) {
-      lightConstraints.push(where("role", "in", filters.roles.slice(0, 10)));
+      searchBaseConstraints.push(where("role", "in", filters.roles.slice(0, 10)));
     } else if (filters?.role) {
-      lightConstraints.push(where("role", "==", filters.role));
+      searchBaseConstraints.push(where("role", "==", filters.role));
+    }
+    if (filters?.school_id) {
+      searchBaseConstraints.push(where("school_id", "==", filters.school_id));
+    } else if (filters?.district_id) {
+      searchBaseConstraints.push(where("district_id", "==", filters.district_id));
     }
     if (filters?.is_active !== undefined) {
-      lightConstraints.push(where("is_active", "==", filters.is_active));
+      searchBaseConstraints.push(where("is_active", "==", filters.is_active));
     }
 
-    const batchPromises: Promise<User[]>[] = [];
-    for (let i = 0; i < whitelistArr.length; i += 30) {
-      const batch = whitelistArr.slice(i, i + 30);
-      batchPromises.push(
-        getDocs(
-          query(usersCollection, where(documentId(), "in", batch), ...lightConstraints)
-        ).then((snap) => {
-          const users: User[] = [];
-          snap.forEach((docSnap) => {
-            const parsed = UserReadSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
-            if (parsed.success) {
-              users.push(toUser(docSnap.id, parsed.data));
-            }
-          });
-          return users;
-        })
-      );
-    }
-    const allUsers = (await Promise.all(batchPromises)).flat();
+    // Run 3 parallel exact-match queries: name, email, phone
+    const [nameSnap, emailSnap, phoneSnap] = await Promise.all([
+      getDocs(query(usersCollection, ...searchBaseConstraints, where("name", "==", searchTerm))),
+      getDocs(query(usersCollection, ...searchBaseConstraints, where("email", "==", searchTerm))),
+      getDocs(query(usersCollection, ...searchBaseConstraints, where("phone", "==", searchTerm))),
+    ]);
 
-    // Sort: headmasters first (when no specific role filter), then active, then created_at desc
-    const isAllRoles = !filters?.role && !filters?.roles?.length;
-    const sortedUsers = isAllRoles
-      ? sortUsersWithHeadmastersFirst(allUsers)
-      : allUsers.sort((a, b) => {
-        if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
-
-    // Client-side search + pagination for whitelist queries
-    const searched = hasSearch ? applySearch(sortedUsers, filters?.search) : sortedUsers;
-    const { pageRows, total, totalPages } = paginate(searched, currentPage, pageSize);
-    const enriched = await enrichUsersWithFacultyAndSchool(pageRows);
-
-    return { data: enriched, total, totalPages, page: currentPage, limit: pageSize };
-  }
-
-  // ── Standard query: cursor-based pagination with cached cursors ──
-  if (hasSearch) {
-    // Search: must fetch all to filter client-side (Firestore has no full-text search)
-    const usersSnapshot = await getDocs(query(usersCollection, ...usersConstraints));
-    const parsedUsers = usersSnapshot.docs
-      .map((docSnap) => {
+    // Merge and deduplicate by doc ID
+    const seen = new Set<string>();
+    const parsedUsers: User[] = [];
+    for (const snap of [nameSnap, emailSnap, phoneSnap]) {
+      for (const docSnap of snap.docs) {
+        if (seen.has(docSnap.id)) continue;
+        seen.add(docSnap.id);
         const parsed = UserReadSchema.safeParse({ id: docSnap.id, ...docSnap.data() });
-        if (!parsed.success) return null;
-        return toUser(docSnap.id, parsed.data);
-      })
-      .filter((user): user is User => user !== null);
+        if (parsed.success) {
+          parsedUsers.push(toUser(docSnap.id, parsed.data));
+        }
+      }
+    }
 
-    const isAllRolesSearch = !filters?.role && !filters?.roles?.length;
-    const sortedParsed = isAllRolesSearch ? sortUsersWithHeadmastersFirst(parsedUsers) : parsedUsers;
-    const searchedUsers = applySearch(sortedParsed, filters?.search);
-    const { pageRows, total, totalPages } = paginate(searchedUsers, currentPage, pageSize);
+    // Sort: active first, then created_at desc
+    parsedUsers.sort((a, b) => {
+      if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    const { pageRows, total, totalPages } = paginate(parsedUsers, currentPage, pageSize);
     const enriched = await enrichUsersWithFacultyAndSchool(pageRows);
 
     return { data: enriched, total, totalPages, page: currentPage, limit: pageSize };

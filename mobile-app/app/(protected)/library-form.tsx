@@ -45,6 +45,7 @@ import {
 } from '../../src/services/firebase/library-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 
@@ -276,6 +277,19 @@ export default function LibraryFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
+
+    // Authorization check — only teachers with Library responsibility can access
+    const isAuthorized = user?.responsibilities?.includes('Library') ?? false;
+
+    if (!isAuthorized) {
+        return (
+            <View className="flex-1 bg-[#f0f4f8]">
+                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+                <FormHeader onBack={() => router.back()} />
+                <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Library" />
+            </View>
+        );
+    }
 
     // ── Form setup ──
     const form = useForm<LibraryFormData>({

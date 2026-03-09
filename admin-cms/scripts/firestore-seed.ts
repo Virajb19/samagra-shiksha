@@ -69,6 +69,11 @@ const writer = (() => {
       opCount += 1;
       if (opCount >= BATCH_SIZE) commitCurrentBatch();
     },
+    merge(ref: FirebaseFirestore.DocumentReference, data: FirebaseFirestore.DocumentData): void {
+      batch.set(ref, data, { merge: true });
+      opCount += 1;
+      if (opCount >= BATCH_SIZE) commitCurrentBatch();
+    },
     async close(): Promise<void> {
       commitCurrentBatch();
       await commitChain;
@@ -574,27 +579,35 @@ function seedBulkUsers(): void {
 // ────────────────────── 6. FACULTY (one per headmaster + one per teacher) ──────────────────────
 
 function seedFaculty(): void {
-  console.log('👨‍🏫 Creating faculty records...');
+  console.log('👨‍🏫 Creating faculty records (+ denormalizing school_id/district_id on user docs)...');
   let count = 0;
 
   // Headmaster faculties (1:1 with schools)
   const hmLimit = Math.min(ids.headmasterIds.length, ids.schoolIds.length);
   for (let i = 0; i < hmLimit; i++) {
+    const schoolId = ids.schoolIds[i];
+    const districtId = ids.schoolDistrictMap.get(schoolId)!;
     const fId = newId('faculties');
     writer.set(db.collection('faculties').doc(fId), {
-      id: fId, user_id: ids.headmasterIds[i], school_id: ids.schoolIds[i],
+      id: fId, user_id: ids.headmasterIds[i], school_id: schoolId,
       faculty_type: 'NON_TEACHING', designation: 'Principal',
       years_of_experience: randomInt(10, 35),
       is_profile_locked: randomBool(0.8),
       created_at: TS(), updated_at: TS(),
     });
-    ids.facultySchoolMap.set(fId, ids.schoolIds[i]);
+    // Denormalize school_id + district_id onto the user doc
+    writer.merge(db.collection('users').doc(ids.headmasterIds[i]), {
+      school_id: schoolId,
+      district_id: districtId,
+    });
+    ids.facultySchoolMap.set(fId, schoolId);
     count++;
   }
 
   // Teacher faculties (round-robin across schools)
   for (let i = 0; i < ids.teacherIds.length; i++) {
     const schoolId = ids.schoolIds[i % ids.schoolIds.length];
+    const districtId = ids.schoolDistrictMap.get(schoolId)!;
     const fId = newId('faculties');
     writer.set(db.collection('faculties').doc(fId), {
       id: fId, user_id: ids.teacherIds[i], school_id: schoolId,
@@ -604,12 +617,17 @@ function seedFaculty(): void {
       is_profile_locked: randomBool(0.7),
       created_at: TS(), updated_at: TS(),
     });
+    // Denormalize school_id + district_id onto the user doc
+    writer.merge(db.collection('users').doc(ids.teacherIds[i]), {
+      school_id: schoolId,
+      district_id: districtId,
+    });
     ids.teachingFacultyIds.push(fId);
     ids.facultySchoolMap.set(fId, schoolId);
     count++;
   }
 
-  console.log(`✅ ${count} faculty records`);
+  console.log(`✅ ${count} faculty records (user docs denormalized)`);
 }
 
 // ────────────────────── 8. AUDIT LOGS ──────────────────────

@@ -46,6 +46,7 @@ import {
 } from '../../src/services/firebase/self-defense-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 
@@ -150,6 +151,19 @@ export default function SelfDefenseFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
+
+    // Authorization check — only teachers with Self Defence responsibility can access
+    const isAuthorized = user?.responsibilities?.includes('Self Defence') ?? false;
+
+    if (!isAuthorized) {
+        return (
+            <View className="flex-1 bg-[#f0f4f8]">
+                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+                <FormHeader onBack={() => router.back()} />
+                <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Self Defence" />
+            </View>
+        );
+    }
 
     const form = useForm<SelfDefenseFormData>({
         resolver: zodResolver(SelfDefenseFormSchema),

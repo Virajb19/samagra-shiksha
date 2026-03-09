@@ -574,7 +574,7 @@ export default function UsersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
             <Input
-              placeholder="Search by Name / Email / Phone Number"
+              placeholder="Exact match: Name / Email / Phone"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -587,8 +587,8 @@ export default function UsersPage() {
         </motion.div>
 
         {/* Filter Dropdowns */}
-        <motion.div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" variants={itemVariants}>
-          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v as UserRole); resetPage(); }}>
+        <motion.div className={`grid grid-cols-2 md:grid-cols-3 ${roleFilter === UserRole.TEACHER || roleFilter === UserRole.HEADMASTER ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`} variants={itemVariants}>
+          <Select value={roleFilter} onValueChange={(v) => { const newRole = v as UserRole; setRoleFilter(newRole); if (newRole !== UserRole.TEACHER && newRole !== UserRole.HEADMASTER) { setSchoolFilter('all'); } resetPage(); }}>
             <SelectTrigger className="bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 transition-all">
               <SelectValue placeholder="User Type" />
             </SelectTrigger>
@@ -615,61 +615,64 @@ export default function UsersPage() {
             </SelectContent>
           </Select>
 
-          <Select value={schoolFilter} onValueChange={(v) => { setSchoolFilter(v); setSchoolSearchQuery(''); resetPage(); }}>
-            <SelectTrigger className="bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 transition-all">
-              {isFetchingSchools ? (
-                <span className="flex items-center gap-2 text-black dark:text-white">
-                  All Schools
-                </span>
-              ) : (
-                <SelectValue placeholder="School" />
-              )}
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 p-0" position="popper" sideOffset={4}>
-              {isFetchingSchools ? (
-                <div className="flex items-center justify-center gap-2 py-6 text-slate-400">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Loading schools...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="bg-white dark:bg-slate-800 p-2 border-b border-slate-200 dark:border-slate-700">
-                    <input
-                      type="text"
-                      placeholder="Search schools..."
-                      value={schoolSearchQuery}
-                      onChange={(e) => setSchoolSearchQuery(e.target.value)}
-                      className="w-full px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      onKeyDown={(e) => e.stopPropagation()}
-                    />
+          {/* School filter — only relevant for roles that have faculty/school records */}
+          {(roleFilter === UserRole.TEACHER || roleFilter === UserRole.HEADMASTER) && (
+            <Select value={schoolFilter} onValueChange={(v) => { setSchoolFilter(v); setSchoolSearchQuery(''); resetPage(); }}>
+              <SelectTrigger className="bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 transition-all">
+                {isFetchingSchools ? (
+                  <span className="flex items-center gap-2 text-black dark:text-white">
+                    All Schools
+                  </span>
+                ) : (
+                  <SelectValue placeholder="School" />
+                )}
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 p-0" position="popper" sideOffset={4}>
+                {isFetchingSchools ? (
+                  <div className="flex items-center justify-center gap-2 py-6 text-slate-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Loading schools...</span>
                   </div>
-                  <div className="max-h-60 overflow-y-auto p-1">
-                    <SelectItem value="all" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">All Schools</SelectItem>
-                    {(() => {
-                      const filtered = schoolSearchQuery
-                        ? schools.filter(s => s.name?.toLowerCase().includes(schoolSearchQuery.toLowerCase()))
-                        : schools;
-                      const capped = filtered.slice(0, 50);
-                      return (
-                        <>
-                          {capped.map((school) => (
-                            <SelectItem key={school.id} value={school.id} className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
-                              {school.name?.trim()}
-                            </SelectItem>
-                          ))}
-                          {filtered.length > 50 && (
-                            <div className="px-3 py-2 text-xs text-slate-400 text-center">
-                              Showing 50 of {filtered.length} — type to search
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-                </>
-              )}
-            </SelectContent>
-          </Select>
+                ) : (
+                  <>
+                    <div className="bg-white dark:bg-slate-800 p-2 border-b border-slate-200 dark:border-slate-700">
+                      <input
+                        type="text"
+                        placeholder="Search schools..."
+                        value={schoolSearchQuery}
+                        onChange={(e) => setSchoolSearchQuery(e.target.value)}
+                        className="w-full px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        onKeyDown={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                    <div className="max-h-60 overflow-y-auto p-1">
+                      <SelectItem value="all" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">All Schools</SelectItem>
+                      {(() => {
+                        const filtered = schoolSearchQuery
+                          ? schools.filter(s => s.name?.toLowerCase().includes(schoolSearchQuery.toLowerCase()))
+                          : schools;
+                        const capped = filtered.slice(0, 50);
+                        return (
+                          <>
+                            {capped.map((school) => (
+                              <SelectItem key={school.id} value={school.id} className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
+                                {school.name?.trim()}
+                              </SelectItem>
+                            ))}
+                            {filtered.length > 50 && (
+                              <div className="px-3 py-2 text-xs text-slate-400 text-center">
+                                Showing 50 of {filtered.length} — type to search
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          )}
 
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <button

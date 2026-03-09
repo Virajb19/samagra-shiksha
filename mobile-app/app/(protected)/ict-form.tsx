@@ -45,6 +45,7 @@ import {
 import { submitICTForm, getICTFormSubmissions, type ICTFormSubmission } from '../../src/services/firebase/ict-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 
@@ -362,6 +363,19 @@ export default function ICTFormScreen() {
     const { user } = useAuthStore();
     const [currentPage, setCurrentPage] = useState(1);
     const [showTable, setShowTable] = useState(false);
+
+    // Authorization check — only teachers with ICT responsibility can access
+    const isAuthorized = user?.responsibilities?.includes('ICT') ?? false;
+
+    if (!isAuthorized) {
+        return (
+            <View className="flex-1 bg-[#f0f4f8]">
+                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+                <FormHeader onBack={() => router.back()} />
+                <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="ICT" />
+            </View>
+        );
+    }
 
     // ── Page 1 form ──
     const page1Form = useForm<ICTFormPage1Data>({

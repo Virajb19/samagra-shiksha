@@ -43,6 +43,7 @@ import {
 } from '../../src/services/firebase/science-lab-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 const MAX_PHOTOS = 10;
@@ -216,6 +217,19 @@ export default function ScienceLabFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
+
+    // Authorization check — only teachers with Science Lab responsibility can access
+    const isAuthorized = user?.responsibilities?.includes('Science Lab') ?? false;
+
+    if (!isAuthorized) {
+        return (
+            <View className="flex-1 bg-[#f0f4f8]">
+                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+                <FormHeader onBack={() => router.back()} />
+                <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Science Lab" />
+            </View>
+        );
+    }
 
     const form = useForm<ScienceLabFormData>({
         resolver: zodResolver(ScienceLabFormSchema),

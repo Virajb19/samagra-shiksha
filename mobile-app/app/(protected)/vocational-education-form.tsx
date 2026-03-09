@@ -47,6 +47,7 @@ import {
 } from '../../src/services/firebase/vocational-education-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 
@@ -466,6 +467,19 @@ export default function VocationalEducationFormScreen() {
     const { user } = useAuthStore();
     const [showTable, setShowTable] = useState(false);
     const pickImage = useImagePick();
+
+    // Authorization check — only teachers with Vocational Education responsibility can access
+    const isAuthorized = user?.responsibilities?.includes('Vocational Education') ?? false;
+
+    if (!isAuthorized) {
+        return (
+            <View className="flex-1 bg-[#f0f4f8]">
+                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
+                <FormHeader onBack={() => router.back()} />
+                <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Vocational Education" />
+            </View>
+        );
+    }
 
     const form = useForm<VocationalEducationFormData>({
         resolver: zodResolver(VocationalEducationFormSchema),

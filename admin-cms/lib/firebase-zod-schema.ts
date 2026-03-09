@@ -63,8 +63,13 @@ export const UserDocSchema = z.object({
 
   // ── Role-specific optional fields ──
 
-  // Direct district link (KGBV_WARDEN, NSCBAV_WARDEN, JUNIOR_ENGINEER)
+  // District link — stored directly for all roles:
+  //   KGBV_WARDEN, NSCBAV_WARDEN, JUNIOR_ENGINEER, IE_RESOURCE_PERSON: set at profile creation
+  //   HEADMASTER, TEACHER: denormalized from school.district_id via faculty record
   district_id: uuid.nullable().optional(),
+
+  // School link — denormalized from faculty record (HEADMASTER, TEACHER only)
+  school_id: uuid.nullable().optional(),
 
   // Responsibilities list (HEADMASTER, TEACHER, JUNIOR_ENGINEER)
   responsibilities: z.array(z.string()).nullable().optional(),

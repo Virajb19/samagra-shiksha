@@ -28,7 +28,6 @@ import {
     StatusBar,
     Platform,
     KeyboardAvoidingView,
-    Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +49,7 @@ import {
 } from '../../src/services/firebase/kgbv-form.firestore';
 import { getDistricts } from '../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../src/lib/store';
+import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
 
@@ -91,36 +91,7 @@ function FormHeader({ onBack }: { onBack: () => void }) {
     );
 }
 
-// ─── Not Authorized Dialog ──────────────────────────
 
-function NotAuthorizedDialog({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-    return (
-        <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-            <View className="flex-1 bg-black/50 items-center justify-center px-6">
-                <View className="bg-white rounded-3xl p-6 w-full max-w-sm items-center" style={{ elevation: 10 }}>
-                    <Image
-                        source={require('../../assets/do_not_enter.png')}
-                        style={{ width: 200, height: 200 }}
-                        resizeMode="contain"
-                    />
-                    <Text className="text-xl font-bold text-[#1a1a1a] mt-4 text-center">
-                        You're not authorized
-                    </Text>
-                    <Text className="text-sm text-gray-500 mt-2 text-center leading-5">
-                        You don't have permission to access the KGBV Form, as only KGBV Wardens are authorized.
-                    </Text>
-                    <TouchableOpacity
-                        onPress={onClose}
-                        className="mt-5 px-8 py-3 rounded-xl"
-                        style={{ backgroundColor: BLUE }}
-                    >
-                        <Text className="text-white font-bold text-sm">Go Back</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </Modal>
-    );
-}
 
 // ─── Submission Table ──────────────────────────
 
@@ -275,7 +246,7 @@ export default function KGBVFormScreen() {
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="light-content" backgroundColor={BLUE} />
                 <FormHeader onBack={() => router.back()} />
-                <NotAuthorizedDialog visible={true} onClose={() => router.back()} />
+                <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="KGBV" message="You don't have permission to access the KGBV Form, as only KGBV Wardens are authorized." />
             </View>
         );
     }
