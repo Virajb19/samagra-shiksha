@@ -43,6 +43,7 @@ export const NAV_ITEM_PATHS: Record<string, string> = {
   'Users': '/users',
   'Active Forms': '/active-forms',
   'View Form Data': '/form-data',
+  'Missing Forms': '/missing-forms',
   'Project Management': '/project-management',
   'Inclusive Education': '/inclusive-education',
   'Circulars': '/circulars',

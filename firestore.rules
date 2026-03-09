@@ -218,6 +218,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ── Missing Form Submissions (computed by Cloud Function) ──
+    match /missing_form_submissions/{docId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only written by Cloud Function via admin SDK
+    }
+
     // ── Deny everything else by default ──
     match /{document=**} {
       allow read, write: if false;

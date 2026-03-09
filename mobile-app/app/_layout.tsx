@@ -25,7 +25,7 @@ SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
     error: (props: BaseToastProps) => (
-        <View className="flex-row items-center bg-red-500 rounded-2xl px-2 py-2 gap-3 border-l-4 border-l-red-500" style={{ left: 16, right: 16, position: 'absolute', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+        <View className="flex-row items-center bg-red-500 rounded-2xl px-2 py-2 gap-3 border-l-4 border-l-red-500" style={{ marginHorizontal: 16, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
             <View className="w-9 h-9 rounded-full bg-red-500 justify-center items-center shrink-0">
                 <Ionicons name="alert-circle" size={22} color="#fff" />
             </View>
@@ -35,7 +35,7 @@ const toastConfig = {
         </View>
     ),
     success: (props: BaseToastProps) => (
-        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl px-4 py-2 gap-3 border-l-4 border-l-green-500" style={{ left: 16, right: 16, position: 'absolute', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+        <View className="flex-row items-center bg-[#1a1a2e] rounded-2xl px-4 py-2 gap-3 border-l-4 border-l-green-500" style={{ marginHorizontal: 16, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
             <View className="w-9 h-9 rounded-full bg-green-500 justify-center items-center shrink-0">
                 <Ionicons name="checkmark-circle" size={22} color="#fff" />
             </View>

@@ -346,6 +346,7 @@ const ALL_COLLECTIONS = [
   'nscbav_form_data',
   'ie_school_visit_data',
   'ie_home_visit_data',
+  'missing_form_submissions',
 ] as const;
 
 async function clearCollection(name: string): Promise<void> {
@@ -2212,6 +2213,98 @@ function seedIEHomeVisitData(): void {
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ MAIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+
+
+// ────────────────────── MISSING FORM SUBMISSIONS ──────────────────────
+
+function seedMissingFormSubmissions(): void {
+  console.log('📋 Computing missing form submissions...');
+  let count = 0;
+
+  const now = new Date();
+  const dayMs = 86400000;
+
+  interface ActiveWindow { formName: string; startDate: Date; endDate: Date }
+
+  const activeWindows: ActiveWindow[] = [
+    { formName: 'ICT', startDate: new Date(now.getTime() - 5 * dayMs), endDate: new Date(now.getTime() + 15 * dayMs) },
+    { formName: 'Library', startDate: new Date(now.getTime() - 3 * dayMs), endDate: new Date(now.getTime() + 11 * dayMs) },
+    { formName: 'Self Defence', startDate: new Date(now.getTime() - 30 * dayMs), endDate: new Date(now.getTime() - 20 * dayMs) },
+    { formName: 'KGBV', startDate: new Date(now.getTime() - 2 * dayMs), endDate: new Date(now.getTime() + 5 * dayMs) },
+    { formName: 'NSCBAV', startDate: new Date(now.getTime() - 2 * dayMs), endDate: new Date(now.getTime() + 5 * dayMs) },
+    { formName: 'IE School Visit', startDate: new Date(now.getTime() - 4 * dayMs), endDate: new Date(now.getTime() + 10 * dayMs) },
+    { formName: 'IE Home Visit', startDate: new Date(now.getTime() - 4 * dayMs), endDate: new Date(now.getTime() + 10 * dayMs) },
+  ];
+
+  interface SeedFormMapping {
+    formType: string;
+    activityName: string;
+    role: string;
+    getUserPool: () => string[];
+  }
+
+  const seedFormMappings: SeedFormMapping[] = [
+    { formType: 'ICT', activityName: 'ICT', role: 'TEACHER', getUserPool: () => ids.teacherIds },
+    { formType: 'Library', activityName: 'Library', role: 'TEACHER', getUserPool: () => ids.teacherIds },
+    { formType: 'Self Defence', activityName: 'Self Defence', role: 'TEACHER', getUserPool: () => ids.teacherIds },
+    { formType: 'KGBV', activityName: 'KGBV', role: 'KGBV_WARDEN', getUserPool: () => ids.kgbvWardenIds },
+    { formType: 'NSCBAV', activityName: 'NSCBAV', role: 'NSCBAV_WARDEN', getUserPool: () => ids.nscbavWardenIds },
+    { formType: 'IE School Visit', activityName: 'IE School Visit', role: 'IE_RESOURCE_PERSON', getUserPool: () => ids.ieResourcePersonIds },
+    { formType: 'IE Home Visit', activityName: 'IE Home Visit', role: 'IE_RESOURCE_PERSON', getUserPool: () => ids.ieResourcePersonIds },
+  ];
+
+  const fmtRange = (s: Date, e: Date) => {
+    const fmt = (d: Date) => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `${fmt(s)} — ${fmt(e)}`;
+  };
+
+  for (const mapping of seedFormMappings) {
+    const win = activeWindows.find(w => w.formName === mapping.activityName);
+    if (!win) continue;
+
+    const pool = mapping.getUserPool();
+    const endCopy = new Date(win.endDate); endCopy.setHours(23, 59, 59, 999);
+    const days = Math.ceil((endCopy.getTime() - now.getTime()) / dayMs);
+    const status = days < 0 ? 'Overdue' : 'Not Submitted';
+    const formWindow = fmtRange(win.startDate, win.endDate);
+    const maxRecords = Math.min(pool.length, 500);
+    let written = 0;
+
+    for (let i = 0; i < pool.length && written < maxRecords; i++) {
+      if (randomBool(0.2)) continue;
+
+      const userId = pool[i];
+      const districtId = getWeightedDistrictId();
+      const schoolId = ids.schoolIds[i % ids.schoolIds.length];
+      const schoolDistrictId = ids.schoolDistrictMap.get(schoolId) ?? districtId;
+      const schoolDistrictName = nagalandDistricts.find((_, idx) => ids.districtIds[idx] === schoolDistrictId)?.name ?? 'Nagaland';
+
+      const isTeacher = mapping.role === 'TEACHER';
+
+      const docId = `${userId}_${mapping.formType}`;
+      writer.set(db.collection('missing_form_submissions').doc(docId), {
+        id: docId,
+        user_id: userId,
+        user_name: generateName(),
+        role: mapping.role,
+        school_id: isTeacher ? schoolId : '',
+        school_name: isTeacher ? `School, ${schoolDistrictName}` : '',
+        district_id: schoolDistrictId,
+        district_name: schoolDistrictName,
+        form_type: mapping.formType,
+        form_window: formWindow,
+        days_remaining: days,
+        status,
+        created_at: TS(),
+      });
+      written++;
+      count++;
+    }
+  }
+
+  console.log(`✅ ${count} missing form submission records`);
+}
+
 async function main(): Promise<void> {
   const clearFirst = process.env.CLEAR_FIRST !== 'false';
 
@@ -2268,6 +2361,7 @@ async function main(): Promise<void> {
   seedNSCBAVFormData();
   seedIESchoolVisitData();
   seedIEHomeVisitData();
+  seedMissingFormSubmissions();
 
   // â”€â”€ Flush all buffered writes â”€â”€
   await writer.close();

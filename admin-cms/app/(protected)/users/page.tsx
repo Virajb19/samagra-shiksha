@@ -154,7 +154,8 @@ export default function UsersPage() {
   }, [currentPage, roleFilter, districtFilter, schoolFilter, debouncedSearch, showOnlyInactive]);
 
 
-  const { data: usersResponse, isLoading, isFetching, isPlaceholderData, isError, error } = useGetUsers(apiFilters);
+  // Don't use isRefetching -> shows loader after stale time (every 5 minutes)
+  const { data: usersResponse, isLoading, isFetching, isRefetching, isPlaceholderData, isError, error } = useGetUsers(apiFilters);
   const users = usersResponse?.data || [];
   const totalPages = usersResponse?.totalPages || 1;
   const totalUsers = usersResponse?.total || 0;

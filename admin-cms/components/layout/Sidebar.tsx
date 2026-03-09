@@ -7,7 +7,7 @@ import { useNavigationStore, useSidebarStore, useAuthStore } from '@/lib/store';
 import { canAccessTab } from '@/lib/permissions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { twMerge } from 'tailwind-merge';
-import { Home, Users, PenLine, Calendar, Bell, HelpCircle, ScrollText, ChevronLeft, ChevronDown, Menu, ClipboardList, Info, Wrench, GraduationCap, MailOpen } from "lucide-react";
+import { Home, Users, PenLine, Calendar, Bell, HelpCircle, ScrollText, ChevronLeft, ChevronDown, Menu, ClipboardList, Info, Wrench, GraduationCap, MailOpen, ShieldAlert } from "lucide-react";
 
 type NavItem = {
     name: string;
@@ -49,6 +49,7 @@ const allNavItems: NavItem[] = [
             { name: "Home Visits", href: "/inclusive-education/home-visits" },
         ],
     },
+    { name: "Missing Forms", href: "/missing-forms", icon: ShieldAlert },
     { name: "Circulars", href: "/circulars", icon: PenLine },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Notifications", href: "/notifications", icon: Bell },

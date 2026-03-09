@@ -626,6 +626,26 @@ export const IEHomeVisitDataDocSchema = z.object({
   created_at: dateTimeLike,
 });
 
+// ── Missing Form Submissions (computed by Cloud Function) ──
+
+export const MissingFormSubmissionStatusSchema = z.enum(["Not Submitted", "Overdue"]);
+
+export const MissingFormSubmissionDocSchema = z.object({
+  id: z.string().min(1),
+  user_id: uuid,
+  user_name: z.string().min(1),
+  role: z.string().min(1),
+  school_id: z.string(),
+  school_name: z.string(),
+  district_id: z.string(),
+  district_name: z.string(),
+  form_type: z.string().min(1),
+  form_window: z.string().min(1),
+  days_remaining: z.number().int(),
+  status: MissingFormSubmissionStatusSchema,
+  created_at: dateTimeLike,
+});
+
 // ── Vocational Education Form Data (submitted by teachers from mobile app) ──
 
 const VocationalClassEnrolmentSchema = z.object({
@@ -698,6 +718,7 @@ export const CollectionSchemas = {
   ie_school_visit_data: IESchoolVisitDataDocSchema,
   ie_home_visit_data: IEHomeVisitDataDocSchema,
   vocational_education_form_data: VocationalEducationFormDataDocSchema,
+  missing_form_submissions: MissingFormSubmissionDocSchema,
 } as const;
 
 type RelationType = "one-to-one" | "one-to-many" | "many-to-many";
@@ -748,6 +769,9 @@ export const Relations: RelationDef[] = [
   { from: "ie_school_visit_data", to: "districts", type: "one-to-many", foreignKey: "district_id" },
   { from: "ie_home_visit_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
   { from: "vocational_education_form_data", to: "users", type: "one-to-many", foreignKey: "submitted_by" },
+  { from: "missing_form_submissions", to: "users", type: "one-to-many", foreignKey: "user_id" },
+  { from: "missing_form_submissions", to: "schools", type: "one-to-many", foreignKey: "school_id" },
+  { from: "missing_form_submissions", to: "districts", type: "one-to-many", foreignKey: "district_id" },
 ];
 
 export function parseDoc<K extends keyof typeof CollectionSchemas>(
