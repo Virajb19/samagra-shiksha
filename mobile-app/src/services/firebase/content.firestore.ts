@@ -24,6 +24,7 @@ import {
 } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { getFirebaseDb, getFirebaseStorage } from '../../lib/firebase';
+import { devDelay } from '../../lib/dev-delay';
 import { createAuditLog } from './audit-logs.firestore';
 
 const db = getFirebaseDb();
@@ -210,6 +211,8 @@ export async function getEventsPaginated(
     cursor?: string | null,
     filters?: EventFilterParams,
 ): Promise<PaginatedEventsResult> {
+    await devDelay('read', 'content.getEventsPaginated');
+
     const eventsRef = collection(db, 'events');
 
     // ── Server-side search: exact match on title ──

@@ -4,7 +4,7 @@
  * Headmaster can create events; other roles are view-only.
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, ActivityIndicator, RefreshControl,
     Image, Modal, FlatList,
@@ -93,14 +93,16 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
 }
 
 /* ── Search Filter Modal ── */
-function SearchFilterModal({ visible, onClose, onApply, districts, loadingDistricts }: {
+function SearchFilterModal({ visible, onClose, onApply, currentFilters, onReset, districts, loadingDistricts }: {
     visible: boolean; onClose: () => void;
     onApply: (f: { startDate: string; endDate: string; districtId: string }) => void;
+    currentFilters: { startDate: string; endDate: string; districtId: string };
+    onReset: (f: { startDate: string; endDate: string; districtId: string }) => void;
     districts: District[]; loadingDistricts: boolean;
 }) {
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [districtId, setDistrictId] = useState('');
+    const [startDate, setStartDate] = useState(currentFilters.startDate);
+    const [endDate, setEndDate] = useState(currentFilters.endDate);
+    const [districtId, setDistrictId] = useState(currentFilters.districtId);
     const [showStartCal, setShowStartCal] = useState(false);
     const [showEndCal, setShowEndCal] = useState(false);
     const [showDP, setShowDP] = useState(false);
@@ -112,6 +114,14 @@ function SearchFilterModal({ visible, onClose, onApply, districts, loadingDistri
         const s = day === 1 || day === 21 || day === 31 ? 'st' : day === 2 || day === 22 ? 'nd' : day === 3 || day === 23 ? 'rd' : 'th';
         return `${day}${s} ${MONTHS[d.getMonth()]}, ${d.getFullYear()}`;
     };
+
+    useEffect(() => {
+        if (!visible) return;
+        setStartDate(currentFilters.startDate);
+        setEndDate(currentFilters.endDate);
+        setDistrictId(currentFilters.districtId);
+    }, [visible, currentFilters]);
+
     return (
         <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
             <TouchableOpacity className="flex-1 bg-black/40 justify-center items-center px-6" activeOpacity={1} onPress={onClose}>
@@ -124,7 +134,19 @@ function SearchFilterModal({ visible, onClose, onApply, districts, loadingDistri
                     <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">District</Text>
                     <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDP(true)}><Text className="text-[15px] text-[#1a1a1a]">{dn}</Text><Ionicons name="chevron-down" size={18} color="#666" /></TouchableOpacity>
                     <View className="flex-row gap-3 mt-6">
-                        <TouchableOpacity className="flex-1 border-[1.5px] rounded-[10px] py-3.5 items-center" style={{ borderColor: BLUE }} onPress={() => { setStartDate(''); setEndDate(''); setDistrictId(''); }}><Text className="text-[15px] font-semibold" style={{ color: BLUE }}>Reset</Text></TouchableOpacity>
+                        <TouchableOpacity
+                            className="flex-1 border-[1.5px] rounded-[10px] py-3.5 items-center"
+                            style={{ borderColor: BLUE }}
+                            onPress={() => {
+                                const cleared = { startDate: '', endDate: '', districtId: '' };
+                                setStartDate('');
+                                setEndDate('');
+                                setDistrictId('');
+                                onReset(cleared);
+                            }}
+                        >
+                            <Text className="text-[15px] font-semibold" style={{ color: BLUE }}>Reset</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity className="flex-1 rounded-[10px] py-3.5 items-center" style={{ backgroundColor: BLUE }} onPress={() => { onApply({ startDate, endDate, districtId }); onClose(); }}><Text className="text-[15px] font-semibold text-white">Search</Text></TouchableOpacity>
                     </View>
                 </TouchableOpacity>
@@ -196,6 +218,7 @@ export default function EventsListScreen({
     const { data: districts = [], isLoading: loadingDistricts } = useQuery<District[]>({ queryKey: ['districts'], queryFn: getDistricts });
     useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
     const allEvents = useMemo(() => data?.pages?.flatMap(p => p.events) || [], [data]);
+
     const handleEndReached = useCallback(() => {
         if (hasNextPage && !isFetchingNextPage) {
             fetchNextPage();
@@ -275,7 +298,15 @@ export default function EventsListScreen({
                 }
             />
 
-            <SearchFilterModal visible={filterVisible} onClose={() => setFilterVisible(false)} onApply={setFilters} districts={districts} loadingDistricts={loadingDistricts} />
+            <SearchFilterModal
+                visible={filterVisible}
+                onClose={() => setFilterVisible(false)}
+                onApply={setFilters}
+                onReset={setFilters}
+                currentFilters={filters}
+                districts={districts}
+                loadingDistricts={loadingDistricts}
+            />
         </View>
     );
 }
