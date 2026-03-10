@@ -33,6 +33,7 @@ import {
     DocumentData,
     Timestamp,
     where,
+    documentId,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "@/lib/firebase";
 import { devDelay } from "@/lib/dev-delay";
@@ -222,7 +223,10 @@ export const auditLogsFirestore = {
         const countSnap = await getCountFromServer(logsCol);
         const total = countSnap.data().count;
 
-        const constraints: QueryConstraint[] = [orderBy("created_at", "desc")];
+        const constraints: QueryConstraint[] = [
+            orderBy("created_at", "desc"),
+            orderBy(documentId(), "desc"),
+        ];
 
         if (cursor) {
             try {

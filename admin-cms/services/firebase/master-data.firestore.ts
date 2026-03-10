@@ -16,7 +16,8 @@ import {
   limit as queryLimit,
 } from "firebase/firestore";
 import { District, School, Subject } from "@/types";
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import {
   DistrictDocSchema,
   SchoolDocSchema,
@@ -239,6 +240,15 @@ export const firebaseAdminManageApi = {
       created_at: serverTimestamp(),
     });
 
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "SCHOOL_CREATED",
+      entity_type: "School",
+      entity_id: documentRef.id,
+    });
+
     return {
       id: documentRef.id,
       name: data.name,
@@ -255,6 +265,15 @@ export const firebaseAdminManageApi = {
 
     await setDoc(schoolRef, data, { merge: true });
 
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "SCHOOL_UPDATED",
+      entity_type: "School",
+      entity_id: id,
+    });
+
     const schools = await firebaseMasterDataApi.getSchools();
     const updated = schools.find((school) => school.id === id);
 
@@ -269,6 +288,15 @@ export const firebaseAdminManageApi = {
     await waitForAuthReady();
     const db = getFirebaseFirestore();
     await deleteDoc(doc(db, "schools", id));
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "SCHOOL_DELETED",
+      entity_type: "School",
+      entity_id: id,
+    });
   },
 
   async createSubject(data: { name: string; class_level: number }): Promise<Subject> {
@@ -279,6 +307,15 @@ export const firebaseAdminManageApi = {
       is_active: true,
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),
+    });
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "SUBJECT_CREATED",
+      entity_type: "Subject",
+      entity_id: documentRef.id,
     });
 
     return {
@@ -327,6 +364,17 @@ export const firebaseAdminManageApi = {
 
     if (created.length > 0) {
       await batch.commit();
+
+      // Audit log
+      const auth = getFirebaseAuth();
+      for (const subject of created) {
+        await auditLogsFirestore.create({
+          user_id: auth.currentUser?.uid ?? null,
+          action: "SUBJECT_CREATED",
+          entity_type: "Subject",
+          entity_id: subject.id,
+        });
+      }
     }
 
     return { created, errors };
@@ -342,6 +390,15 @@ export const firebaseAdminManageApi = {
       updated_at: serverTimestamp(),
     }, { merge: true });
 
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "SUBJECT_UPDATED",
+      entity_type: "Subject",
+      entity_id: id,
+    });
+
     const subjects = await firebaseMasterDataApi.getSubjectsDetailed();
     const updated = subjects.find((subject) => subject.id === id);
 
@@ -356,5 +413,14 @@ export const firebaseAdminManageApi = {
     await waitForAuthReady();
     const db = getFirebaseFirestore();
     await deleteDoc(doc(db, "subjects", id));
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "SUBJECT_DELETED",
+      entity_type: "Subject",
+      entity_id: id,
+    });
   },
 };

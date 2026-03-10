@@ -15,6 +15,7 @@ import {
     Timestamp,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '../../lib/firebase';
+import { createAuditLog } from './audit-logs.firestore';
 
 const db = getFirebaseDb();
 
@@ -99,4 +100,5 @@ export async function toggleUserActive(userId: string, isActive: boolean): Promi
         is_active: isActive,
         updated_at: Timestamp.now(),
     });
+    await createAuditLog({ user_id: userId, action: isActive ? 'USER_ACTIVATED' : 'USER_DEACTIVATED', entity_type: 'User', entity_id: userId });
 }

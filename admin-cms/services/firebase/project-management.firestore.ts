@@ -18,7 +18,8 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import type { ProjectSchool, Project, ProjectUpdate, ProjectSchoolCategory, ProjectActivity, PABYear } from "@/types";
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import {
   ProjectSchoolDocSchema,
   ProjectDocSchema,
@@ -218,6 +219,16 @@ export const projectManagementFirestore = {
     // Update doc with its own ID
     const { updateDoc } = await import("firebase/firestore");
     await updateDoc(docRef, { id: docRef.id });
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "PROJECT_SCHOOL_CREATED",
+      entity_type: "Project_School",
+      entity_id: docRef.id,
+    });
+
     return docRef.id;
   },
 
@@ -227,6 +238,15 @@ export const projectManagementFirestore = {
     await devDelay("write", "projectSchools.delete");
     const db = getFirebaseFirestore();
     await deleteDoc(doc(db, "project_schools", schoolId));
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "PROJECT_SCHOOL_DELETED",
+      entity_type: "Project_School",
+      entity_id: schoolId,
+    });
   },
 
   // ── Projects CRUD ──
@@ -330,6 +350,16 @@ export const projectManagementFirestore = {
       updated_at: serverTimestamp(),
     });
     await updateDoc(docRef, { id: docRef.id });
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "PROJECT_CREATED",
+      entity_type: "Project",
+      entity_id: docRef.id,
+    });
+
     return docRef.id;
   },
 
@@ -339,6 +369,15 @@ export const projectManagementFirestore = {
     await devDelay("write", "projects.delete");
     const db = getFirebaseFirestore();
     await deleteDoc(doc(db, "projects", projectId));
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "PROJECT_DELETED",
+      entity_type: "Project",
+      entity_id: projectId,
+    });
   },
 
   // Update project (partial update for editable fields)
@@ -361,6 +400,15 @@ export const projectManagementFirestore = {
     await updateDoc(doc(db, "projects", projectId), {
       ...updates,
       updated_at: serverTimestamp(),
+    });
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "PROJECT_UPDATED",
+      entity_type: "Project",
+      entity_id: projectId,
     });
   },
 

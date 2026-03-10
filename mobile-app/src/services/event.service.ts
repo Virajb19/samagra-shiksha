@@ -11,6 +11,7 @@ import { getFirebaseDb } from '../lib/firebase';
 import { uploadEventImage } from './storage.service';
 import { hasInternetConnection, checkNetworkStatus, getNetworkErrorMessage } from '../utils/network';
 import { EventType, TaskEvent } from '../types';
+import { createAuditLog } from './firebase/audit-logs.firestore';
 
 //  Types 
 
@@ -91,6 +92,8 @@ export async function submitEvent(
         const docRef = await addDoc(eventsRef, eventData);
         const elapsed = Date.now() - startTime;
         console.log(`[Event] ========== SUBMISSION SUCCESS (${elapsed}ms) ==========`);
+
+        await createAuditLog({ user_id: userId ?? null, action: 'EVENT_UPLOADED', entity_type: 'Task_Event', entity_id: docRef.id });
 
         return {
             success: true,

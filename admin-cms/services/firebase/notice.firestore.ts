@@ -32,7 +32,8 @@ import {
     startAfter,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getFirebaseFirestore, getFirebaseStorage } from "@/lib/firebase";
+import { getFirebaseFirestore, getFirebaseStorage, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import { devDelay } from "@/lib/dev-delay";
 import type { Notice, NoticeType, NoticesFilters } from "@/services/notices.service";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
@@ -355,13 +356,11 @@ export const noticeFirestore = {
         const docRef = await addDoc(collection(db, "notices"), noticeData);
 
         // Audit log
-        await addDoc(collection(db, "audit_logs"), {
+        await auditLogsFirestore.create({
             user_id: userId,
             action: "NOTICE_CREATED",
             entity_type: "Notice",
             entity_id: docRef.id,
-            ip_address: null,
-            created_at: serverTimestamp(),
         });
 
         return toNotice(docRef.id, {
@@ -418,6 +417,15 @@ export const noticeFirestore = {
 
         await updateDoc(noticeRef, updateData);
 
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: "NOTICE_UPDATED",
+            entity_type: "Notice",
+            entity_id: id,
+        });
+
         const updated = await getDoc(noticeRef);
         return toNotice(id, updated.data()!);
     },
@@ -448,6 +456,15 @@ export const noticeFirestore = {
 
         await deleteDoc(noticeRef);
 
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: "NOTICE_DELETED",
+            entity_type: "Notice",
+            entity_id: id,
+        });
+
         return { success: true, message: "Notice deleted successfully" };
     },
 
@@ -466,6 +483,15 @@ export const noticeFirestore = {
         await updateDoc(noticeRef, {
             is_active: !currentActive,
             updated_at: serverTimestamp(),
+        });
+
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: "NOTICE_UPDATED",
+            entity_type: "Notice",
+            entity_id: id,
         });
 
         const updated = await getDoc(noticeRef);
@@ -565,13 +591,11 @@ export const noticeFirestore = {
         await batch.commit();
 
         // Audit log
-        await addDoc(collection(db, "audit_logs"), {
+        await auditLogsFirestore.create({
             user_id: userId,
             action: "NOTICE_SENT",
             entity_type: "Notice",
             entity_id: noticeRef.id,
-            ip_address: null,
-            created_at: serverTimestamp(),
         });
 
         return {

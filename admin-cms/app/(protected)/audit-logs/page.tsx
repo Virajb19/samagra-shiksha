@@ -93,6 +93,30 @@ const actionColors: Record<string, { bg: string; text: string }> = {
   'TICKET_DELETED': { bg: 'bg-red-600/20', text: 'text-red-300' },
   // Notification actions
   'NOTIFICATION_SENT': { bg: 'bg-blue-500/20', text: 'text-blue-300' },
+  // Notice sent
+  'NOTICE_SENT': { bg: 'bg-teal-400/20', text: 'text-teal-300' },
+  // School actions
+  'SCHOOL_CREATED': { bg: 'bg-stone-500/20', text: 'text-stone-400' },
+  'SCHOOL_UPDATED': { bg: 'bg-stone-600/20', text: 'text-stone-300' },
+  'SCHOOL_DELETED': { bg: 'bg-stone-700/20', text: 'text-stone-300' },
+  // Subject actions
+  'SUBJECT_CREATED': { bg: 'bg-lime-500/20', text: 'text-lime-400' },
+  'SUBJECT_UPDATED': { bg: 'bg-lime-600/20', text: 'text-lime-300' },
+  'SUBJECT_DELETED': { bg: 'bg-lime-700/20', text: 'text-lime-300' },
+  // Project actions
+  'PROJECT_CREATED': { bg: 'bg-rose-500/20', text: 'text-rose-400' },
+  'PROJECT_UPDATED': { bg: 'bg-rose-600/20', text: 'text-rose-300' },
+  'PROJECT_DELETED': { bg: 'bg-rose-700/20', text: 'text-rose-300' },
+  'PROJECT_SCHOOL_CREATED': { bg: 'bg-pink-500/20', text: 'text-pink-400' },
+  'PROJECT_SCHOOL_DELETED': { bg: 'bg-pink-700/20', text: 'text-pink-300' },
+  // Registration
+  'USER_REGISTERED': { bg: 'bg-emerald-400/20', text: 'text-emerald-300' },
+  // Profile actions
+  'PROFILE_COMPLETED': { bg: 'bg-sky-400/20', text: 'text-sky-300' },
+  'PERSONAL_DETAILS_UPDATED': { bg: 'bg-sky-600/20', text: 'text-sky-300' },
+  // Invitation actions
+  'INVITATION_ACCEPTED': { bg: 'bg-green-600/20', text: 'text-green-300' },
+  'INVITATION_REJECTED': { bg: 'bg-red-500/20', text: 'text-red-400' },
 };
 
 export default function AuditLogsPage() {
@@ -274,26 +298,26 @@ export default function AuditLogsPage() {
               </div>
             )}
             <table className="w-full">
-              <thead className="sticky top-0 z-10 backdrop-blur-md bg-slate-100/80 dark:bg-slate-800/80">
-                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                  <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700">
+                  <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                     <Clock className="h-4 w-4 inline mr-1" />
                     Timestamp
                   </th>
-                  <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                  <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                     <Activity className="h-4 w-4 inline mr-1" />
                     Action
                   </th>
-                  <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                  <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                     <FileText className="h-4 w-4 inline mr-1" />
                     Entity Type
                   </th>
-                  <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Entity ID</th>
-                  <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                  <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Entity ID</th>
+                  <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                     <User className="h-4 w-4 inline mr-1" />
                     User ID
                   </th>
-                  <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                  <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide">
                     <Globe className="h-4 w-4 inline mr-1" />
                     IP Address
                   </th>

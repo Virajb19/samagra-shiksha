@@ -125,7 +125,7 @@ function DeleteInvitationButton({ recipientId, userName }: { recipientId: string
         {deleteMutation.isPending ? (
           <div className="size-5 border-2 border-t-[3px] border-slate-200 dark:border-white/20 border-t-red-600 rounded-full animate-spin" />
         ) : (
-          <Trash2 className="h-5 w-5" />
+          <Trash2 className="h-5 w-5 text-red-500" />
         )}
       </button>
 

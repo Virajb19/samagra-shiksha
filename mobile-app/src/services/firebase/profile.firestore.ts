@@ -15,6 +15,7 @@ import {
 import { getFirebaseDb } from '../../lib/firebase';
 import { User, KGBVType } from '../../types';
 import { storeUserData } from '../../utils/storage';
+import { createAuditLog } from './audit-logs.firestore';
 
 const db = getFirebaseDb();
 
@@ -53,6 +54,7 @@ export async function completeHMTeacherProfile(params: {
 
     const updatedUser: User = { ...currentUser, responsibilities, has_completed_profile: true };
     await storeUserData(updatedUser);
+    await createAuditLog({ user_id: userId, action: 'PROFILE_COMPLETED', entity_type: 'User', entity_id: userId });
     return updatedUser;
 }
 
@@ -91,6 +93,7 @@ export async function completeKGBVWardenProfile(params: {
         has_completed_profile: true,
     };
     await storeUserData(updatedUser);
+    await createAuditLog({ user_id: userId, action: 'PROFILE_COMPLETED', entity_type: 'User', entity_id: userId });
     return updatedUser;
 }
 
@@ -126,6 +129,7 @@ export async function completeNSCBAVWardenProfile(params: {
         ebrc, aadhaar_number: aadhaarNumber, has_completed_profile: true,
     };
     await storeUserData(updatedUser);
+    await createAuditLog({ user_id: userId, action: 'PROFILE_COMPLETED', entity_type: 'User', entity_id: userId });
     return updatedUser;
 }
 
@@ -167,6 +171,7 @@ export async function completeIEResourcePersonProfile(params: {
         has_completed_profile: true,
     };
     await storeUserData(updatedUser);
+    await createAuditLog({ user_id: userId, action: 'PROFILE_COMPLETED', entity_type: 'User', entity_id: userId });
     return updatedUser;
 }
 
@@ -196,5 +201,6 @@ export async function completeJuniorEngineerProfile(params: {
         has_completed_profile: true,
     };
     await storeUserData(updatedUser);
+    await createAuditLog({ user_id: userId, action: 'PROFILE_COMPLETED', entity_type: 'User', entity_id: userId });
     return updatedUser;
 }

@@ -28,8 +28,10 @@ import {
     Timestamp,
     QueryConstraint,
     startAfter,
+    documentId,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import { devDelay } from "@/lib/dev-delay";
 import { HelpdeskTicket } from "@/types";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
@@ -159,6 +161,7 @@ export const helpdeskFirestore = {
         else if (status === "resolved") constraints.push(where("is_resolved", "==", true));
 
         constraints.push(orderBy("created_at", "desc"));
+        constraints.push(orderBy(documentId(), "desc"));
 
         // Compound cursor (timestamp + docId) to handle duplicate timestamps
         if (cursor) {
@@ -199,27 +202,17 @@ export const helpdeskFirestore = {
         if (!snap.exists()) throw new Error("Ticket not found");
 
         await deleteDoc(ticketRef);
-        return { message: "Ticket deleted successfully" };
-    },
 
-    /**
-     * Mark a ticket as resolved.
-     */
-    async resolve(ticketId: string): Promise<HelpdeskTicket> {
-        await waitForAuthReady();
-        await devDelay("write", "helpdesk.resolve");
-        const db = getFirebaseFirestore();
-        const ticketRef = doc(db, "helpdesk_tickets", ticketId);
-        const snap = await getDoc(ticketRef);
-        if (!snap.exists()) throw new Error("Ticket not found");
-
-        await updateDoc(ticketRef, {
-            is_resolved: true,
-            updated_at: serverTimestamp(),
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: "TICKET_DELETED",
+            entity_type: "Helpdesk_Ticket",
+            entity_id: ticketId,
         });
 
-        const updated = await getDoc(ticketRef);
-        return toTicket(ticketId, updated.data()!);
+        return { message: "Ticket deleted successfully" };
     },
 
     /**
@@ -237,6 +230,15 @@ export const helpdeskFirestore = {
         await updateDoc(ticketRef, {
             is_resolved: !currentResolved,
             updated_at: serverTimestamp(),
+        });
+
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: currentResolved ? "TICKET_REOPENED" : "TICKET_RESOLVED",
+            entity_type: "Helpdesk_Ticket",
+            entity_id: ticketId,
         });
 
         const updated = await getDoc(ticketRef);

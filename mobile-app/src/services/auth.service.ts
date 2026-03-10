@@ -21,6 +21,7 @@ import { getFirebaseAuth, getFirebaseDb } from '../lib/firebase';
 import { User } from '../types';
 import { getUserByEmail } from './firebase/users.firestore';
 import { uploadProfileImage } from './storage.service';
+import { createAuditLog } from './firebase/audit-logs.firestore';
 
 // -- Error classes --
 
@@ -94,6 +95,14 @@ export async function login(credentials: LoginCredentials): Promise<LoginResult>
         }
 
         console.log('[Auth] Login successful');
+
+        await createAuditLog({
+            user_id: user.id,
+            action: 'USER_LOGIN',
+            entity_type: 'User',
+            entity_id: user.id,
+        });
+
         return { success: true, user, token: firebaseToken };
     } catch (error: any) {
         console.log('[Auth] Login failed:', error?.code || error?.message);
@@ -164,6 +173,13 @@ export async function register(payload: RegisterPayload): Promise<void> {
 
     // Sign out immediately -- user must wait for admin approval
     await signOut(auth);
+
+    await createAuditLog({
+        user_id: userId,
+        action: 'USER_REGISTERED',
+        entity_type: 'User',
+        entity_id: userId,
+    });
 }
 
 // -- Logout --
@@ -171,7 +187,14 @@ export async function register(payload: RegisterPayload): Promise<void> {
 /** Sign the user out of Firebase Auth. */
 export async function logout(): Promise<void> {
     const auth = getFirebaseAuth();
+    const userId = auth.currentUser?.uid ?? null;
     try {
+        await createAuditLog({
+            user_id: userId,
+            action: 'USER_LOGOUT',
+            entity_type: 'User',
+            entity_id: userId,
+        });
         await signOut(auth);
         console.log('[Auth] Firebase signOut complete');
     } catch (err) {

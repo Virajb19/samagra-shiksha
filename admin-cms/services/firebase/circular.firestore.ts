@@ -34,6 +34,7 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getFirebaseFirestore, getFirebaseStorage } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import { devDelay } from "@/lib/dev-delay";
 import type { Circular, CreateCircularDto } from "@/types";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
@@ -345,13 +346,11 @@ export const circularFirestore = {
         }
 
         // 7. Log audit entry
-        await addDoc(collection(db, "audit_logs"), {
+        await auditLogsFirestore.create({
             user_id: userId,
             action: "CIRCULAR_CREATED",
             entity_type: "Circular",
             entity_id: docRef.id,
-            ip_address: null,
-            created_at: serverTimestamp(),
         });
 
         return {
@@ -395,13 +394,11 @@ export const circularFirestore = {
         await updateDoc(circularRef, { is_active: false, updated_at: serverTimestamp() });
 
         // Audit log
-        await addDoc(collection(db, "audit_logs"), {
+        await auditLogsFirestore.create({
             user_id: adminId,
             action: "CIRCULAR_DELETED",
             entity_type: "Circular",
             entity_id: circularId,
-            ip_address: null,
-            created_at: serverTimestamp(),
         });
 
         return {

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  collection,
   doc,
   getDoc,
   getDocs,
@@ -12,7 +11,8 @@ import {
   where,
 } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
-import { getFirebaseFirestore, getFirebaseFunctions } from "@/lib/firebase";
+import { getFirebaseFirestore, getFirebaseFunctions, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import { User } from "@/types";
 import { UserFilterParams } from "@/services/contracts";
 import { getUsersFromFirestore } from "@/services/firebase/users.firestore";
@@ -95,6 +95,16 @@ export const firebaseUsersAdminApi = {
       throw new Error("createUserByAdmin function did not return user id");
     }
 
+    // Audit log
+    const db = getFirebaseFirestore();
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "USER_CREATED",
+      entity_type: "User",
+      entity_id: userId,
+    });
+
     return getUserById(userId);
   },
 
@@ -104,6 +114,15 @@ export const firebaseUsersAdminApi = {
     const db = getFirebaseFirestore();
     await updateDoc(doc(db, "users", userId), {
       is_active: isActive,
+    });
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: isActive ? "USER_ACTIVATED" : "USER_DEACTIVATED",
+      entity_type: "User",
+      entity_id: userId,
     });
   },
 
@@ -142,6 +161,15 @@ export const firebaseUsersAdminApi = {
       ...data,
       updated_at: serverTimestamp(),
     }, { merge: true });
+
+    // Audit log
+    const auth = getFirebaseAuth();
+    await auditLogsFirestore.create({
+      user_id: auth.currentUser?.uid ?? null,
+      action: "USER_UPDATED",
+      entity_type: "User",
+      entity_id: userId,
+    });
 
     return getUserById(userId);
   },

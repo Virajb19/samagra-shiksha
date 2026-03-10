@@ -18,7 +18,8 @@ import {
     Timestamp,
     DocumentData,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import { devDelay } from "@/lib/dev-delay";
 import { ActivityForm } from "@/types";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
@@ -121,6 +122,15 @@ export const activityFormsFirestore = {
             ending_date: Timestamp.fromDate(endDate),
             updated_at: serverTimestamp(),
         });
+
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: "FORM_UPDATED",
+            entity_type: "Form",
+            entity_id: formId,
+        });
     },
 
     /**
@@ -135,6 +145,15 @@ export const activityFormsFirestore = {
         await updateDoc(formRef, {
             status: "Closed",
             updated_at: serverTimestamp(),
+        });
+
+        // Audit log
+        const auth = getFirebaseAuth();
+        await auditLogsFirestore.create({
+            user_id: auth.currentUser?.uid ?? null,
+            action: "FORM_UPDATED",
+            entity_type: "Form",
+            entity_id: formId,
         });
     },
 };

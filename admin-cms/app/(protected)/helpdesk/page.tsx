@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Trash2, CheckCircle, Loader2, Headphones, Hash, User, MessageSquare, Phone, Calendar, RotateCcw, HelpCircle, Search, Filter, X } from 'lucide-react';
+import { CheckCircle, Loader2, Headphones, Hash, User, MessageSquare, Phone, Calendar, HelpCircle, Search, Filter, X } from 'lucide-react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { helpdeskFirestore, HelpdeskResponse } from '@/services/firebase/helpdesk.firestore';
 import { Badge } from '@/components/ui/badge';
 import { DeleteTicketButton } from '@/components/DeleteTicketButton';
-import { ResolveTicketButton } from '@/components/ResolveTicketButton';
-import { SetBackToPendingButton } from '@/components/SetBackToPendingButton';
+import { ToggleTicketStatusButton } from '@/components/ToggleTicketStatusButton';
 import { ExpandableText } from '@/components/ExpandableText';
 import { RetryButton } from '@/components/RetryButton';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
@@ -139,16 +138,16 @@ export default function HelpdeskPage() {
               <HelpCircle className="h-6 w-6 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Helpdesk</h1>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Helpdesk</h1>
+                <Badge className="bg-linear-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700 px-3 py-0.5 text-xs font-semibold shadow-md shadow-pink-500/20">
+                  {total} Total
+                </Badge>
+              </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Manage support tickets from users</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge className="bg-slate-700/50 text-slate-300 hover:bg-slate-700/50 px-3 py-1">
-              {total} Total
-            </Badge>
-            <RefreshTableButton queryKey={['helpdesk-tickets', statusFilter, debouncedSearch]} isFetching={isFetching && !isFetchingNextPage} />
-          </div>
+          <RefreshTableButton queryKey={['helpdesk-tickets', statusFilter, debouncedSearch]} isFetching={isFetching && !isFetchingNextPage} />
         </div>
       </motion.div>
 
@@ -231,29 +230,29 @@ export default function HelpdeskPage() {
         <div className="relative">
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+              <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <Hash className="h-4 w-4 inline mr-1" />
                   Sl No.
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <User className="h-4 w-4 inline mr-1" />
                   Full Name
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <MessageSquare className="h-4 w-4 inline mr-1" />
                   Message
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <Phone className="h-4 w-4 inline mr-1" />
                   Phone
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Date
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Status</th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Actions</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Status</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -335,11 +334,7 @@ export default function HelpdeskPage() {
                           </td>
                           <td className="py-4 px-5">
                             <div className="flex items-center gap-2">
-                              {!ticket.is_resolved ? (
-                                <ResolveTicketButton ticketId={ticket.id} />
-                              ) : (
-                                <SetBackToPendingButton ticketId={ticket.id} />
-                              )}
+                              <ToggleTicketStatusButton ticketId={ticket.id} isResolved={ticket.is_resolved} />
                               <DeleteTicketButton ticketId={ticket.id} />
                             </div>
                           </td>

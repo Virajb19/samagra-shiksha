@@ -15,6 +15,7 @@ import {
     Timestamp,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '../../lib/firebase';
+import { createAuditLog } from './audit-logs.firestore';
 
 const db = getFirebaseDb();
 
@@ -34,5 +35,13 @@ export async function createTicket(data: {
     const ref = doc(collection(db, 'helpdesk_tickets'));
     const record = { id: ref.id, ...data, is_resolved: false, created_at: Timestamp.now() };
     await setDoc(ref, record);
+
+    await createAuditLog({
+        user_id: data.user_id,
+        action: 'TICKET_CREATED',
+        entity_type: 'Helpdesk_Ticket',
+        entity_id: ref.id,
+    });
+
     return record;
 }

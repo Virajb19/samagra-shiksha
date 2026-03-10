@@ -24,6 +24,7 @@ import {
 } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { getFirebaseDb, getFirebaseStorage } from '../../lib/firebase';
+import { createAuditLog } from './audit-logs.firestore';
 
 const db = getFirebaseDb();
 
@@ -213,6 +214,14 @@ export async function createEvent(data: {
         updated_at: Timestamp.now(),
     };
     await setDoc(ref, record);
+
+    await createAuditLog({
+        user_id: data.created_by,
+        action: 'EVENT_CREATED',
+        entity_type: 'Event',
+        entity_id: ref.id,
+    });
+
     return record;
 }
 
@@ -280,6 +289,12 @@ export async function acceptInvitation(recipientId: string): Promise<void> {
         reject_reason: null,
         responded_at: serverTimestamp(),
     });
+
+    await createAuditLog({
+        action: 'INVITATION_ACCEPTED',
+        entity_type: 'Notice',
+        entity_id: recipientId,
+    });
 }
 
 /** Reject an invitation with a reason. */
@@ -289,6 +304,12 @@ export async function rejectInvitation(recipientId: string, reason: string): Pro
         status: 'REJECTED',
         reject_reason: reason.slice(0, 500),
         responded_at: serverTimestamp(),
+    });
+
+    await createAuditLog({
+        action: 'INVITATION_REJECTED',
+        entity_type: 'Notice',
+        entity_id: recipientId,
     });
 }
 

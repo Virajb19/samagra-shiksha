@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseDb } from '../../lib/firebase';
 import { User } from '../../types';
+import { createAuditLog } from './audit-logs.firestore';
 
 const db = getFirebaseDb();
 
@@ -57,6 +58,7 @@ export async function updatePersonalDetails(
     data: { name?: string; gender?: string; phone?: string },
 ): Promise<void> {
     await updateDoc(doc(db, 'users', userId), { ...data, updated_at: Timestamp.now() });
+    await createAuditLog({ user_id: userId, action: 'PERSONAL_DETAILS_UPDATED', entity_type: 'User', entity_id: userId });
 }
 
 // ── Helpers ──

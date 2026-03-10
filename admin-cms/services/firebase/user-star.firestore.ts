@@ -24,6 +24,7 @@ import {
     serverTimestamp,
 } from "firebase/firestore";
 import { getFirebaseFirestore, getFirebaseAuth } from "@/lib/firebase";
+import { auditLogsFirestore } from "./audit-logs.firestore";
 import { devDelay } from "@/lib/dev-delay";
 import { waitForAuthReady } from "@/services/firebase/auth.firestore";
 
@@ -57,6 +58,15 @@ export const userStarsFireStore = {
         if (!snap.empty) {
             // Already starred → unstar
             await deleteDoc(snap.docs[0].ref);
+
+            // Audit log
+            await auditLogsFirestore.create({
+                user_id: adminId,
+                action: "USER_UNSTARRED",
+                entity_type: "User",
+                entity_id: userId,
+            });
+
             return { starred: false };
         } else {
             // Not starred → star
@@ -65,6 +75,15 @@ export const userStarsFireStore = {
                 starred_user_id: userId,
                 created_at: serverTimestamp(),
             });
+
+            // Audit log
+            await auditLogsFirestore.create({
+                user_id: adminId,
+                action: "USER_STARRED",
+                entity_type: "User",
+                entity_id: userId,
+            });
+
             return { starred: true };
         }
     },
