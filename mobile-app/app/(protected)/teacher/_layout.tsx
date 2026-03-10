@@ -12,6 +12,7 @@ export default function TeacherLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="complete-profile" />
             <Stack.Screen name="view-profile" />
+            <Stack.Screen name="edit-personal-details" />
             <Stack.Screen name="helpdesk" />
             <Stack.Screen name="events" />
             <Stack.Screen name="colleagues" />

@@ -10,6 +10,8 @@ export default function IEResourcePersonLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#f3f4f6' } }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="complete-profile" />
+            <Stack.Screen name="edit-personal-details" />
+            <Stack.Screen name="helpdesk" />
             <Stack.Screen name="view-profile" />
             <Stack.Screen name="school-visit-form" />
             <Stack.Screen name="home-visit-form" />

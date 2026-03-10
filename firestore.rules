@@ -25,9 +25,12 @@ service cloud.firestore {
       allow read: if isAuth();
       // Allow self-create and self-update: newly registered users have no role claim yet
       allow create: if isAuth() && (isAdmin() || request.auth.uid == userId);
-      // Admins: full update; Self: full update; Headmasters: only is_active + updated_at
+      // Admins: full update; Self (by Auth UID): full update;
+      // Any authenticated user: personal details only (covers seeded users whose doc ID ≠ Auth UID);
+      // Headmasters: only is_active + updated_at
       allow update: if isAdmin()
                     || request.auth.uid == userId
+                    || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'gender', 'profile_image_url', 'updated_at']))
                     || (isHeadmaster() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_active', 'updated_at']));
       allow delete: if isAdmin();
     }
@@ -73,7 +76,7 @@ service cloud.firestore {
 
     // ── Helpdesk Tickets ──
     match /helpdesk_tickets/{ticketId} {
-      allow read: if isAdmin();
+       allow read: if isAdmin() || (isAuth() && resource.data.user_id == request.auth.uid);
       allow create: if isAuth();
       allow update: if isAdmin();
       allow delete: if isAdmin();

@@ -1,148 +1,127 @@
-/**
- * KGBV Warden Settings/Profile Tab Screen
- */
-
-import React from 'react';
-import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    Alert,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Modal, Share, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
-
-interface SettingsItem {
-    id: string;
-    title: string;
-    subtitle?: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    iconColor: string;
-    iconBgColor: string;
-    route?: string;
-    action?: () => void;
-}
+import { getImagePreviewUrl } from '../../../../src/services/storage.service';
 
 export default function SettingsTabScreen() {
     const router = useRouter();
     const { user, logout } = useAuthStore();
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const profileUrl = getImagePreviewUrl(user?.profile_image_url);
 
-    const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Logout',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await logout();
-                    },
-                },
-            ]
-        );
+    const handleLogout = async () => {
+        setShowLogoutDialog(false);
+        await logout();
     };
 
-    const settingsSections: { title: string; items: SettingsItem[] }[] = [
-        {
-            title: 'Profile',
-            items: [
-                {
-                    id: 'edit-personal-details',
-                    title: 'Edit Personal Details',
-                    subtitle: 'Update your name, phone, and gender',
-                    icon: 'create-outline',
-                    iconColor: '#3b82f6',
-                    iconBgColor: '#dbeafe',
-                },
-            ],
-        },
-        {
-            title: 'Support',
-            items: [
-                {
-                    id: 'about',
-                    title: 'About App',
-                    subtitle: 'Version 1.0.0',
-                    icon: 'information-circle-outline',
-                    iconColor: '#6b7280',
-                    iconBgColor: '#f3f4f6',
-                    action: () => {
-                        Alert.alert(
-                            'NBSE Connect',
-                            'Version 1.0.0\n\n© 2024 NBSE. All rights reserved.\n\nBuilt for the Nagaland Board of School Education.',
-                            [{ text: 'OK' }]
-                        );
-                    },
-                },
-            ],
-        },
-    ];
-
-    const handleItemPress = (item: SettingsItem) => {
-        if (item.action) {
-            item.action();
-        } else if (item.route) {
-            router.push(item.route as any);
-        }
+    const handleShareApp = async () => {
+        try {
+            await Share.share({
+                title: 'Samagra Shiksha Nagaland',
+                message: Platform.OS === 'ios'
+                    ? 'Check out Samagra Shiksha Nagaland app!'
+                    : 'Check out Samagra Shiksha Nagaland app!\nhttps://play.google.com/store/apps/details?id=com.samagrashiksha.nagaland',
+                url: 'https://apps.apple.com/app/samagra-shiksha-nagaland',
+            });
+        } catch { }
     };
 
     return (
-        <ScrollView className="flex-1 bg-[#f0f2f8]" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+        <ScrollView className="flex-1 bg-[#eaf0fb]" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             {/* Profile Card */}
-            <View className="bg-[#2c3e6b] rounded-2xl p-5 flex-row items-center mb-6" style={{ shadowColor: '#2c3e6b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 }}>
-                <View className="relative">
-                    <View className="w-16 h-16 rounded-full bg-white/20 justify-center items-center border-2 border-white/30">
-                        <Text className="text-2xl font-bold text-white">
-                            {user?.name?.charAt(0)?.toUpperCase() || 'K'}
-                        </Text>
-                    </View>
-                    <View className="absolute bottom-[2px] right-[2px] w-[14px] h-[14px] rounded-full bg-green-500 border-2 border-[#2c3e6b]" />
+            <View className="bg-white rounded-2xl p-5 items-center mb-5" style={{ elevation: 2 }}>
+                <View className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden border-[3px] border-[#3b82f6] mb-3">
+                    {profileUrl ? (
+                        <Image source={{ uri: profileUrl }} className="w-full h-full" />
+                    ) : (
+                        <View className="w-full h-full justify-center items-center bg-gray-300">
+                            <Ionicons name="person" size={40} color="#9ca3af" />
+                        </View>
+                    )}
                 </View>
-                <View className="ml-4 flex-1">
-                    <Text className="text-lg font-semibold text-white">{user?.name || 'KGBV Warden'}</Text>
-                    <Text className="text-sm text-white/80 font-medium mt-[2px]">KGBV Warden</Text>
-                    <Text className="text-[13px] text-white/60 mt-1">{user?.email || ''}</Text>
+                <Text className="text-xl font-bold text-[#1a1a2e]">{user?.name || 'KGBV Warden'}</Text>
+                <View className="flex-row items-center mt-1 gap-1">
+                    <Ionicons name="mail-outline" size={14} color="#6b7280" />
+                    <Text className="text-sm text-gray-500">{user?.email || ''}</Text>
+                </View>
+                <View className="bg-[#dbeafe] px-5 py-1.5 rounded-full mt-3">
+                    <Text className="text-sm font-semibold text-[#3b82f6]">KGBV Warden</Text>
                 </View>
             </View>
 
-            {/* Settings Sections */}
-            {settingsSections.map((section) => (
-                <View key={section.title} className="mb-5">
-                    <Text className="text-[13px] font-semibold text-gray-500 uppercase tracking-[0.5px] mb-2 ml-1">{section.title}</Text>
-                    <View className="bg-white rounded-[14px] overflow-hidden" style={{ shadowColor: '#2c3e6b', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
-                        {section.items.map((item, index) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                className={`flex-row items-center p-4 ${index < section.items.length - 1 ? 'border-b border-b-[#f0f2f8]' : ''}`}
-                                onPress={() => handleItemPress(item)}
-                            >
-                                <View className="w-10 h-10 rounded-[10px] justify-center items-center" style={{ backgroundColor: item.iconBgColor }}>
-                                    <Ionicons name={item.icon} size={20} color={item.iconColor} />
-                                </View>
-                                <View className="flex-1 ml-3">
-                                    <Text className="text-[15px] font-medium text-[#1a1a2e]">{item.title}</Text>
-                                    {item.subtitle && (
-                                        <Text className="text-[13px] text-gray-500 mt-[2px]">{item.subtitle}</Text>
-                                    )}
-                                </View>
-                                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+            {/* Menu Items */}
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={() => router.push('/(protected)/kgbv-warden/edit-personal-details' as any)}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#dbeafe] justify-center items-center">
+                    <Ionicons name="person-outline" size={24} color="#3b82f6" />
                 </View>
-            ))}
-
-            {/* Logout Button */}
-            <TouchableOpacity className="flex-row items-center justify-center bg-red-100 py-[14px] rounded-xl mt-2 gap-2" onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-                <Text className="text-base font-semibold text-red-500">Logout</Text>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Edit Profile</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
             </TouchableOpacity>
 
-            <Text className="text-center text-xs text-gray-400 mt-6">NBSE Connect v1.0.0</Text>
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={() => router.push('/(protected)/kgbv-warden/helpdesk' as any)}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#ede9fe] justify-center items-center">
+                    <Ionicons name="help-circle-outline" size={24} color="#8b5cf6" />
+                </View>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Helpdesk / Support</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={handleShareApp}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#d1fae5] justify-center items-center">
+                    <Ionicons name="share-social-outline" size={24} color="#10b981" />
+                </View>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Share the app</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={() => setShowLogoutDialog(true)}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#fee2e2] justify-center items-center">
+                    <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+                </View>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Logout</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+
+            {/* Logout Modal */}
+            <Modal visible={showLogoutDialog} transparent animationType="fade" onRequestClose={() => setShowLogoutDialog(false)}>
+                <View className="flex-1 justify-center items-center bg-black/50 px-8">
+                    <View className="bg-white rounded-2xl p-6 w-full max-w-[320px]" style={{ elevation: 8 }}>
+                        <View className="items-center mb-4">
+                            <View className="w-14 h-14 rounded-full bg-red-100 justify-center items-center mb-3">
+                                <Ionicons name="log-out-outline" size={28} color="#ef4444" />
+                            </View>
+                            <Text className="text-lg font-bold text-[#1f2937]">Logout</Text>
+                            <Text className="text-sm text-gray-500 text-center mt-2">Are you sure you want to logout?</Text>
+                        </View>
+                        <View className="flex-row gap-3 mt-2">
+                            <TouchableOpacity className="flex-1 py-3 rounded-xl bg-[#f3f4f6] items-center" onPress={() => setShowLogoutDialog(false)}>
+                                <Text className="text-[15px] font-semibold text-[#374151]">Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity className="flex-1 py-3 rounded-xl bg-red-500 items-center" onPress={handleLogout}>
+                                <Text className="text-[15px] font-semibold text-white">Logout</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }

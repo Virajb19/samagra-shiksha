@@ -805,3 +805,35 @@ export const VocationalEducationFormSchema = z.object({
 });
 
 export type VocationalEducationFormData = z.infer<typeof VocationalEducationFormSchema>;
+
+// ── Edit Personal Details Schema ──────────────────────────────
+
+/**
+ * Edit Personal Details form schema.
+ * Used in the settings screen to update name, phone, and gender.
+ */
+export const EditPersonalDetailsSchema = z.object({
+    name: trimmedString.pipe(z.string().min(2, 'Name must be at least 2 characters')),
+    phone: trimmedString.pipe(
+        z.string().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number')
+    ),
+    gender: GenderEnum,
+});
+
+export type EditPersonalDetailsFormData = z.infer<typeof EditPersonalDetailsSchema>;
+
+// ── Helpdesk Ticket Schema ──────────────────────────────
+
+/**
+ * Helpdesk ticket submission form schema.
+ * Used in the helpdesk screen to submit a support ticket.
+ */
+export const HelpdeskTicketSchema = z.object({
+    message: trimmedString.pipe(
+        z.string()
+            .min(10, 'Please describe your issue (minimum 10 characters)')
+            .max(1000, 'Message cannot exceed 1000 characters')
+    ),
+});
+
+export type HelpdeskTicketFormData = z.infer<typeof HelpdeskTicketSchema>;

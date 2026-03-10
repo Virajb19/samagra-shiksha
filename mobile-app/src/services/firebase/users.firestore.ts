@@ -12,6 +12,7 @@ import {
     updateDoc,
     query,
     where,
+    limit,
     Timestamp,
     DocumentSnapshot,
 } from 'firebase/firestore';
@@ -52,11 +53,27 @@ export async function getProfileStatus(userId: string): Promise<{
 
 // ── Writes ──
 
-/** Update personal details (name, gender, phone). */
+/** Check whether a phone number is already used by another user. */
+export async function isPhoneInUse(phone: string, excludeUserId: string): Promise<boolean> {
+    const snap = await getDocs(
+        query(collection(db, 'users'), where('phone', '==', phone), limit(2)),
+    );
+    return snap.docs.some((d) => d.id !== excludeUserId);
+}
+
+/** Update personal details (name, gender, phone, profile_image_url). */
 export async function updatePersonalDetails(
     userId: string,
-    data: { name?: string; gender?: string; phone?: string },
+    data: { name?: string; gender?: string; phone?: string; profile_image_url?: string },
 ): Promise<void> {
+    // Enforce phone uniqueness when the phone number is being changed
+    if (data.phone) {
+        const taken = await isPhoneInUse(data.phone, userId);
+        if (taken) {
+            throw new Error('This phone number is already registered to another user');
+        }
+    }
+
     await updateDoc(doc(db, 'users', userId), { ...data, updated_at: Timestamp.now() });
     await createAuditLog({ user_id: userId, action: 'PERSONAL_DETAILS_UPDATED', entity_type: 'User', entity_id: userId });
 }

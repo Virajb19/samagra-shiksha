@@ -1,357 +1,128 @@
-/**
- * Headmaster Settings/Profile Tab Screen
- * 
- * Displays profile information and settings options including Helpdesk.
- */
-
-import React from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-    Alert,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Modal, Share, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
-
-interface SettingsItem {
-    id: string;
-    title: string;
-    subtitle?: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    iconColor: string;
-    iconBgColor: string;
-    route?: string;
-    action?: () => void;
-    showBadge?: boolean;
-}
+import { getImagePreviewUrl } from '../../../../src/services/storage.service';
 
 export default function SettingsTabScreen() {
     const router = useRouter();
     const { user, logout } = useAuthStore();
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+    const profileUrl = getImagePreviewUrl(user?.profile_image_url);
 
-    const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Logout',
-                    style: 'destructive',
-                    onPress: async () => {
-                        // Navigate first, then logout to avoid race condition
-                        router.replace('/(auth)/login');
-                        await logout();
-                    },
-                },
-            ]
-        );
+    const handleLogout = async () => {
+        setShowLogoutDialog(false);
+        router.replace('/(auth)/login');
+        await logout();
     };
 
-    const settingsSections: { title: string; items: SettingsItem[] }[] = [
-        {
-            title: 'Profile',
-            items: [
-                {
-                    id: 'view-profile',
-                    title: 'View Profile',
-                    subtitle: 'View your personal information',
-                    icon: 'person-outline',
-                    iconColor: '#0d9488',
-                    iconBgColor: '#ccfbf1',
-                    route: '/(protected)/headmaster/view-profile',
-                },
-                {
-                    id: 'edit-personal-details',
-                    title: 'Edit Personal Details',
-                    subtitle: 'Update your name, phone, and gender',
-                    icon: 'create-outline',
-                    iconColor: '#3b82f6',
-                    iconBgColor: '#dbeafe',
-                    route: '/(protected)/headmaster/edit-personal-details',
-                },
-            ],
-        },
-        {
-            title: 'Support',
-            items: [
-                {
-                    id: 'helpdesk',
-                    title: 'Helpdesk',
-                    subtitle: 'Get help and support',
-                    icon: 'headset-outline',
-                    iconColor: '#8b5cf6',
-                    iconBgColor: '#ede9fe',
-                    route: '/(protected)/headmaster/helpdesk',
-                },
-                {
-                    id: 'faq',
-                    title: 'FAQs',
-                    subtitle: 'Frequently asked questions',
-                    icon: 'help-circle-outline',
-                    iconColor: '#f59e0b',
-                    iconBgColor: '#fef3c7',
-                    route: '/(protected)/headmaster/faq',
-                },
-            ],
-        },
-        {
-            title: 'App Settings',
-            items: [
-                {
-                    id: 'notifications',
-                    title: 'Notifications',
-                    subtitle: 'Manage notification preferences',
-                    icon: 'notifications-outline',
-                    iconColor: '#ef4444',
-                    iconBgColor: '#fee2e2',
-                    route: '/(protected)/headmaster/notification-settings',
-                },
-                {
-                    id: 'about',
-                    title: 'About App',
-                    subtitle: 'Version 1.0.0',
-                    icon: 'information-circle-outline',
-                    iconColor: '#6b7280',
-                    iconBgColor: '#f3f4f6',
-                    action: () => {
-                        Alert.alert(
-                            'NBSE Connect',
-                            'Version 1.0.0\n\n© 2024 NBSE. All rights reserved.\n\nBuilt for the Nagaland Board of School Education.',
-                            [{ text: 'OK' }]
-                        );
-                    },
-                },
-            ],
-        },
-    ];
-
-    const handleItemPress = (item: SettingsItem) => {
-        if (item.action) {
-            item.action();
-        } else if (item.route) {
-            router.push(item.route as any);
-        }
+    const handleShareApp = async () => {
+        try {
+            await Share.share({
+                title: 'Samagra Shiksha Nagaland',
+                message: Platform.OS === 'ios'
+                    ? 'Check out Samagra Shiksha Nagaland app!'
+                    : 'Check out Samagra Shiksha Nagaland app!\nhttps://play.google.com/store/apps/details?id=com.samagrashiksha.nagaland',
+                url: 'https://apps.apple.com/app/samagra-shiksha-nagaland',
+            });
+        } catch { }
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <ScrollView className="flex-1 bg-[#eaf0fb]" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
             {/* Profile Card */}
-            <View style={styles.profileCard}>
-                <View style={styles.avatarContainer}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                            {user?.name?.charAt(0)?.toUpperCase() || 'H'}
-                        </Text>
-                    </View>
-                    <View style={styles.onlineIndicator} />
+            <View className="bg-white rounded-2xl p-5 items-center mb-5" style={{ elevation: 2 }}>
+                <View className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden border-[3px] border-[#3b82f6] mb-3">
+                    {profileUrl ? (
+                        <Image source={{ uri: profileUrl }} className="w-full h-full" />
+                    ) : (
+                        <View className="w-full h-full justify-center items-center bg-gray-300">
+                            <Ionicons name="person" size={40} color="#9ca3af" />
+                        </View>
+                    )}
                 </View>
-                <View style={styles.profileInfo}>
-                    <Text style={styles.profileName}>{user?.name || 'Headmaster'}</Text>
-                    <Text style={styles.profileRole}>Principal / Headmaster</Text>
-                    <Text style={styles.profileEmail}>{user?.email || 'headmaster@school.edu'}</Text>
+                <Text className="text-xl font-bold text-[#1a1a2e]">{user?.name || 'Headmaster'}</Text>
+                <View className="flex-row items-center mt-1 gap-1">
+                    <Ionicons name="mail-outline" size={14} color="#6b7280" />
+                    <Text className="text-sm text-gray-500">{user?.email || ''}</Text>
+                </View>
+                <View className="bg-[#dbeafe] px-5 py-1.5 rounded-full mt-3">
+                    <Text className="text-sm font-semibold text-[#3b82f6]">Headmaster</Text>
                 </View>
             </View>
 
-            {/* Settings Sections */}
-            {settingsSections.map((section) => (
-                <View key={section.title} style={styles.section}>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
-                    <View style={styles.sectionContent}>
-                        {section.items.map((item, index) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={[
-                                    styles.settingsItem,
-                                    index < section.items.length - 1 && styles.settingsItemBorder,
-                                ]}
-                                onPress={() => handleItemPress(item)}
-                            >
-                                <View
-                                    style={[
-                                        styles.itemIconContainer,
-                                        { backgroundColor: item.iconBgColor },
-                                    ]}
-                                >
-                                    <Ionicons
-                                        name={item.icon}
-                                        size={20}
-                                        color={item.iconColor}
-                                    />
-                                </View>
-                                <View style={styles.itemContent}>
-                                    <Text style={styles.itemTitle}>{item.title}</Text>
-                                    {item.subtitle && (
-                                        <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-                                    )}
-                                </View>
-                                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+            {/* Menu Items */}
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={() => router.push('/(protected)/headmaster/edit-personal-details' as any)}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#dbeafe] justify-center items-center">
+                    <Ionicons name="person-outline" size={24} color="#3b82f6" />
                 </View>
-            ))}
-
-            {/* Logout Button */}
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-                <Text style={styles.logoutText}>Logout</Text>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Edit Profile</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
             </TouchableOpacity>
 
-            {/* Footer */}
-            <Text style={styles.footerText}>NBSE Connect v1.0.0</Text>
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={() => router.push('/(protected)/headmaster/helpdesk' as any)}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#ede9fe] justify-center items-center">
+                    <Ionicons name="help-circle-outline" size={24} color="#8b5cf6" />
+                </View>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Helpdesk / Support</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={handleShareApp}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#d1fae5] justify-center items-center">
+                    <Ionicons name="share-social-outline" size={24} color="#10b981" />
+                </View>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Share the app</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                className="bg-white rounded-2xl p-4 flex-row items-center mb-3"
+                style={{ elevation: 1 }}
+                onPress={() => setShowLogoutDialog(true)}
+            >
+                <View className="w-12 h-12 rounded-full bg-[#fee2e2] justify-center items-center">
+                    <Ionicons name="log-out-outline" size={24} color="#ef4444" />
+                </View>
+                <Text className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Logout</Text>
+                <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </TouchableOpacity>
+
+            {/* Logout Modal */}
+            <Modal visible={showLogoutDialog} transparent animationType="fade" onRequestClose={() => setShowLogoutDialog(false)}>
+                <View className="flex-1 justify-center items-center bg-black/50 px-8">
+                    <View className="bg-white rounded-2xl p-6 w-full max-w-[320px]" style={{ elevation: 8 }}>
+                        <View className="items-center mb-4">
+                            <View className="w-14 h-14 rounded-full bg-red-100 justify-center items-center mb-3">
+                                <Ionicons name="log-out-outline" size={28} color="#ef4444" />
+                            </View>
+                            <Text className="text-lg font-bold text-[#1f2937]">Logout</Text>
+                            <Text className="text-sm text-gray-500 text-center mt-2">Are you sure you want to logout?</Text>
+                        </View>
+                        <View className="flex-row gap-3 mt-2">
+                            <TouchableOpacity className="flex-1 py-3 rounded-xl bg-[#f3f4f6] items-center" onPress={() => setShowLogoutDialog(false)}>
+                                <Text className="text-[15px] font-semibold text-[#374151]">Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity className="flex-1 py-3 rounded-xl bg-red-500 items-center" onPress={handleLogout}>
+                                <Text className="text-[15px] font-semibold text-white">Logout</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }
-
-const NAVY = '#2c3e6b';
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f0f2f8',
-    },
-    scrollContent: {
-        padding: 16,
-        paddingBottom: 32,
-    },
-    profileCard: {
-        backgroundColor: NAVY,
-        borderRadius: 16,
-        padding: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 24,
-        shadowColor: NAVY,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    avatarContainer: {
-        position: 'relative',
-    },
-    avatar: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-    },
-    avatarText: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#ffffff',
-    },
-    onlineIndicator: {
-        position: 'absolute',
-        bottom: 2,
-        right: 2,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#22c55e',
-        borderWidth: 2,
-        borderColor: NAVY,
-    },
-    profileInfo: {
-        marginLeft: 16,
-        flex: 1,
-    },
-    profileName: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#ffffff',
-    },
-    profileRole: {
-        fontSize: 14,
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontWeight: '500',
-        marginTop: 2,
-    },
-    profileEmail: {
-        fontSize: 13,
-        color: 'rgba(255, 255, 255, 0.6)',
-        marginTop: 4,
-    },
-    section: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#6b7280',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 8,
-        marginLeft: 4,
-    },
-    sectionContent: {
-        backgroundColor: '#ffffff',
-        borderRadius: 14,
-        overflow: 'hidden',
-        shadowColor: NAVY,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    settingsItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-    },
-    settingsItemBorder: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f2f8',
-    },
-    itemIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    itemContent: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    itemTitle: {
-        fontSize: 15,
-        fontWeight: '500',
-        color: '#1a1a2e',
-    },
-    itemSubtitle: {
-        fontSize: 13,
-        color: '#6b7280',
-        marginTop: 2,
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#fee2e2',
-        paddingVertical: 14,
-        borderRadius: 12,
-        marginTop: 8,
-        gap: 8,
-    },
-    logoutText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#ef4444',
-    },
-    footerText: {
-        textAlign: 'center',
-        fontSize: 12,
-        color: '#9ca3af',
-        marginTop: 24,
-    },
-});

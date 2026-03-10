@@ -901,6 +901,10 @@ export default function UsersPage() {
                       )}
                     </div>
                   </div>
+                  <div>
+                    <label className="text-sm text-slate-500">Gender</label>
+                    <p className="text-slate-900 dark:text-white font-medium">{selectedUserForDetail.gender || '-'}</p>
+                  </div>
                 </div>
               </div>
 
