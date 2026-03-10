@@ -109,7 +109,8 @@ service cloud.firestore {
     // ── Events ──
     match /events/{eventId} {
       allow read: if isAuth();
-      allow create, update: if isAuth();
+      allow create: if isHeadmaster();
+      allow update: if isHeadmaster() || isAdmin();
       allow delete: if isAdmin();
     }
 

@@ -1,27 +1,18 @@
 /**
- * Event Detail Screen — NativeWind
- *
- * - Hero image with back + share overlay buttons
- * - Title, description, divider, "Event Details" section
- * - Activity, Date, Location, Male/Female Participants, Created by
+ * Shared Event Detail Screen — used by all roles.
+ * Hero image, event details, resolved creator name.
  */
 
 import React from 'react';
 import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    Image,
-    ActivityIndicator,
-    Share,
+    View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Share,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { getEventById } from '../../../../src/services/firebase/content.firestore';
-import { getDistricts } from '../../../../src/services/firebase/master-data.firestore';
-import { District } from '../../../../src/types';
+import { getEventById } from '../services/firebase/content.firestore';
+import { getDistricts } from '../services/firebase/master-data.firestore';
+import { District } from '../types';
 
 const BLUE = '#1E88E5';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -48,7 +39,6 @@ function formatDateRange(start: any, end: any): string {
     return `${startStr} to ${formatDateNice(end)}`;
 }
 
-/* ── Detail Row ── */
 function DetailRow({ icon, label, value }: { icon: string; label: string; value: string }) {
     return (
         <View className="flex-row items-center mb-[18px] gap-3.5">
@@ -71,7 +61,7 @@ export default function EventDetailScreen() {
 
     const { data: event, isLoading } = useQuery({
         queryKey: ['event-detail', id],
-        queryFn: async () => getEventById(id!),
+        queryFn: () => getEventById(id!),
         enabled: !!id,
     });
 
@@ -102,7 +92,7 @@ export default function EventDetailScreen() {
     const districtName = event.district_id ? districts.find((d: District) => d.id === event.district_id)?.name : null;
     const locationStr = [event.location, districtName].filter(Boolean).join(', ');
     const dateStr = formatDateRange(event.event_date, event.event_end_date);
-    const createdByName = event.creator?.name || 'Unknown';
+    const createdByName = event.creator_name || 'Unknown';
     const createdByDate = event.created_at ? formatDateNice(event.created_at) : '';
     const createdByStr = `${createdByName}${createdByDate ? `, on ${createdByDate}` : ''}`;
 
@@ -122,8 +112,6 @@ export default function EventDetailScreen() {
                             <Ionicons name="calendar" size={64} color="rgba(255,255,255,0.4)" />
                         </View>
                     )}
-
-                    {/* Back Button */}
                     <TouchableOpacity
                         className="absolute top-4 left-4 w-10 h-10 rounded-full justify-center items-center"
                         style={{ backgroundColor: BLUE, elevation: 4 }}
@@ -131,8 +119,6 @@ export default function EventDetailScreen() {
                     >
                         <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
-
-                    {/* Share Button */}
                     <TouchableOpacity
                         className="absolute top-4 right-4 w-10 h-10 rounded-full justify-center items-center"
                         style={{ backgroundColor: BLUE, elevation: 4 }}
@@ -145,15 +131,11 @@ export default function EventDetailScreen() {
                 {/* Content */}
                 <View className="p-5 pb-10">
                     <Text className="text-2xl font-extrabold text-[#1a1a1a] mb-3 leading-[30px]">{event.title}</Text>
-
                     {event.description ? (
                         <Text className="text-[15px] text-[#4a4a4a] leading-[22px] mb-4">{event.description}</Text>
                     ) : null}
-
                     <View className="h-px bg-gray-200 my-4" />
-
                     <Text className="text-lg font-bold text-[#1a1a1a] mb-5">Event Details</Text>
-
                     {event.activity_type && <DetailRow icon="megaphone-outline" label="Activity" value={event.activity_type} />}
                     <DetailRow icon="calendar-outline" label="Date" value={dateStr} />
                     {locationStr && <DetailRow icon="location-outline" label="Location" value={locationStr} />}

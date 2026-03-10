@@ -21,19 +21,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Calendar, MapPin, Users, Eye, Loader2, Check, X, Clock, CalendarDays, Search, Download, FileText, User } from 'lucide-react';
+import { Calendar, MapPin, Users, Eye, Loader2, Check, X, Clock, CalendarDays, Search, Download, FileText, User, FilterX, ChevronDown } from 'lucide-react';
 import { eventsFirestore, EventFilterParams, SchoolEventType, EventWithStats, EventsResponse } from '@/services/firebase/events.firestore';
 import { DeleteEventButton } from '@/components/DeleteEventButton';
 import { useGetDistricts } from '@/services/user.service';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
 import { GoToTopButton } from '@/components/GoToTopButton';
-import { ClearFiltersButton } from '@/components/ClearFiltersButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useIsMutating, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useDebounceValue } from 'usehooks-ts';
+import Image from 'next/image';
 
 // Animation variants
 const containerVariants = {
@@ -369,18 +369,18 @@ export default function EventsPage() {
             <RefreshTableButton queryKey={['events-infinite', filters]} isFetching={isFetching && !isFetchingNextPage} />
             <Button
               onClick={handleDownloadPDF}
-              className="bg-green-600 group hover:bg-green-700 text-white flex items-center gap-2 px-5 py-2.5 text-base relative overflow-hidden"
+              className="bg-green-600 group hover:bg-green-700 text-white flex items-center gap-2.5 px-6 py-4 text-sm font-semibold relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-green-500/25"
               disabled={isDownloading || allEvents.length === 0}
             >
+              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               {isDownloading ? (
                 <>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_1.5s_infinite] -translate-x-full" style={{ animation: 'shimmer 1.5s infinite' }} />
                   <Loader2 className='size-5 text-white animate-spin' />
                   Downloading...
                 </>
               ) : (
                 <>
-                  <Download className="h-5 w-5 group-hover:-translate-y-1 group-hover:scale-110 transition-transform" />
+                  <Download className="h-7 w-7 group-hover:-translate-y-0.5 group-hover:scale-110 transition-transform duration-200" />
                   Download PDF
                 </>
               )}
@@ -465,10 +465,8 @@ export default function EventsPage() {
             />
           </div>
 
-          {/* Clear Filters — always visible */}
-          <ClearFiltersButton
-            hasActiveFilters={!!(fromDate || toDate || districtFilter !== 'all' || eventTypeFilter !== 'all' || searchInput)}
-            onClear={() => {
+          <motion.button
+            onClick={() => {
               setFromDate('');
               setToDate('');
               setDistrictFilter('all');
@@ -476,13 +474,19 @@ export default function EventsPage() {
               setSearchInput('');
               setDebouncedSearch('');
             }}
-          />
+            className="flex items-center gap-2 px-6 py-3 h-12 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FilterX className="h-4 w-4" />
+            Clear
+          </motion.button>
         </div>
       </motion.div>
 
       {/* Events Table */}
       <motion.div
-        className="bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-xl"
+        className="bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-xl"
         variants={cardVariants}
       >
         <div className="relative">
@@ -599,21 +603,24 @@ export default function EventsPage() {
         {/* Load More / Status */}
         {allEvents.length > 0 && (
           <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700/50">
-            {isFetchingNextPage ? (
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className='size-4 text-blue-500 animate-spin' />
-                <span className="text-slate-400 text-sm">Loading more...</span>
-              </div>
-            ) : hasNextPage ? (
+            {hasNextPage ? (
               <div className="flex justify-center">
-                <Button
+                <motion.button
                   onClick={loadMore}
                   disabled={isFetchingNextPage}
-                  variant="outline"
-                  className="bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 min-w-[150px]"
+                  className="group flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 disabled:opacity-50"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  Load More ({total - allEvents.length} remaining)
-                </Button>
+                  {isFetchingNextPage ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 animate-bounce" />
+                  )}
+                  {isFetchingNextPage
+                    ? 'Loading more...'
+                    : `Load More (${total - allEvents.length} remaining)`}
+                </motion.button>
               </div>
             ) : (
               <p className="text-center text-sm text-slate-500">
@@ -640,14 +647,16 @@ export default function EventsPage() {
               {/* Event Photos */}
               {eventDetails.flyer_url && (
                 <div className="px-6">
-                  <img
-                    src={getImageUrl(eventDetails.flyer_url) || ''}
-                    alt={eventDetails.title}
-                    className="w-full h-64 object-cover rounded-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
+                  <Image
+                      src={getImageUrl(eventDetails.flyer_url) || "/placeholder.png"}
+                      alt={eventDetails.title}
+                      width={800}
+                      height={256}
+                      className="w-full h-64 object-cover rounded-lg"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                   />
                 </div>
               )}
 

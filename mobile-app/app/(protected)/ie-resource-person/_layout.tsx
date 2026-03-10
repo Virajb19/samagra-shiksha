@@ -13,6 +13,7 @@ export default function IEResourcePersonLayout() {
             <Stack.Screen name="view-profile" />
             <Stack.Screen name="school-visit-form" />
             <Stack.Screen name="home-visit-form" />
+            <Stack.Screen name="event-detail" />
         </Stack>
     );
 }

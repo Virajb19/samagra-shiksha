@@ -14,9 +14,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert,
     Modal,
-    StatusBar,
     Animated,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';

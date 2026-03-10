@@ -180,10 +180,105 @@ export async function getUserRecipientMap(userId: string): Promise<Map<string, R
 
 // ── Events ──
 
-/** Fetch events, ordered by most recent. */
-export async function getEvents(): Promise<any[]> {
-    const snap = await getDocs(query(collection(db, 'events'), orderBy('created_at', 'desc')));
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+const EVENTS_PAGE_SIZE = 10;
+
+export interface EventFilterParams {
+    startDate?: string;
+    endDate?: string;
+    districtId?: string;
+    search?: string;
+}
+
+export interface PaginatedEventsResult {
+    events: any[];
+    lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+    hasMore: boolean;
+}
+
+/**
+ * Fetch events with cursor-based server-side pagination and filters.
+ *
+ * Filters (all server-side via Firestore where clauses):
+ * - districtId: equality filter on district_id
+ * - startDate / endDate: range filters on event_date
+ * - search: exact match on title (Firestore doesn't support substring search)
+ *
+ * Ordered by event_date desc.
+ */
+export async function getEventsPaginated(
+    pageSize: number = EVENTS_PAGE_SIZE,
+    lastDocSnapshot?: QueryDocumentSnapshot<DocumentData> | null,
+    filters?: EventFilterParams,
+): Promise<PaginatedEventsResult> {
+    const eventsRef = collection(db, 'events');
+
+    // ── Server-side search: exact match on title ──
+    if (filters?.search?.trim()) {
+        const s = filters.search.trim();
+        const snap = await getDocs(query(eventsRef, where('title', '==', s)));
+        const events = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        return { events, lastDoc: null, hasMore: false };
+    }
+
+    const constraints: QueryConstraint[] = [];
+
+    // Equality filter first (before range + orderBy)
+    if (filters?.districtId) {
+        constraints.push(where('district_id', '==', filters.districtId));
+    }
+
+    // Date range filters on event_date
+    if (filters?.startDate) {
+        constraints.push(where('event_date', '>=', Timestamp.fromDate(new Date(filters.startDate))));
+    }
+    if (filters?.endDate) {
+        const endOfDay = new Date(filters.endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        constraints.push(where('event_date', '<=', Timestamp.fromDate(endOfDay)));
+    }
+
+    // Order by event_date desc (same field as range filters)
+    constraints.push(orderBy('event_date', 'desc'));
+
+    // Cursor
+    if (lastDocSnapshot) {
+        constraints.push(startAfter(lastDocSnapshot));
+    }
+
+    // Fetch one extra to detect hasMore
+    constraints.push(limit(pageSize + 1));
+
+    const snap = await getDocs(query(eventsRef, ...constraints));
+
+    const hasMore = snap.docs.length > pageSize;
+    const docs = hasMore ? snap.docs.slice(0, pageSize) : snap.docs;
+
+    const events = docs.map((d) => ({ id: d.id, ...d.data() }));
+    const lastDoc = docs.length > 0
+        ? docs[docs.length - 1] as QueryDocumentSnapshot<DocumentData>
+        : null;
+
+    return { events, lastDoc, hasMore };
+}
+
+/** Fetch a single event by ID. Resolves creator name from users collection. */
+export async function getEventById(eventId: string): Promise<any | null> {
+    const snap = await getDoc(doc(db, 'events', eventId));
+    if (!snap.exists()) return null;
+    const data: any = { id: snap.id, ...snap.data() };
+
+    if (data.created_by) {
+        try {
+            const userSnap = await getDoc(doc(db, 'users', data.created_by));
+            if (userSnap.exists()) {
+                data.creator_name = userSnap.data().name || 'Unknown';
+            }
+        } catch {
+            // Skip if user doc not found
+        }
+    }
+
+    return data;
 }
 
 /** Create an event. */

@@ -179,9 +179,10 @@ export default function CreateEventScreen() {
             let flyer_url: string | undefined;
             if (photo) {
                 const result = await uploadProfileImage(photo.uri, user!.id);
+                if (!result.success) throw new Error(result.error || 'Image upload failed');
                 flyer_url = result.fileUrl || undefined;
             }
-            await createEvent({
+            return createEvent({
                 title: data.eventName.trim(),
                 description: data.description.trim(),
                 event_date: data.startDate,

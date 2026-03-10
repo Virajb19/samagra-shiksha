@@ -11,6 +11,7 @@ export default function NSCBAVWardenLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="complete-profile" />
             <Stack.Screen name="view-profile" />
+            <Stack.Screen name="event-detail" />
         </Stack>
     );
 }

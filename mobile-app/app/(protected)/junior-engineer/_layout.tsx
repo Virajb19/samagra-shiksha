@@ -14,6 +14,7 @@ export default function JuniorEngineerLayout() {
             <Stack.Screen name="projects" />
             <Stack.Screen name="project-detail" />
             <Stack.Screen name="update-project-status" />
+            <Stack.Screen name="event-detail" />
         </Stack>
     );
 }
