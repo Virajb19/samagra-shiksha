@@ -290,9 +290,9 @@ export default function NotificationsPage() {
               Search Notices
             </label>
             <Input
-              placeholder="Enter exact notice title..."
+              placeholder="Search by notice title..."
               value={searchInput}
-              onChange={(e) => { setSearchInput(e.target.value); setSearchQuery(e.target.value); }}
+              onChange={(e) => { const v = e.target.value.trimStart(); setSearchInput(v); setSearchQuery(v); }}
               className="bg-slate-50 dark:bg-slate-800/50 border-blue-400 dark:border-blue-500 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500"
             />
           </div>
@@ -328,25 +328,25 @@ export default function NotificationsPage() {
         <div ref={tableContainerRef} className="relative max-h-[600px] overflow-y-auto" onScroll={handleScroll}>
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-medium text-sm">Sl No.</th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  <FileText className="h-4 w-4 inline mr-1" />
+              <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700">
+                <th className="text-left py-4 px-5 text-white/90 font-medium text-sm">#</th>
+                <th className="text-left py-4 px-5 text-white/90 font-medium text-sm">
+                  <FileText className="h-4 w-4 inline mr-1.5 opacity-75" />
                   Title
                 </th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  <Tag className="h-4 w-4 inline mr-1" />
+                <th className="text-left py-4 px-5 text-white/90 font-medium text-sm">
+                  <Tag className="h-4 w-4 inline mr-1.5 opacity-75" />
                   Type
                 </th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  <MessageSquare className="h-4 w-4 inline mr-1" />
+                <th className="text-left py-4 px-5 text-white/90 font-medium text-sm">
+                  <MessageSquare className="h-4 w-4 inline mr-1.5 opacity-75" />
                   Message
                 </th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-medium text-sm">
-                  <Calendar className="h-4 w-4 inline mr-1" />
+                <th className="text-left py-4 px-5 text-white/90 font-medium text-sm">
+                  <Calendar className="h-4 w-4 inline mr-1.5 opacity-75" />
                   Date
                 </th>
-                <th className="text-left py-4 px-5 text-slate-500 dark:text-slate-400 font-medium text-sm">Actions</th>
+                <th className="text-left py-4 px-5 text-white/90 font-medium text-sm">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -388,9 +388,13 @@ export default function NotificationsPage() {
                         exit="exit"
                         whileHover="hover"
                         layout
-                        className="border-b border-slate-100 dark:border-slate-800/50"
+                        className="border-b border-slate-200 dark:border-slate-700/60"
                       >
-                        <td className="py-4 px-5 text-slate-500 dark:text-slate-400 font-mono text-sm">{index + 1}</td>
+                        <td className="py-4 px-5">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-200/50 dark:border-blue-500/20">
+                            {index + 1}
+                          </span>
+                        </td>
                         <td className="py-4 px-5">
                           <span className="text-blue-600 dark:text-blue-400 font-medium">
                             {notice.title}

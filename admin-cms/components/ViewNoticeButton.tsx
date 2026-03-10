@@ -139,6 +139,12 @@ export function ViewNoticeButton({ notice }: ViewNoticeButtonProps) {
             </DialogTitle>
           </DialogHeader>
 
+          {isLoadingDetails ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+              <span className="text-sm text-slate-500 dark:text-slate-400">Loading notice details...</span>
+            </div>
+          ) : (
           <div className="space-y-5 mt-4">
             {/* Title */}
             <div>
@@ -207,82 +213,74 @@ export function ViewNoticeButton({ notice }: ViewNoticeButtonProps) {
 
 
             {/* Recipients Section */}
-            {recipientCount > 0 && (
+            {recipients.length > 0 && (
               <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                     <Users className="h-4 w-4" />
                     <span className="text-sm font-semibold">Recipients</span>
                     <Badge className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs">
-                      {recipientCount}
+                      {recipients.length}
                     </Badge>
                   </div>
                 </div>
 
-                {isLoadingDetails ? (
-                  <div className="flex items-center justify-center py-8 gap-2">
-                    <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Loading recipients...</span>
+                {/* Search bar for recipients */}
+                {recipients.length > 5 && (
+                  <div className="mb-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        placeholder="Search recipients..."
+                        value={recipientSearch}
+                        onChange={(e) => setRecipientSearch(e.target.value)}
+                        className="pl-9 h-9 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
+                      />
+                    </div>
                   </div>
-                ) : recipients.length > 0 ? (
-                  <>
-                    {/* Search bar for recipients */}
-                    {recipients.length > 5 && (
-                      <div className="mb-3">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                          <Input
-                            placeholder="Search recipients..."
-                            value={recipientSearch}
-                            onChange={(e) => setRecipientSearch(e.target.value)}
-                            className="pl-9 h-9 text-sm bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
-                          />
+                )}
+
+                {/* Scrollable recipients list */}
+                <div className="max-h-[240px] overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredRecipients.map((recipient, idx) => (
+                    <div
+                      key={recipient.user.id}
+                      className="flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {recipient.user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                            {recipient.user.name}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                            {recipient.user.phone}
+                            {recipient.user.email && ` · ${recipient.user.email}`}
+                          </p>
                         </div>
                       </div>
-                    )}
-
-                    {/* Scrollable recipients list */}
-                    <div className="max-h-[240px] overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-800">
-                      {filteredRecipients.map((recipient, idx) => (
-                        <div
-                          key={recipient.user.id}
-                          className="flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                              {recipient.user.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
-                                {recipient.user.name}
-                              </p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                {recipient.user.phone}
-                                {recipient.user.email && ` · ${recipient.user.email}`}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                            <Badge className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400">
-                              {roleLabels[recipient.user.role] || recipient.user.role}
-                            </Badge>
-                            {recipient.is_read && (
-                              <div className="w-2 h-2 rounded-full bg-green-500" title="Read" />
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {filteredRecipients.length === 0 && recipientSearch && (
-                        <div className="py-6 text-center text-sm text-slate-400">
-                          No recipients match &quot;{recipientSearch}&quot;
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        <Badge className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400">
+                          {roleLabels[recipient.user.role] || recipient.user.role}
+                        </Badge>
+                        {recipient.is_read && (
+                          <div className="w-2 h-2 rounded-full bg-green-500" title="Read" />
+                        )}
+                      </div>
                     </div>
-                  </>
-                ) : null}
+                  ))}
+                  {filteredRecipients.length === 0 && recipientSearch && (
+                    <div className="py-6 text-center text-sm text-slate-400">
+                      No recipients match &quot;{recipientSearch}&quot;
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

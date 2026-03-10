@@ -167,19 +167,22 @@ export const noticeFirestore = {
         const db = getFirebaseFirestore();
         const noticesCol = collection(db, "notices");
 
-        // ── Server-side search: exact match on title ──
+        // ── Server-side search: prefix match on title ──
         if (filters?.search?.trim()) {
             const s = filters.search.trim();
-            const searchConstraints: QueryConstraint[] = [
-                where("is_active", "==", true),
-            ];
-            if (filters?.type) searchConstraints.push(where("type", "==", filters.type));
 
             const titleSnap = await getDocs(
-                query(noticesCol, ...searchConstraints, where("title", "==", s), orderBy("created_at", "desc"))
+                query(
+                    noticesCol,
+                    where("title", ">=", s),
+                    where("title", "<=", s + "\uf8ff"),
+                    queryLimit(50)
+                )
             );
 
-            const data = titleSnap.docs.map((d) => toNotice(d.id, d.data()));
+            let data = titleSnap.docs.map((d) => toNotice(d.id, d.data()));
+            // Apply type filter client-side (avoids composite index requirement)
+            if (filters?.type) data = data.filter((n) => n.type === filters.type);
             return { data, total: data.length, hasMore: false, nextCursor: null };
         }
 
@@ -207,7 +210,7 @@ export const noticeFirestore = {
         if (cursor) {
             try {
                 const { ts, id } = JSON.parse(cursor);
-                constraints.push(startAfter(Timestamp.fromDate(new Date(ts)), id));
+                constraints.push(startAfter(Timestamp.fromDate(new Date(ts))));
             } catch {
                 constraints.push(startAfter(Timestamp.fromDate(new Date(cursor))));
             }
