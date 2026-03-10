@@ -12,7 +12,6 @@ import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
-import { NotificationHandler } from '../src/components/NotificationHandler';
 import Toast, { BaseToast, ErrorToast, BaseToastProps } from 'react-native-toast-message';
 import { useAuthStore } from '../src/lib/store';
 import { View, Text, ActivityIndicator } from 'react-native';
@@ -88,7 +87,6 @@ export default function RootLayout() {
 
     return (
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-            <NotificationHandler>
                 <StatusBar style="light" />
                 <QueryClientProvider client={queryClient}>
                     <Stack
@@ -100,7 +98,6 @@ export default function RootLayout() {
                     />
                 </QueryClientProvider>
                 <Toast config={toastConfig} position="bottom" bottomOffset={90} />
-            </NotificationHandler>
         </SafeAreaProvider>
     );
 }

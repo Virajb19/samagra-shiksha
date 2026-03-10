@@ -95,7 +95,7 @@ const SCALE = {
   notices: Number(process.env.SEED_NOTICES || 1000),
   auditLogs: Number(process.env.SEED_AUDIT_LOGS || 3000),
   events: Number(process.env.SEED_EVENTS || 1500),
-  eventInvitations: Number(process.env.SEED_EVENT_INVITATIONS || 2500),
+
   circulars: Number(process.env.SEED_CIRCULARS || 800),
   helpdeskTickets: Number(process.env.SEED_HELPDESK || 500),
   notificationLogs: Number(process.env.SEED_NOTIFICATION_LOGS || 1500),
@@ -330,7 +330,7 @@ const getWeightedDistrictId = (): string =>
 
 const ALL_COLLECTIONS = [
   'districts', 'schools', 'users', 'faculties', 'subjects',
-  'events', 'event_invitations',
+  'events',
   'notices', 'notice_recipients',
   'circulars', 'circular_schools',
   'helpdesk_tickets', 'notification_logs',
@@ -692,34 +692,7 @@ function seedEvents(): void {
   console.log(`✅ ${ids.eventIds.length} events`);
 }
 
-// ────────────────────── 15. EVENT INVITATIONS ──────────────────────
 
-function seedEventInvitations(): void {
-  console.log('✉️  Creating event invitations...');
-  const seen = new Set<string>();
-  let count = 0;
-  const eventsSlice = ids.eventIds.slice(0, 800);
-
-  for (const eventId of eventsSlice) {
-    const n = randomInt(2, 5);
-    for (let j = 0; j < n; j++) {
-      const userId = randomElement([...ids.teacherIds.slice(0, 5000), ...ids.headmasterIds.slice(0, 1000)]);
-      const key = `${eventId}-${userId}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const id = newId('event_invitations');
-      writer.set(db.collection('event_invitations').doc(id), {
-        id, event_id: eventId, user_id: userId,
-        status: randomElement(INVITATION_STATUSES),
-        rejection_reason: randomBool(0.1) ? 'Unable to attend due to prior commitments' : null,
-        responded_at: randomBool(0.7) ? TS() : null,
-        created_at: TS(),
-      });
-      count++;
-    }
-  }
-  console.log(`✅ ${count} event invitations`);
-}
 
 // ────────────────────── 16. NOTICES ──────────────────────
 
@@ -2335,7 +2308,7 @@ async function main(): Promise<void> {
   seedAuditLogs();
 
   seedEvents();
-  seedEventInvitations();
+
 
   seedNotices();
   seedNoticeRecipients();

@@ -30,7 +30,7 @@ export default function ProtectedLayout() {
             const currentRoute = segments.join('/');
 
             // Shared routes accessible by all roles — don't redirect
-            const sharedRoutes = ['activity-forms', 'ict-form', 'library-form', 'science-lab-form', 'self-defense-form', 'kgbv-form', 'nscbav-form', 'vocational-education-form', 'notices'];
+            const sharedRoutes = ['activity-forms', 'ict-form', 'library-form', 'science-lab-form', 'self-defense-form', 'kgbv-form', 'nscbav-form', 'vocational-education-form', 'notices', 'edit-personal-details', 'helpdesk'];
             if (sharedRoutes.some((r) => currentRoute.includes(r))) return;
 
             // Route based on role
@@ -91,6 +91,8 @@ export default function ProtectedLayout() {
                 <Stack.Screen name="vocational-education-form" />
 
                 <Stack.Screen name="notices" />
+                <Stack.Screen name="edit-personal-details" />
+                <Stack.Screen name="helpdesk" />
             </Stack>
         </AppShell>
     );

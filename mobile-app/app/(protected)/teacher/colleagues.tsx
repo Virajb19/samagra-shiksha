@@ -1,180 +1,268 @@
-import React, { useCallback } from 'react';
+/**
+ * View Colleagues Screen - Teacher
+ *
+ * Shows all faculty members (teachers + headmaster) at the teacher's school.
+ * Same UI as headmaster view-staffs but without activate/deactivate functionality.
+ */
+
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
     ScrollView,
     TouchableOpacity,
+    Image,
     ActivityIndicator,
     RefreshControl,
+    TextInput,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router, useFocusEffect } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { getColleagues, getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
+import { getSchoolStaffs, getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/lib/store';
 
-interface Colleague {
+interface StaffUser {
     id: string;
     name: string;
-    email: string;
+    role: string;
     phone: string;
-    role?: string;
-    highest_qualification?: string;
+    email: string;
+    gender: string;
+    profile_image_url?: string | null;
+    is_active: boolean;
+}
+
+interface Staff {
+    id: string;
+    user: StaffUser;
     years_of_experience?: number;
-    subjects?: string[];
+    designation?: string;
+}
+
+const BLUE = '#1565C0';
+
+interface StaffCardProps {
+    staff: Staff;
+    expanded: boolean;
+    onToggle: () => void;
+}
+
+function StaffCard({ staff, expanded, onToggle }: StaffCardProps) {
+    const isActive = staff.user.is_active;
+
+    const getStatusBadge = () => {
+        if (isActive) return { color: '#22c55e', icon: 'checkmark-circle' as const };
+        return { color: '#ef4444', icon: 'close-circle' as const };
+    };
+
+    const badge = getStatusBadge();
+
+    const getRoleDisplay = () => {
+        switch (staff.user.role) {
+            case 'HEADMASTER': return 'Headmaster';
+            case 'TEACHER': return 'Teacher';
+            default: return staff.user.role;
+        }
+    };
+
+    return (
+        <View className="bg-white rounded-[14px] mb-3 overflow-hidden border border-[#e8ecf4]">
+            <TouchableOpacity className="flex-row items-center p-3" onPress={onToggle}>
+                <View className="relative mr-3">
+                    {staff.user.profile_image_url ? (
+                        <Image
+                            source={{ uri: staff.user.profile_image_url }}
+                            className="w-[50px] h-[50px] rounded-[10px]"
+                            style={{ borderWidth: 2.5, borderColor: isActive ? '#22c55e' : '#ef4444' }}
+                        />
+                    ) : (
+                        <View className="w-[50px] h-[50px] rounded-[10px] bg-[#e8ecf4] justify-center items-center" style={{ borderWidth: 2.5, borderColor: isActive ? '#22c55e' : '#ef4444' }}>
+                            <Text className="text-xl font-semibold text-[#2c3e6b]">
+                                {staff.user.name.charAt(0).toUpperCase()}
+                            </Text>
+                        </View>
+                    )}
+                    <View
+                        className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full justify-center items-center border-2 border-white"
+                        style={{ backgroundColor: badge.color }}
+                    >
+                        <Ionicons name={badge.icon} size={16} color="#ffffff" />
+                    </View>
+                </View>
+                <View className="flex-1">
+                    <Text className="text-base font-semibold text-[#1a1a2e]">{staff.user.name}</Text>
+                    <Text className="text-[13px] text-[#2c3e6b]">{getRoleDisplay()}</Text>
+                </View>
+                <Ionicons
+                    name={expanded ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={BLUE}
+                />
+            </TouchableOpacity>
+
+            {expanded && (
+                <View className="px-4 pb-4 pt-2 border-t border-[#f0f2f8]">
+                    {staff.user.phone ? (
+                        <View className="flex-row items-center mb-2">
+                            <Ionicons name="call-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Phone:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.user.phone}</Text>
+                        </View>
+                    ) : null}
+                    {staff.user.email ? (
+                        <View className="flex-row items-center mb-2">
+                            <Ionicons name="mail-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Email:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1" numberOfLines={1}>{staff.user.email}</Text>
+                        </View>
+                    ) : null}
+                    {staff.years_of_experience != null && (
+                        <View className="flex-row items-center mb-2">
+                            <Ionicons name="briefcase-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Experience:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.years_of_experience} years</Text>
+                        </View>
+                    )}
+                    {staff.designation ? (
+                        <View className="flex-row items-center mb-2">
+                            <Ionicons name="ribbon-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
+                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Designation:</Text>
+                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.designation}</Text>
+                        </View>
+                    ) : null}
+                </View>
+            )}
+        </View>
+    );
 }
 
 export default function ColleaguesScreen() {
-    const router = useRouter();
-    const { user } = useAuthStore();
+    const insets = useSafeAreaInsets();
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    const {
-        data: colleagues,
-        isLoading,
-        error,
-        refetch,
-        isRefetching,
-    } = useQuery<Colleague[]>({
-        queryKey: ['colleagues', user?.id],
+    const { user: currentUser } = useAuthStore();
+
+    // Fetch teacher's faculty profile (to get school_id)
+    const { data: profile } = useQuery({
+        queryKey: ['faculty-profile', currentUser?.id],
         queryFn: async () => {
-            // First fetch the faculty record to get the school_id
-            const faculty = await getFacultyByUserId(user!.id);
-            if (!faculty?.school_id) return [];
-            return await getColleagues(faculty.school_id, user!.id);
+            const profileData = await getFacultyByUserId(currentUser!.id);
+            return profileData;
         },
-        enabled: !!user?.id,
+        enabled: !!currentUser?.id,
     });
 
-    // Refetch colleagues when screen gains focus
-    useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
+    // Fetch all staff at the teacher's school (same data source as headmaster)
+    const { data: staffList, isLoading, refetch, isRefetching } = useQuery<Staff[]>({
+        queryKey: ['school-staffs', profile?.school_id],
+        queryFn: async () => {
+            const data = await getSchoolStaffs(profile!.school_id);
+            return data;
+        },
+        enabled: !!profile?.school_id,
+    });
 
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-    };
+    const schoolName = profile?.school
+        ? `${profile.school.registration_code} - ${profile.school.name}`
+        : 'Your School';
 
-    const getAvatarColor = (name: string) => {
-        const colors = [
-            '#3b82f6',
-            '#10b981',
-            '#f59e0b',
-            '#ef4444',
-            '#8b5cf6',
-            '#ec4899',
-            '#06b6d4',
-            '#84cc16',
-        ];
-        const index = name.charCodeAt(0) % colors.length;
-        return colors[index];
-    };
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
+
+    // Filter staff by search query and exclude the current user
+    const filteredStaff = staffList?.filter(staff =>
+        staff.user.id !== currentUser?.id &&
+        staff.user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
 
     if (isLoading) {
         return (
-            <View className="flex-1 justify-center items-center bg-[#f9fafb]">
-                <ActivityIndicator size="large" color="#3b82f6" />
-                <Text className="mt-3 text-base text-gray-500">Loading colleagues...</Text>
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View className="flex-1 justify-center items-center bg-[#f9fafb] p-6">
-                <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                <Text className="text-base text-gray-500 mt-3 mb-4">Failed to load colleagues</Text>
-                <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg" onPress={() => refetch()}>
-                    <Text className="text-white text-sm font-semibold">Retry</Text>
-                </TouchableOpacity>
+            <View className="flex-1 justify-center items-center bg-[#f0f2f8]">
+                <ActivityIndicator size="large" color="#2c3e6b" />
+                <Text className="mt-3 text-base text-[#6b7280]">Loading colleagues...</Text>
             </View>
         );
     }
 
     return (
-        <View className="flex-1 bg-[#f9fafb]">
+        <View className="flex-1 bg-[#f0f2f8]">
             {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-4 bg-white border-b border-[#e5e7eb]">
+            <View className="bg-[#2c3e6b] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
                 <TouchableOpacity
-                    className="p-2"
+                    className="p-2 mr-2"
                     onPress={() => router.back()}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#1f2937" />
+                    <Ionicons name="arrow-back" size={24} color="#ffffff" />
                 </TouchableOpacity>
-                <Text className="text-lg font-semibold text-[#1f2937]">Colleagues</Text>
-                <View className="w-10" />
+                <View className="flex-1">
+                    <Text className="text-[32px] font-bold text-white mb-1">View Colleagues</Text>
+                    <Text className="text-sm text-white/70">{schoolName}</Text>
+                </View>
             </View>
 
-            {/* Colleagues List */}
-            <ScrollView
-                className="flex-1"
-                contentContainerStyle={{ padding: 16 }}
-                refreshControl={
-                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
-                }
-            >
-                {colleagues && colleagues.length > 0 ? (
-                    <>
-                        <Text className="text-sm text-gray-500 mb-4">
-                            {colleagues.length} colleague{colleagues.length !== 1 ? 's' : ''} in your school
-                        </Text>
-                        {colleagues.map((colleague) => (
-                            <View key={colleague.id} className="flex-row bg-white rounded-xl p-4 mb-3" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 }}>
-                                <View
-                                    className="w-[50px] h-[50px] rounded-full justify-center items-center mr-3"
-                                    style={{ backgroundColor: getAvatarColor(colleague.name) }}
-                                >
-                                    <Text className="text-lg font-semibold text-white">
-                                        {getInitials(colleague.name)}
-                                    </Text>
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="text-base font-semibold text-[#1f2937] mb-1">{colleague.name}</Text>
-                                    {colleague.highest_qualification && (
-                                        <Text className="text-[13px] text-gray-500 mb-0.5">
-                                            <Ionicons name="school-outline" size={12} color="#6b7280" />{' '}
-                                            {colleague.highest_qualification}
-                                        </Text>
-                                    )}
-                                    {colleague.years_of_experience !== undefined && (
-                                        <Text className="text-[13px] text-gray-500 mb-0.5">
-                                            <Ionicons name="time-outline" size={12} color="#6b7280" />{' '}
-                                            {colleague.years_of_experience} years experience
-                                        </Text>
-                                    )}
-                                    {colleague.subjects && colleague.subjects.length > 0 && (
-                                        <View className="flex-row flex-wrap mt-2 gap-1.5">
-                                            {colleague.subjects.slice(0, 3).map((subject, index) => (
-                                                <View key={index} className="bg-[#eff6ff] px-2 py-1 rounded">
-                                                    <Text className="text-[11px] text-blue-500 font-medium">{subject}</Text>
-                                                </View>
-                                            ))}
-                                            {colleague.subjects.length > 3 && (
-                                                <View className="bg-[#eff6ff] px-2 py-1 rounded">
-                                                    <Text className="text-[11px] text-blue-500 font-medium">
-                                                        +{colleague.subjects.length - 3}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                        ))}
-                    </>
-                ) : (
-                    <View className="flex-1 justify-center items-center pt-20">
-                        <Ionicons name="people-outline" size={64} color="#d1d5db" />
-                        <Text className="text-lg font-semibold text-gray-700 mt-4">No Colleagues Found</Text>
-                        <Text className="text-sm text-gray-500 text-center mt-2 px-8">
-                            There are no other teachers registered at your school yet.
-                        </Text>
+            {/* Content */}
+            <View className="flex-1 bg-white -mt-6 rounded-t-[28px] overflow-hidden">
+                <ScrollView
+                    className="flex-1"
+                    contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+                    refreshControl={
+                        <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+                    }
+                >
+                    <Text className="text-lg font-bold text-[#1a1a2e] mb-3">Find your colleagues</Text>
+
+                    {/* Search Input */}
+                    <View className="flex-row items-center bg-[#e8ecf4] rounded-[10px] px-3 mb-3">
+                        <Ionicons name="search" size={20} color="#9ca3af" />
+                        <TextInput
+                            className="flex-1 py-3 px-2 text-[15px] text-[#1a1a2e]"
+                            placeholder="Search by name..."
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
                     </View>
-                )}
-            </ScrollView>
+
+                    {/* Stats */}
+                    <View className="flex-row gap-[10px] mb-4">
+                        <View className="flex-1 bg-[#eff6ff] rounded-[10px] py-[10px] items-center">
+                            <Text className="text-xl font-bold text-[#1565C0]">{filteredStaff.length}</Text>
+                            <Text className="text-[11px] font-medium text-[#3b82f6] mt-[2px]">Total</Text>
+                        </View>
+                        <View className="flex-1 bg-[#dcfce7] rounded-[10px] py-[10px] items-center">
+                            <Text className="text-xl font-bold text-[#22c55e]">{filteredStaff.filter(s => s.user.is_active).length}</Text>
+                            <Text className="text-[11px] font-medium text-[#16a34a] mt-[2px]">Active</Text>
+                        </View>
+                        <View className="flex-1 bg-[#fee2e2] rounded-[10px] py-[10px] items-center">
+                            <Text className="text-xl font-bold text-[#ef4444]">{filteredStaff.filter(s => !s.user.is_active).length}</Text>
+                            <Text className="text-[11px] font-medium text-[#dc2626] mt-[2px]">Inactive</Text>
+                        </View>
+                    </View>
+
+                    {filteredStaff.length > 0 ? (
+                        filteredStaff.map((staff) => (
+                            <StaffCard
+                                key={staff.id}
+                                staff={staff}
+                                expanded={expandedId === staff.id}
+                                onToggle={() => setExpandedId(expandedId === staff.id ? null : staff.id)}
+                            />
+                        ))
+                    ) : (
+                        <View className="items-center py-10">
+                            <Ionicons name="people-outline" size={48} color="#d1d5db" />
+                            <Text className="text-sm text-[#9ca3af] mt-3 text-center">
+                                {searchQuery ? 'No colleagues found matching your search' : 'No colleagues found'}
+                            </Text>
+                        </View>
+                    )}
+                </ScrollView>
+            </View>
         </View>
     );
 }
-

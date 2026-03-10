@@ -14,7 +14,6 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert,
     Modal,
     Animated,
 } from 'react-native';
@@ -209,8 +208,7 @@ export default function KGBVWardenHomeTabScreen() {
                             if (!hasCompletedProfile) {
                                 router.push('/(protected)/kgbv-warden/complete-profile');
                             } else {
-                                // TODO: view-profile for warden
-                                Alert.alert('Profile', 'Profile viewing coming soon.');
+                                router.push('/(protected)/kgbv-warden/view-profile');
                             }
                         }}
                     />

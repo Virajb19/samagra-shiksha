@@ -5,7 +5,7 @@
 
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
-    View, Text, ScrollView, TouchableOpacity, Image, Alert, Modal, Animated,
+    View, Text, ScrollView, TouchableOpacity, Image, Modal, Animated,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
@@ -136,7 +136,7 @@ export default function NSCBAVWardenHomeTabScreen() {
                 <View className="flex-row justify-between mb-3">
                     <ActionCard title={hasCompletedProfile ? 'View Profile' : 'Complete Profile'} iconName="person-outline" onPress={() => {
                         if (!hasCompletedProfile) router.push('/(protected)/nscbav-warden/complete-profile');
-                        else Alert.alert('Profile', 'Profile viewing coming soon.');
+                        else router.push('/(protected)/nscbav-warden/view-profile');
                     }} />
                     <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/notices' as any); }} disabled={!hasCompletedProfile || !isActive} />
                     <ActionCard title="Activities Forms" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/activity-forms' as any); }} disabled={!hasCompletedProfile || !isActive} />

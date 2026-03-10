@@ -158,15 +158,7 @@ export const EventDocSchema = z.object({
   updated_at: dateTimeLike,
 });
 
-export const EventInvitationDocSchema = z.object({
-  id: uuid,
-  event_id: uuid,
-  user_id: uuid,
-  status: InvitationStatusSchema.default("PENDING"),
-  rejection_reason: z.string().nullable().optional(),
-  responded_at: dateTimeLike.nullable().optional(),
-  created_at: dateTimeLike,
-});
+
 
 export const NoticeDocSchema = z.object({
   id: uuid,
@@ -696,7 +688,7 @@ export const CollectionSchemas = {
   schools: SchoolDocSchema,
   faculties: FacultyDocSchema,
   events: EventDocSchema,
-  event_invitations: EventInvitationDocSchema,
+
   notices: NoticeDocSchema,
   notice_recipients: NoticeRecipientDocSchema,
   circulars: CircularDocSchema,
@@ -739,8 +731,7 @@ export const Relations: RelationDef[] = [
   { from: "events", to: "schools", type: "one-to-many", foreignKey: "school_id" },
   { from: "events", to: "districts", type: "one-to-many", foreignKey: "district_id" },
   { from: "events", to: "users", type: "one-to-many", foreignKey: "created_by", note: "EventCreator" },
-  { from: "event_invitations", to: "events", type: "one-to-many", foreignKey: "event_id" },
-  { from: "event_invitations", to: "users", type: "one-to-many", foreignKey: "user_id" },
+
   { from: "notices", to: "schools", type: "one-to-many", foreignKey: "school_id" },
   { from: "notices", to: "users", type: "one-to-many", foreignKey: "created_by", note: "NoticeCreator" },
   { from: "notice_recipients", to: "notices", type: "one-to-many", foreignKey: "notice_id" },

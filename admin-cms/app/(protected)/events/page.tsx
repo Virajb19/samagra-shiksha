@@ -22,16 +22,15 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Calendar, MapPin, Users, Eye, Loader2, Check, X, Clock, CalendarDays, Search, Download, FileText, User } from 'lucide-react';
-import { useGetEventsInfinite, useGetEventById } from '@/services/events.service';
+import { eventsFirestore, EventFilterParams, SchoolEventType, EventWithStats, EventsResponse } from '@/services/firebase/events.firestore';
 import { DeleteEventButton } from '@/components/DeleteEventButton';
 import { useGetDistricts } from '@/services/user.service';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
 import { GoToTopButton } from '@/components/GoToTopButton';
 import { ClearFiltersButton } from '@/components/ClearFiltersButton';
-import { EventFilterParams, SchoolEventType, EventWithStats } from '@/services/events.service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { useIsMutating } from '@tanstack/react-query';
+import { useIsMutating, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useDebounceValue } from 'usehooks-ts';
@@ -175,8 +174,8 @@ export default function EventsPage() {
 
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Build filters for API (including search)
-  const apiFilters: EventFilterParams = useMemo(() => {
+  // Build filters for Firestore (including search)
+  const filters: EventFilterParams = useMemo(() => {
     const filters: EventFilterParams = {};
     if (fromDate) filters.from_date = fromDate;
     if (toDate) filters.to_date = toDate;
@@ -186,16 +185,32 @@ export default function EventsPage() {
     return filters;
   }, [fromDate, toDate, districtFilter, eventTypeFilter, debouncedSearch]);
 
-  // Fetch events with infinite query
+  // Fetch events with infinite query (inline)
   const {
     data,
     isLoading,
     isError,
+    error,
     isFetching,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-  } = useGetEventsInfinite(apiFilters, pageSize);
+  } = useInfiniteQuery<EventsResponse>({
+    queryKey: ['events-infinite', filters],
+    queryFn: ({ pageParam }) =>
+      eventsFirestore.getAll(filters, pageSize, (pageParam as string) || null),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.hasMore) return undefined;
+      return lastPage.nextCursor;
+    },
+    initialPageParam: null as string | null,
+    refetchOnMount: 'always',
+  });
+
+  // Log errors to console for debugging
+  if (isError && error) {
+    console.error('[EventsPage] Query error:', error);
+  }
 
   // Flatten all pages into single array
   const allEvents = useMemo(() => {
@@ -215,8 +230,12 @@ export default function EventsPage() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-  // Get event details when viewing
-  const { data: eventDetails, isLoading: isLoadingDetails } = useGetEventById(selectedEventId || undefined);
+  // Get event details when viewing (inline useQuery)
+  const { data: eventDetails, isLoading: isLoadingDetails } = useQuery<EventWithStats>({
+    queryKey: ['event', selectedEventId],
+    queryFn: () => eventsFirestore.getById(selectedEventId!),
+    enabled: !!selectedEventId,
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -347,7 +366,25 @@ export default function EventsPage() {
             <Badge className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/20 px-3 py-1">
               {total} Total
             </Badge>
-            <RefreshTableButton queryKey={['events-infinite', apiFilters]} isFetching={isFetching && !isFetchingNextPage} />
+            <RefreshTableButton queryKey={['events-infinite', filters]} isFetching={isFetching && !isFetchingNextPage} />
+            <Button
+              onClick={handleDownloadPDF}
+              className="bg-green-600 group hover:bg-green-700 text-white flex items-center gap-2 px-5 py-2.5 text-base relative overflow-hidden"
+              disabled={isDownloading || allEvents.length === 0}
+            >
+              {isDownloading ? (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_1.5s_infinite] -translate-x-full" style={{ animation: 'shimmer 1.5s infinite' }} />
+                  <Loader2 className='size-5 text-white animate-spin' />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="h-5 w-5 group-hover:-translate-y-1 group-hover:scale-110 transition-transform" />
+                  Download PDF
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -428,25 +465,7 @@ export default function EventsPage() {
             />
           </div>
 
-          {/* Download PDF Button */}
-          <Button
-            onClick={handleDownloadPDF}
-            className="bg-green-600 group hover:bg-green-700 text-white flex items-center gap-2"
-            disabled={isDownloading || allEvents.length === 0}
-          >
-            {isDownloading ? (
-              <>
-                <Loader2 className='size-5 text-white animate-spin' />
-                Downloading...
-              </>
-            ) : (
-              <>
-                <Download className="h-5 w-5 group-hover:-translate-y-1 group-hover:scale-110 transition-transform disabled:cursor-not-allowed" />
-                Download PDF
-              </>
-            )}
-          </Button>
-
+          {/* Clear Filters — always visible */}
           <ClearFiltersButton
             hasActiveFilters={!!(fromDate || toDate || districtFilter !== 'all' || eventTypeFilter !== 'all' || searchInput)}
             onClear={() => {
@@ -469,20 +488,20 @@ export default function EventsPage() {
         <div className="relative">
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Sl. No.</th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Photo</th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Event Name</th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Created By</th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+              <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Sl. No.</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Photo</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Event Name</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Created By</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <Clock className="h-4 w-4 inline mr-1" />
                   Date
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                   <MapPin className="h-4 w-4 inline mr-1" />
                   Venue
                 </th>
-                <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Action</th>
+                <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -497,8 +516,13 @@ export default function EventsPage() {
                       animate={{ opacity: 1, scale: 1 }}
                     >
                       <CalendarDays className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
-                      <div className="text-slate-500 dark:text-slate-400 text-lg">No events found</div>
-                      <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try adjusting your filters</p>
+                      <div className="text-slate-500 dark:text-slate-400 text-lg">{isError ? 'Error loading events' : 'No events found'}</div>
+                      <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">
+                        {isError && error ? (error as Error).message : 'Try adjusting your filters'}
+                      </p>
+                      {isError && (
+                        <RetryButton queryKey={['events-infinite', filters]} />
+                      )}
                     </motion.div>
                   </td>
                 </tr>
@@ -516,8 +540,10 @@ export default function EventsPage() {
                       layout
                       className="border-b border-slate-100 dark:border-slate-800/50"
                     >
-                      <td className="py-4 px-5 text-slate-700 dark:text-slate-300">
-                        {index + 1}
+                      <td className="py-4 px-5">
+                        <span className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-500/20 dark:to-indigo-500/20 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full text-sm font-mono font-medium">
+                          {index + 1}
+                        </span>
                       </td>
                       <td className="py-4 px-5">
                         {event.flyer_url ? (

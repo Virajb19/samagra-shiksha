@@ -17,10 +17,10 @@ import { useMutation } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as ImagePicker from 'expo-image-picker';
-import { useAuthStore } from '../../../src/lib/store';
-import { updatePersonalDetails } from '../../../src/services/firebase/users.firestore';
-import { uploadProfileImage, getImagePreviewUrl } from '../../../src/services/storage.service';
-import { EditPersonalDetailsSchema, type EditPersonalDetailsFormData } from '../../../src/lib/zod';
+import { useAuthStore } from '../../src/lib/store';
+import { updatePersonalDetails } from '../../src/services/firebase/users.firestore';
+import { uploadProfileImage, getImagePreviewUrl } from '../../src/services/storage.service';
+import { EditPersonalDetailsSchema, type EditPersonalDetailsFormData } from '../../src/lib/zod';
 
 export default function EditPersonalDetailsScreen() {
     const router = useRouter();

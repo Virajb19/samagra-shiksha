@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { showErrorToast, showSuccessToast } from './ui/custom-toast';
 import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
-import { eventsApi } from '@/services/events.service';
+import { eventsFirestore } from '@/services/firebase/events.firestore';
 
 interface DeleteEventButtonProps {
   eventId: string;
@@ -35,7 +35,7 @@ export function DeleteEventButton({ eventId, eventTitle, onDeletingChange }: Del
   const deleteEventMutation = useMutation({
     mutationKey: ['delete-event'],
     mutationFn: async (eventId: string) => {
-      return eventsApi.delete(eventId);
+      return eventsFirestore.delete(eventId);
     },
     onSuccess: () => {
       showSuccessToast('Event deleted successfully');

@@ -18,12 +18,3 @@ export const STORAGE_KEYS = {
     /** Cached user data (JSON) */
     USER_DATA: 'user_data',
 } as const;
-
-/**
- * User Roles
- * Must match backend enum exactly.
- */
-export const USER_ROLES = {
-    ADMIN: 'ADMIN',
-    DELIVERY: 'DELIVERY',
-} as const;

@@ -14,9 +14,9 @@ import { useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createTicket } from '../../../src/services/firebase/helpdesk.firestore';
-import { useAuthStore } from '../../../src/lib/store';
-import { HelpdeskTicketSchema, type HelpdeskTicketFormData } from '../../../src/lib/zod';
+import { createTicket } from '../../src/services/firebase/helpdesk.firestore';
+import { useAuthStore } from '../../src/lib/store';
+import { HelpdeskTicketSchema, type HelpdeskTicketFormData } from '../../src/lib/zod';
 
 export default function HelpdeskScreen() {
     const router = useRouter();
@@ -54,6 +54,7 @@ export default function HelpdeskScreen() {
                 <Text className="text-2xl font-bold text-[#1a1a2e] mb-1">Helpdesk</Text>
                 <Text className="text-sm text-gray-500 mb-6">Please mention your query below. We will respond within 48 hours.</Text>
 
+                {/* Full Name (read-only) */}
                 <View className="mb-4">
                     <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Full Name</Text>
                     <TextInput
@@ -63,6 +64,7 @@ export default function HelpdeskScreen() {
                     />
                 </View>
 
+                {/* Phone Number (read-only) */}
                 <View className="mb-4">
                     <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Phone Number</Text>
                     <TextInput
@@ -72,6 +74,7 @@ export default function HelpdeskScreen() {
                     />
                 </View>
 
+                {/* Message */}
                 <View className="mb-6">
                     <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Message</Text>
                     <Controller
@@ -94,6 +97,7 @@ export default function HelpdeskScreen() {
                     <Text className="text-xs text-gray-400 text-right mt-1">{messageValue?.length || 0}/1000</Text>
                 </View>
 
+                {/* Submit Button */}
                 <TouchableOpacity
                     className={`bg-[#3b82f6] rounded-xl py-4 items-center ${submitMutation.isPending ? 'opacity-70' : ''}`}
                     onPress={handleSubmit((data) => submitMutation.mutate(data))}
