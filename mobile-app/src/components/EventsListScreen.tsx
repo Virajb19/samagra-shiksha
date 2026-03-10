@@ -6,7 +6,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-    View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
+    View, Text, TouchableOpacity, ActivityIndicator, RefreshControl,
     Image, Modal, FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +15,6 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getEventsPaginated, type EventFilterParams } from '../services/firebase/content.firestore';
 import { getDistricts } from '../services/firebase/master-data.firestore';
 import { District } from '../types';
-import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
 const BLUE = '#1565C0';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -191,12 +190,17 @@ export default function EventsListScreen({
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isRefetching, refetch } = useInfiniteQuery({
         queryKey: [queryKey, serverFilters],
         queryFn: async ({ pageParam }) => getEventsPaginated(10, pageParam ?? null, serverFilters),
-        initialPageParam: null as QueryDocumentSnapshot<DocumentData> | null,
-        getNextPageParam: (lp) => lp.hasMore ? lp.lastDoc : undefined,
+        initialPageParam: null as string | null,
+        getNextPageParam: (lp) => lp.hasMore ? lp.nextCursor : undefined,
     });
     const { data: districts = [], isLoading: loadingDistricts } = useQuery<District[]>({ queryKey: ['districts'], queryFn: getDistricts });
     useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
     const allEvents = useMemo(() => data?.pages?.flatMap(p => p.events) || [], [data]);
+    const handleEndReached = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     if (isLoading) {
         return (
@@ -243,34 +247,24 @@ export default function EventsListScreen({
             )}
 
             {/* Events List */}
-            <ScrollView
+            <FlatList
                 className="flex-1"
+                data={allEvents}
+                keyExtractor={(item: any) => item.id}
+                renderItem={({ item }) => (
+                    <EventCard event={item} districts={districts} onPress={() => onEventPress(item.id)} />
+                )}
                 contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
                 refreshControl={<RefreshControl refreshing={isRefetching && !isFetchingNextPage} onRefresh={refetch} />}
-            >
-                {allEvents.length > 0 ? (
-                    <>
-                        {allEvents.map((event: any) => (
-                            <EventCard key={event.id} event={event} districts={districts} onPress={() => onEventPress(event.id)} />
-                        ))}
-                        {hasNextPage && (
-                            <TouchableOpacity
-                                onPress={() => fetchNextPage()}
-                                disabled={isFetchingNextPage}
-                                activeOpacity={0.8}
-                                className="flex-row items-center justify-center gap-2 mx-4 my-4 py-3.5 rounded-2xl"
-                                style={{ backgroundColor: BLUE, opacity: isFetchingNextPage ? 0.7 : 1 }}
-                            >
-                                {isFetchingNextPage ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <Ionicons name="arrow-down-circle-outline" size={22} color="#fff" />
-                                )}
-                                <Text className="text-white text-[15px] font-bold">{isFetchingNextPage ? 'Loading...' : 'Load More Events'}</Text>
-                            </TouchableOpacity>
-                        )}
-                    </>
-                ) : (
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.35}
+                ListFooterComponent={isFetchingNextPage ? (
+                    <View className="items-center py-4">
+                        <ActivityIndicator size="small" color={BLUE} />
+                        <Text className="text-sm text-gray-500 mt-2">Loading more events...</Text>
+                    </View>
+                ) : null}
+                ListEmptyComponent={
                     <View className="items-center pt-20">
                         <Ionicons name="calendar-outline" size={64} color="#d1d5db" />
                         <Text className="text-lg font-semibold text-gray-700 mt-4">No Events</Text>
@@ -278,8 +272,8 @@ export default function EventsListScreen({
                             {onCreatePress ? 'No events scheduled yet. Tap "Create Event" to add one.' : 'No events scheduled yet.'}
                         </Text>
                     </View>
-                )}
-            </ScrollView>
+                }
+            />
 
             <SearchFilterModal visible={filterVisible} onClose={() => setFilterVisible(false)} onApply={setFilters} districts={districts} loadingDistricts={loadingDistricts} />
         </View>

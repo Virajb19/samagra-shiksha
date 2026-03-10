@@ -187,9 +187,7 @@ export default function CreateEventScreen() {
                 description: data.description.trim(),
                 event_date: data.startDate,
                 event_end_date: data.endDate,
-                event_time: undefined,
                 location: data.venue.trim(),
-                event_type: undefined,
                 activity_type: data.activity,
                 flyer_url,
                 male_participants: parseInt(data.maleParticipants),
@@ -197,6 +195,7 @@ export default function CreateEventScreen() {
                 school_id: user?.faculty?.school_id,
                 district_id: data.districtId,
                 created_by: user!.id,
+                creator_name: user?.name?.trim() || undefined,
             });
         },
         onSuccess: () => {

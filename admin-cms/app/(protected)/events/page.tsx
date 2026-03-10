@@ -551,13 +551,16 @@ export default function EventsPage() {
                       </td>
                       <td className="py-4 px-5">
                         {event.flyer_url ? (
-                          <img
-                            src={getImageUrl(event.flyer_url) || ''}
+                         <Image
+                            src={getImageUrl(event.flyer_url) || ""}
                             alt={event.title}
-                            className="w-16 h-12 rounded-lg object-cover"
+                            width={64}
+                            height={48}
+                            className="rounded-lg object-cover"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.currentTarget as HTMLImageElement).style.display = "none";
                             }}
+                            unoptimized={process.env.NODE_ENV != "production"}
                           />
                         ) : (
                           <div className="w-16 h-12 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
@@ -656,6 +659,7 @@ export default function EventsPage() {
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
+                      unoptimized={process.env.NODE_ENV != "production"}
                    />
                 </div>
               )}

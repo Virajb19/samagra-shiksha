@@ -103,6 +103,7 @@ export default function TeacherCreateEventScreen() {
                 female_participants: femaleParticipants.trim() ? parseInt(femaleParticipants.trim()) : undefined,
                 school_id: user?.faculty?.school_id,
                 created_by: user!.id,
+                creator_name: user?.name?.trim() || undefined,
             });
         },
         onSuccess: () => {

@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com", 
       },
+        {
+        protocol: "http",
+        hostname: "10.1.3.235",
+        port: "9199",
+      },
     ],
   },
 

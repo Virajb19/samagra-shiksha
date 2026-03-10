@@ -186,7 +186,7 @@ async function resolveEventRelations(
 export const eventsFirestore = {
     /**
      * Fetch events with cursor-based pagination.
-     * Ordered by event_date desc.
+     * Ordered by created_at desc by default.
      *
      * ALL filters are server-side Firestore queries:
      * - event_type: equality filter
@@ -231,6 +231,8 @@ export const eventsFirestore = {
                 }
             }
 
+            data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
             await resolveEventRelations(data, rawDocs);
             return { data, total: data.length, hasMore: false, nextCursor: null };
         }
@@ -263,8 +265,11 @@ export const eventsFirestore = {
             );
         }
 
-        // Order by event_date desc (same field as range filters)
-        constraints.push(orderBy("event_date", "desc"));
+        const hasDateRangeFilter = !!(filters?.from_date || filters?.to_date);
+        const sortField = hasDateRangeFilter ? "event_date" : "created_at";
+
+        // Firestore requires ordering by the range field when date range filters are present.
+        constraints.push(orderBy(sortField, "desc"));
 
         // Total count (use same filters for accurate count)
         const countQ = query(eventsCol, ...constraints);
@@ -300,7 +305,7 @@ export const eventsFirestore = {
 
         const lastDoc = docs[docs.length - 1];
         const nextCursor = hasMore && lastDoc
-            ? JSON.stringify({ ts: toIso(lastDoc.data().event_date) })
+            ? JSON.stringify({ ts: toIso(lastDoc.data()[sortField]) })
             : null;
 
         return { data, total, hasMore, nextCursor };

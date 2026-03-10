@@ -191,7 +191,7 @@ export interface EventFilterParams {
 
 export interface PaginatedEventsResult {
     events: any[];
-    lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+    nextCursor: string | null;
     hasMore: boolean;
 }
 
@@ -203,11 +203,11 @@ export interface PaginatedEventsResult {
  * - startDate / endDate: range filters on event_date
  * - search: exact match on title (Firestore doesn't support substring search)
  *
- * Ordered by event_date desc.
+ * Ordered by created_at desc by default.
  */
 export async function getEventsPaginated(
     pageSize: number = EVENTS_PAGE_SIZE,
-    lastDocSnapshot?: QueryDocumentSnapshot<DocumentData> | null,
+    cursor?: string | null,
     filters?: EventFilterParams,
 ): Promise<PaginatedEventsResult> {
     const eventsRef = collection(db, 'events');
@@ -215,9 +215,9 @@ export async function getEventsPaginated(
     // ── Server-side search: exact match on title ──
     if (filters?.search?.trim()) {
         const s = filters.search.trim();
-        const snap = await getDocs(query(eventsRef, where('title', '==', s)));
+        const snap = await getDocs(query(eventsRef, where('title', '==', s), orderBy('created_at', 'desc')));
         const events = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        return { events, lastDoc: null, hasMore: false };
+        return { events, nextCursor: null, hasMore: false };
     }
 
     const constraints: QueryConstraint[] = [];
@@ -237,12 +237,18 @@ export async function getEventsPaginated(
         constraints.push(where('event_date', '<=', Timestamp.fromDate(endOfDay)));
     }
 
-    // Order by event_date desc (same field as range filters)
-    constraints.push(orderBy('event_date', 'desc'));
+    const hasDateRangeFilter = !!(filters?.startDate || filters?.endDate);
+    const sortField = hasDateRangeFilter ? 'event_date' : 'created_at';
+
+    // Firestore requires ordering by the range field when date range filters are present.
+    constraints.push(orderBy(sortField, 'desc'));
 
     // Cursor
-    if (lastDocSnapshot) {
-        constraints.push(startAfter(lastDocSnapshot));
+    if (cursor) {
+        const cursorSnap = await getDoc(doc(db, 'events', cursor));
+        if (cursorSnap.exists()) {
+            constraints.push(startAfter(cursorSnap));
+        }
     }
 
     // Fetch one extra to detect hasMore
@@ -254,11 +260,9 @@ export async function getEventsPaginated(
     const docs = hasMore ? snap.docs.slice(0, pageSize) : snap.docs;
 
     const events = docs.map((d) => ({ id: d.id, ...d.data() }));
-    const lastDoc = docs.length > 0
-        ? docs[docs.length - 1] as QueryDocumentSnapshot<DocumentData>
-        : null;
+    const nextCursor = docs.length > 0 ? docs[docs.length - 1].id : null;
 
-    return { events, lastDoc, hasMore };
+    return { events, nextCursor: hasMore ? nextCursor : null, hasMore };
 }
 
 /** Fetch a single event by ID. Resolves creator name from users collection. */
@@ -267,16 +271,41 @@ export async function getEventById(eventId: string): Promise<any | null> {
     if (!snap.exists()) return null;
     const data: any = { id: snap.id, ...snap.data() };
 
+    if (data.creator_name) {
+        return data;
+    }
+
     if (data.created_by) {
         try {
+            // Primary: users doc id equals created_by
             const userSnap = await getDoc(doc(db, 'users', data.created_by));
             if (userSnap.exists()) {
                 data.creator_name = userSnap.data().name || 'Unknown';
+                return data;
+            }
+
+            // Fallback: some environments keep auth uid in a field and use a different doc id.
+            const byIdField = await getDocs(
+                query(collection(db, 'users'), where('id', '==', data.created_by), limit(1))
+            );
+            if (!byIdField.empty) {
+                data.creator_name = byIdField.docs[0].data().name || 'Unknown';
+                return data;
+            }
+
+            const byUidField = await getDocs(
+                query(collection(db, 'users'), where('uid', '==', data.created_by), limit(1))
+            );
+            if (!byUidField.empty) {
+                data.creator_name = byUidField.docs[0].data().name || 'Unknown';
+                return data;
             }
         } catch {
             // Skip if user doc not found
         }
     }
+
+    data.creator_name = data.created_by_name || 'Unknown';
 
     return data;
 }
@@ -297,11 +326,15 @@ export async function createEvent(data: {
     school_id?: string;
     district_id?: string;
     created_by: string;
+    creator_name?: string;
 }): Promise<any> {
     const ref = doc(collection(db, 'events'));
+    const sanitizedData = Object.fromEntries(
+        Object.entries(data).filter(([, value]) => value !== undefined)
+    );
     const record = {
         id: ref.id,
-        ...data,
+        ...sanitizedData,
         event_date: Timestamp.fromDate(new Date(data.event_date)),
         event_end_date: data.event_end_date ? Timestamp.fromDate(new Date(data.event_end_date)) : null,
         is_active: true,
