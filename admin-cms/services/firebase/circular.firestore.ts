@@ -215,15 +215,19 @@ export const circularFirestore = {
             orderBy("created_at", "desc"),
         ];
 
-        // Compound cursor (issued_date + created_at + docId)
+        // Cursor must match the exact number/order of orderBy clauses.
+        // We order by issued_date desc, created_at desc, so use exactly 2 values.
         if (cursor) {
             try {
-                const { ts, ts2, id } = JSON.parse(cursor);
-                constraints.push(startAfter(
-                    Timestamp.fromDate(new Date(ts)),
-                    Timestamp.fromDate(new Date(ts2)),
-                    id
-                ));
+                const parsed = JSON.parse(cursor) as { ts?: string; ts2?: string };
+                if (parsed.ts && parsed.ts2) {
+                    constraints.push(startAfter(
+                        Timestamp.fromDate(new Date(parsed.ts)),
+                        Timestamp.fromDate(new Date(parsed.ts2))
+                    ));
+                } else if (parsed.ts) {
+                    constraints.push(startAfter(Timestamp.fromDate(new Date(parsed.ts))));
+                }
             } catch {
                 constraints.push(startAfter(Timestamp.fromDate(new Date(cursor))));
             }
@@ -244,7 +248,6 @@ export const circularFirestore = {
             ? JSON.stringify({
                 ts: toIso(lastDoc.data().issued_date),
                 ts2: toIso(lastDoc.data().created_at),
-                id: lastDoc.id,
             })
             : null;
 
