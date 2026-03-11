@@ -358,6 +358,46 @@ export async function createEvent(data: {
 
 // ── Circulars ──
 
+const CIRCULARS_PAGE_SIZE = 10;
+
+export interface PaginatedCircularsResult {
+    circulars: any[];
+    nextCursor: string | null;
+    hasMore: boolean;
+}
+
+/** Fetch circulars with cursor-based pagination (ordered by created_at desc). */
+export async function getCircularsPaginated(
+    pageSize: number = CIRCULARS_PAGE_SIZE,
+    cursor?: string | null,
+): Promise<PaginatedCircularsResult> {
+    await devDelay('read', 'content.getCircularsPaginated');
+
+    const circularsRef = collection(db, 'circulars');
+    const constraints: QueryConstraint[] = [orderBy('created_at', 'desc')];
+
+    if (cursor) {
+        const cursorSnap = await getDoc(doc(db, 'circulars', cursor));
+        if (cursorSnap.exists()) {
+            constraints.push(startAfter(cursorSnap));
+        }
+    }
+
+    constraints.push(limit(pageSize + 1));
+
+    const snap = await getDocs(query(circularsRef, ...constraints));
+    const hasMore = snap.docs.length > pageSize;
+    const docs = hasMore ? snap.docs.slice(0, pageSize) : snap.docs;
+    const circulars = docs.map((d) => ({ id: d.id, ...d.data() }));
+    const nextCursor = docs.length > 0 ? docs[docs.length - 1].id : null;
+
+    return {
+        circulars,
+        nextCursor: hasMore ? nextCursor : null,
+        hasMore,
+    };
+}
+
 /** Fetch circulars, ordered by most recent. */
 export async function getCirculars(): Promise<any[]> {
     const snap = await getDocs(query(collection(db, 'circulars'), orderBy('created_at', 'desc')));

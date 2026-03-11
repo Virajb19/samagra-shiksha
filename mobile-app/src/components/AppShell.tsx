@@ -98,7 +98,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </View>
 
             {/* ── Content Area ── */}
-            <View className="flex-1">
+            <View className="flex-1 mx-1">
                 {children}
             </View>
 

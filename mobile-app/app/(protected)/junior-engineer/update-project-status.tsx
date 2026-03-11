@@ -22,7 +22,6 @@ import {
     ActivityIndicator,
     Platform,
     KeyboardAvoidingView,
-    Animated,
     Modal,
     Pressable,
 } from 'react-native';
@@ -249,18 +248,15 @@ export default function UpdateProjectStatusScreen() {
     };
 
     const onFormError = () => {
-        // Collect all error messages
-        const messages: string[] = [];
-        if (errors.completionStatus) messages.push('• ' + errors.completionStatus.message);
-        if (errors.photos) messages.push('• ' + errors.photos.message);
-        if (errors.comment) messages.push('• ' + errors.comment.message);
+        const firstError =
+            errors.completionStatus?.message ||
+            errors.photos?.message ||
+            errors.comment?.message;
 
-        Alert.alert(
-            'Validation Error',
-            messages.length > 0
-                ? 'Please fix the following:\n\n' + messages.join('\n')
-                : 'Please fill in all required fields.',
-        );
+        Toast.show({
+            type: 'error',
+            text1: firstError || 'Please fill in all required fields.',
+        });
     };
 
     // ── Progress helper ──
