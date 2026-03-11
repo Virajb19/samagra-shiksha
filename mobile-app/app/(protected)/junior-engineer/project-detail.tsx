@@ -115,6 +115,14 @@ export default function ProjectDetailScreen() {
         enabled: !!id,
     });
 
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
+                refetchUpdates();
+            }
+        }, [id, refetchUpdates])
+    );
+
     if (projectLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-[#f0f4f8]">
@@ -131,14 +139,6 @@ export default function ProjectDetailScreen() {
             </View>
         );
     }
-
-   useFocusEffect(
-        useCallback(() => {
-            if (id) {
-                refetchUpdates();
-            }
-        }, [id, refetchUpdates])
-   );
 
     const progressLabel = project.progress === 0 ? 'N/A' : project.status === 'Completed' ? 'Completed' : `${project.progress}%`;
     const isCompleted = project.status === 'Completed';

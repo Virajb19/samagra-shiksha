@@ -170,6 +170,33 @@
         { "fieldPath": "district_id", "order": "ASCENDING" },
         { "fieldPath": "event_date", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "circulars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "issued_date", "order": "DESCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "circulars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "title", "order": "ASCENDING" },
+        { "fieldPath": "issued_date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "circulars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "circular_no", "order": "ASCENDING" },
+        { "fieldPath": "issued_date", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

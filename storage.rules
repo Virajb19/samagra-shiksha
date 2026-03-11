@@ -44,6 +44,13 @@ service firebase.storage {
       allow delete: if isAdmin();
     }
 
+    // Legacy circular attachment path compatibility
+    match /circular-files/{allPaths=**} {
+      allow read: if isAuth();
+      allow create, update: if isAdmin() && isValidSize();
+      allow delete: if isAdmin();
+    }
+
     // ── ICT Form Files ──
     // Any authenticated user can read/write (userId in path is Firestore doc ID, not Auth UID)
     match /ict-form-files/{userId}/{allPaths=**} {

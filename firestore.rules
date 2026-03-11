@@ -101,7 +101,8 @@ service cloud.firestore {
 
     // ── Circulars ──
     match /circulars/{circularId} {
-      allow read: if isAuth();
+      // Admin CMS uses list queries with filters/orderBy + pagination (startAfter)
+      allow get, list: if isAuth();
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
@@ -116,7 +117,7 @@ service cloud.firestore {
 
     // ── Circular Schools (join table) ──
     match /circular_schools/{csId} {
-      allow read: if isAuth();
+      allow get, list: if isAuth();
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }

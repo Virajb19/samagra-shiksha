@@ -193,6 +193,11 @@ export default function NoticesScreen() {
         return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     };
 
+    const getAttachmentLabel = (noticeType?: string) => {
+        if (noticeType === 'INVITATION') return 'View invitation';
+        return 'View File';
+    };
+
     const handleSearch = () => {
         setAppliedSearch(searchQuery.trim());
     };
@@ -342,7 +347,7 @@ export default function NoticesScreen() {
                         }}
                     >
                         <Ionicons name="document-attach" size={18} color={NAVY} />
-                        <Text style={styles.fileText}>{notice.file_name || 'View Attachment'}</Text>
+                        <Text style={styles.fileText}>{getAttachmentLabel(notice.type)}</Text>
                         <Ionicons name="open-outline" size={16} color={NAVY} />
                     </TouchableOpacity>
                 )}

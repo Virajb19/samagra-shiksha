@@ -847,8 +847,22 @@ export default function CircularsPage() {
                 setSearchInput(e.target.value);
                 setDebouncedSearch(e.target.value);
               }}
-              className="pl-10 bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+              className="pl-10 pr-10 bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
             />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput('');
+                  setDebouncedSearch('');
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                <X className="h-4 w-4 hover:text-red-500" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -889,23 +903,23 @@ export default function CircularsPage() {
             <div>
               <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                  <tr className="bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 border-b border-blue-500/30">
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                       <Hash className="h-4 w-4 inline mr-1" />
                       Sl No.
                     </th>
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Circular No.</th>
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Title</th>
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Circular No.</th>
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">Title</th>
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                       <User className="h-4 w-4 inline mr-1" />
                       Issued By
                     </th>
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">
                       <Calendar className="h-4 w-4 inline mr-1" />
                       Date
                     </th>
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">File</th>
-                    <th className="text-left py-4 px-5 text-slate-600 dark:text-slate-400 font-medium text-sm">Action</th>
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide border-r border-blue-500/30">File</th>
+                    <th className="text-left py-3.5 px-5 text-white font-semibold text-sm tracking-wide">Action</th>
                   </tr>
                 </thead>
                 <tbody>
