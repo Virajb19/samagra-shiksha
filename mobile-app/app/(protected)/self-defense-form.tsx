@@ -14,6 +14,7 @@
  */
 
 import React, { useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -63,9 +64,9 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                         resizeMode="contain"
                     />
                     <View>
-                        <Text className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</Text>
-                        <Text className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</Text>
-                        <Text className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</Text>
+                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
+                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
+                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
                     </View>
                 </View>
                 <Image
@@ -74,10 +75,10 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                     resizeMode="contain"
                 />
             </View>
-            <Text className="text-white text-[28px] font-extrabold mb-1">Self Defense</Text>
-            <Text className="text-white/80 text-xs">
+            <AppText className="text-white text-[28px] font-extrabold mb-1">Self Defense</AppText>
+            <AppText className="text-white/80 text-xs">
                 Please make sure all the required fields are properly filled.
-            </Text>
+            </AppText>
             <TouchableOpacity
                 onPress={onBack}
                 style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
@@ -95,7 +96,7 @@ function SelfDefenseFormDataTable({ submissions }: { submissions: SelfDefenseFor
 
     return (
         <View className="mt-6 mb-4">
-            <Text className="text-lg font-bold text-[#1a1a1a] mb-3">Your Self Defense Submissions</Text>
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Self Defense Submissions</AppText>
             {submissions.map((sub, idx) => (
                 <View
                     key={sub.id}
@@ -104,20 +105,20 @@ function SelfDefenseFormDataTable({ submissions }: { submissions: SelfDefenseFor
                 >
                     <View className="flex-row items-center mb-2">
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <Text className="text-white font-bold text-sm">{idx + 1}</Text>
+                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
                         </View>
                         <View className="flex-1">
-                            <Text className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Self Defense Submission'}</Text>
-                            <Text className="text-xs text-gray-500">
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Self Defense Submission'}</AppText>
+                            <AppText className="text-xs text-gray-500">
                                 {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </Text>
+                            </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
                     <View className="border-t border-gray-100 pt-2 mt-1">
                         {sub.photo ? (
                             <View className="mb-2">
-                                <Text className="text-xs font-semibold text-gray-600 mb-1">Photo</Text>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Photo</AppText>
                                 <Image source={{ uri: sub.photo }} className="w-20 h-20 rounded-lg" />
                             </View>
                         ) : null}
@@ -137,8 +138,8 @@ function SelfDefenseFormDataTable({ submissions }: { submissions: SelfDefenseFor
 function DataRow({ label, value }: { label: string; value: string }) {
     return (
         <View className="flex-row py-1.5">
-            <Text className="text-xs text-gray-500 w-[45%]">{label}</Text>
-            <Text className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</Text>
+            <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
+            <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
         </View>
     );
 }
@@ -239,9 +240,9 @@ export default function SelfDefenseFormScreen() {
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
                     <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
                         <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                        <Text className="text-green-700 font-semibold text-sm ml-3 flex-1">
+                        <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
                             Your Self Defense form has been submitted successfully.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <SelfDefenseFormDataTable submissions={submissions} />
@@ -251,7 +252,7 @@ export default function SelfDefenseFormScreen() {
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
-                        <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
+                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -262,7 +263,7 @@ export default function SelfDefenseFormScreen() {
     const renderFormContent = () => (
         <View>
             {/* Photo Upload */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Photo *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Photo *</AppText>
             <TouchableOpacity
                 onPress={pickPhoto}
                 style={{
@@ -279,15 +280,15 @@ export default function SelfDefenseFormScreen() {
                 ) : (
                     <View className="items-center">
                         <Ionicons name="image-outline" size={48} color="#93c5fd" />
-                        <Text className="text-sm text-gray-400 mt-2">Tap to upload photo</Text>
+                        <AppText className="text-sm text-gray-400 mt-2">Tap to upload photo</AppText>
                     </View>
                 )}
             </TouchableOpacity>
-            {errors.photo && <Text className="text-xs text-red-500 mb-4">{errors.photo.message}</Text>}
+            {errors.photo && <AppText className="text-xs text-red-500 mb-4">{errors.photo.message}</AppText>}
             {!errors.photo && <View className="mb-5" />}
 
             {/* Classes Per Week */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of classes in a week *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of classes in a week *</AppText>
             <Controller
                 control={control}
                 name="classesPerWeek"
@@ -302,11 +303,11 @@ export default function SelfDefenseFormScreen() {
                     />
                 )}
             />
-            {errors.classesPerWeek && <Text className="text-xs text-red-500 mb-4">{errors.classesPerWeek.message}</Text>}
+            {errors.classesPerWeek && <AppText className="text-xs text-red-500 mb-4">{errors.classesPerWeek.message}</AppText>}
             {!errors.classesPerWeek && <View className="mb-5" />}
 
             {/* Classes Per Month */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of classes in a month *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of classes in a month *</AppText>
             <Controller
                 control={control}
                 name="classesPerMonth"
@@ -321,11 +322,11 @@ export default function SelfDefenseFormScreen() {
                     />
                 )}
             />
-            {errors.classesPerMonth && <Text className="text-xs text-red-500 mb-4">{errors.classesPerMonth.message}</Text>}
+            {errors.classesPerMonth && <AppText className="text-xs text-red-500 mb-4">{errors.classesPerMonth.message}</AppText>}
             {!errors.classesPerMonth && <View className="mb-5" />}
 
             {/* Girl Participants */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of Girl Participants *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of Girl Participants *</AppText>
             <Controller
                 control={control}
                 name="girlParticipants"
@@ -340,11 +341,11 @@ export default function SelfDefenseFormScreen() {
                     />
                 )}
             />
-            {errors.girlParticipants && <Text className="text-xs text-red-500 mb-4">{errors.girlParticipants.message}</Text>}
+            {errors.girlParticipants && <AppText className="text-xs text-red-500 mb-4">{errors.girlParticipants.message}</AppText>}
             {!errors.girlParticipants && <View className="mb-5" />}
 
             {/* Girls Benefited */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of Girls Benefited *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Number of Girls Benefited *</AppText>
             <Controller
                 control={control}
                 name="girlsBenefited"
@@ -359,11 +360,11 @@ export default function SelfDefenseFormScreen() {
                     />
                 )}
             />
-            {errors.girlsBenefited && <Text className="text-xs text-red-500 mb-4">{errors.girlsBenefited.message}</Text>}
+            {errors.girlsBenefited && <AppText className="text-xs text-red-500 mb-4">{errors.girlsBenefited.message}</AppText>}
             {!errors.girlsBenefited && <View className="mb-5" />}
 
             {/* Instructor Name */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Intructor's Name *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Intructor's Name *</AppText>
             <Controller
                 control={control}
                 name="instructorName"
@@ -377,11 +378,11 @@ export default function SelfDefenseFormScreen() {
                     />
                 )}
             />
-            {errors.instructorName && <Text className="text-xs text-red-500 mb-4">{errors.instructorName.message}</Text>}
+            {errors.instructorName && <AppText className="text-xs text-red-500 mb-4">{errors.instructorName.message}</AppText>}
             {!errors.instructorName && <View className="mb-5" />}
 
             {/* Contact Number */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Contact Number *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Contact Number *</AppText>
             <Controller
                 control={control}
                 name="contactNumber"
@@ -396,7 +397,7 @@ export default function SelfDefenseFormScreen() {
                     />
                 )}
             />
-            {errors.contactNumber && <Text className="text-xs text-red-500 mb-4">{errors.contactNumber.message}</Text>}
+            {errors.contactNumber && <AppText className="text-xs text-red-500 mb-4">{errors.contactNumber.message}</AppText>}
             {!errors.contactNumber && <View className="mb-5" />}
 
             {/* Submit Button */}
@@ -409,7 +410,7 @@ export default function SelfDefenseFormScreen() {
                 {submitMutation.isPending ? (
                     <ActivityIndicator color="#fff" />
                 ) : (
-                    <Text className="text-base font-bold text-white">Submit</Text>
+                    <AppText className="text-base font-bold text-white">Submit</AppText>
                 )}
             </TouchableOpacity>
         </View>

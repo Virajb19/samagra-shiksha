@@ -10,6 +10,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -71,9 +72,9 @@ export default function ActivityFormsScreen() {
 
             {params.schoolCode && (
                 <View className="px-4 py-2 bg-[#e8f4fd]">
-                    <Text className="text-xs text-[#1565C0] font-medium">
+                    <AppText className="text-xs text-[#1565C0] font-medium">
                         {params.schoolCode}{params.schoolName ? ` - ${params.schoolName}` : ''}
-                    </Text>
+                    </AppText>
                 </View>
             )}
 
@@ -88,17 +89,17 @@ export default function ActivityFormsScreen() {
                 {isLoading ? (
                     <View className="items-center justify-center py-20">
                         <ActivityIndicator size="large" color={BLUE} />
-                        <Text className="text-gray-500 mt-3 text-sm">Loading forms...</Text>
+                        <AppText className="text-gray-500 mt-3 text-sm">Loading forms...</AppText>
                     </View>
                 ) : error ? (
                     <View className="items-center justify-center py-20">
                         <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                        <Text className="text-red-500 mt-3 text-sm">Failed to load forms</Text>
+                        <AppText className="text-red-500 mt-3 text-sm">Failed to load forms</AppText>
                     </View>
                 ) : !forms?.length ? (
                     <View className="items-center justify-center py-20">
                         <Ionicons name="document-text-outline" size={48} color="#9ca3af" />
-                        <Text className="text-gray-400 mt-3 text-sm">No forms available</Text>
+                        <AppText className="text-gray-400 mt-3 text-sm">No forms available</AppText>
                     </View>
                 ) : (
                     forms.map((form, index) => (
@@ -164,23 +165,23 @@ function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm
                     backgroundColor: isActive ? '#22c55e' : form.status === 'Inactive' ? '#f59e0b' : '#e5e7eb',
                 }}
             >
-                <Text
+                <AppText
                     className="font-extrabold text-lg"
                     style={{ color: isActive || form.status === 'Inactive' ? '#fff' : '#9ca3af' }}
                 >
                     {index}
-                </Text>
+                </AppText>
             </View>
 
             {/* Form Info */}
             <View className="flex-1">
-                <Text
+                <AppText
                     className="text-base font-bold mb-0.5"
                     style={{ color: isActive ? '#111827' : '#6b7280' }}
                 >
                     {form.name}
-                </Text>
-                <Text
+                </AppText>
+                <AppText
                     className="text-xs"
                     style={{ color: isActive ? '#6b7280' : '#9ca3af' }}
                 >
@@ -189,7 +190,7 @@ function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm
                         : form.status === 'Inactive'
                             ? 'Form is scheduled — not yet active'
                             : 'Form is currently closed'}
-                </Text>
+                </AppText>
             </View>
 
             {/* Right Icon */}

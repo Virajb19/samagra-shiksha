@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -66,7 +67,7 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{title}</Text>
+                        <AppText style={styles.modalTitle}>{title}</AppText>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} color="#374151" />
                         </TouchableOpacity>
@@ -82,13 +83,13 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
                                     style={[styles.modalItem, selectedValue === item.id && styles.modalItemSelected]}
                                     onPress={() => { onSelect(item.id); onClose(); }}
                                 >
-                                    <Text style={[styles.modalItemText, selectedValue === item.id && styles.modalItemTextSelected]}>
+                                    <AppText style={[styles.modalItemText, selectedValue === item.id && styles.modalItemTextSelected]}>
                                         {item.name}
-                                    </Text>
+                                    </AppText>
                                     {selectedValue === item.id && <Ionicons name="checkmark" size={20} color="#2c3e6b" />}
                                 </TouchableOpacity>
                             )}
-                            ListEmptyComponent={<Text style={styles.emptyText}>No items available</Text>}
+                            ListEmptyComponent={<AppText style={styles.emptyText}>No items available</AppText>}
                         />
                     )}
                 </View>
@@ -154,7 +155,7 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                         <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn}>
                             <Ionicons name="chevron-back" size={22} color="#2c3e6b" />
                         </TouchableOpacity>
-                        <Text style={calStyles.monthText}>{MONTHS[viewMonth]} {viewYear}</Text>
+                        <AppText style={calStyles.monthText}>{MONTHS[viewMonth]} {viewYear}</AppText>
                         <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn}>
                             <Ionicons name="chevron-forward" size={22} color="#2c3e6b" />
                         </TouchableOpacity>
@@ -162,7 +163,7 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
 
                     {/* Weekday labels */}
                     <View style={calStyles.weekRow}>
-                        {WEEKDAYS.map(w => <Text key={w} style={calStyles.weekLabel}>{w}</Text>)}
+                        {WEEKDAYS.map(w => <AppText key={w} style={calStyles.weekLabel}>{w}</AppText>)}
                     </View>
 
                     {/* Day grid */}
@@ -179,11 +180,11 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                                 disabled={!day}
                             >
                                 {day ? (
-                                    <Text style={[
+                                    <AppText style={[
                                         calStyles.dayText,
                                         isSelected(day) && calStyles.dayTextSelected,
                                         isToday(day) && !isSelected(day) && calStyles.dayTextToday,
-                                    ]}>{day}</Text>
+                                    ]}>{day}</AppText>
                                 ) : null}
                             </TouchableOpacity>
                         ))}
@@ -191,7 +192,7 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
 
                     {/* Today shortcut */}
                     <TouchableOpacity style={calStyles.todayBtn} onPress={() => handleSelect(today.getDate())}>
-                        <Text style={calStyles.todayBtnText}>Today</Text>
+                        <AppText style={calStyles.todayBtnText}>Today</AppText>
                     </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -310,38 +311,38 @@ export default function KGBVCompleteProfileScreen() {
                         />
                     </View>
                     <View>
-                        <Text style={styles.headerTitle}>Complete Profile</Text>
-                        <Text style={styles.headerSubtitle}>KGBV Warden Details</Text>
+                        <AppText style={styles.headerTitle}>Complete Profile</AppText>
+                        <AppText style={styles.headerSubtitle}>KGBV Warden Details</AppText>
                     </View>
                 </View>
             </View>
 
             {/* White Card */}
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-                <Text style={styles.title}>Add Experience</Text>
-                <Text style={styles.subtitle}>
+                <AppText style={styles.title}>Add Experience</AppText>
+                <AppText style={styles.subtitle}>
                     Please make sure all the required fields are properly filled.
-                </Text>
+                </AppText>
 
                 {/* Warning Banner */}
                 <View style={styles.warningBanner}>
                     <Ionicons name="warning" size={20} color="#856404" />
-                    <Text style={styles.warningText}>
+                    <AppText style={styles.warningText}>
                         Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* KGBV Type */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>KGBV Type *</Text>
+                    <AppText style={styles.label}>KGBV Type *</AppText>
                     <TouchableOpacity style={styles.pickerButton} onPress={() => setKgbvTypeModalVisible(true)}>
-                        <Text style={kgbvType ? styles.pickerButtonText : styles.pickerPlaceholder}>
+                        <AppText style={kgbvType ? styles.pickerButtonText : styles.pickerPlaceholder}>
                             {selectedKgbvTypeName || 'Select KGBV Type'}
-                        </Text>
+                        </AppText>
                         <Ionicons name="chevron-down" size={20} color="#6b7280" />
                     </TouchableOpacity>
                     {errors.kgbvType && (
-                        <Text style={styles.errorText}>{errors.kgbvType.message}</Text>
+                        <AppText style={styles.errorText}>{errors.kgbvType.message}</AppText>
                     )}
                 </View>
 
@@ -356,7 +357,7 @@ export default function KGBVCompleteProfileScreen() {
 
                 {/* KGBV Location */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>KGBV Location *</Text>
+                    <AppText style={styles.label}>KGBV Location *</AppText>
                     <Controller
                         control={control}
                         name="kgbvLocation"
@@ -370,27 +371,27 @@ export default function KGBVCompleteProfileScreen() {
                         )}
                     />
                     {errors.kgbvLocation && (
-                        <Text style={styles.errorText}>{errors.kgbvLocation.message}</Text>
+                        <AppText style={styles.errorText}>{errors.kgbvLocation.message}</AppText>
                     )}
                 </View>
 
                 {/* District */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>District *</Text>
+                    <AppText style={styles.label}>District *</AppText>
                     {loadingDistricts ? (
                         <View style={styles.pickerButton}>
                             <ActivityIndicator size="small" color="#2c3e6b" />
                         </View>
                     ) : (
                         <TouchableOpacity style={styles.pickerButton} onPress={() => setDistrictModalVisible(true)}>
-                            <Text style={selectedDistrict ? styles.pickerButtonText : styles.pickerPlaceholder}>
+                            <AppText style={selectedDistrict ? styles.pickerButtonText : styles.pickerPlaceholder}>
                                 {selectedDistrictName || 'Select District'}
-                            </Text>
+                            </AppText>
                             <Ionicons name="chevron-down" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     )}
                     {errors.districtId && (
-                        <Text style={styles.errorText}>{errors.districtId.message}</Text>
+                        <AppText style={styles.errorText}>{errors.districtId.message}</AppText>
                     )}
                 </View>
 
@@ -406,15 +407,15 @@ export default function KGBVCompleteProfileScreen() {
 
                 {/* Date of Joining */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Date of Joining *</Text>
+                    <AppText style={styles.label}>Date of Joining *</AppText>
                     <TouchableOpacity style={styles.pickerButton} onPress={() => setDatePickerVisible(true)}>
-                        <Text style={dateOfJoining ? styles.pickerButtonText : styles.pickerPlaceholder}>
+                        <AppText style={dateOfJoining ? styles.pickerButtonText : styles.pickerPlaceholder}>
                             {dateOfJoining || 'Select date'}
-                        </Text>
+                        </AppText>
                         <Ionicons name="calendar-outline" size={20} color="#6b7280" />
                     </TouchableOpacity>
                     {errors.dateOfJoining && (
-                        <Text style={styles.errorText}>{errors.dateOfJoining.message}</Text>
+                        <AppText style={styles.errorText}>{errors.dateOfJoining.message}</AppText>
                     )}
                 </View>
 
@@ -427,7 +428,7 @@ export default function KGBVCompleteProfileScreen() {
 
                 {/* Qualification */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Qualification *</Text>
+                    <AppText style={styles.label}>Qualification *</AppText>
                     <Controller
                         control={control}
                         name="qualification"
@@ -441,13 +442,13 @@ export default function KGBVCompleteProfileScreen() {
                         )}
                     />
                     {errors.qualification && (
-                        <Text style={styles.errorText}>{errors.qualification.message}</Text>
+                        <AppText style={styles.errorText}>{errors.qualification.message}</AppText>
                     )}
                 </View>
 
                 {/* Years of Experience */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Total Years of Experience *</Text>
+                    <AppText style={styles.label}>Total Years of Experience *</AppText>
                     <Controller
                         control={control}
                         name="yearsOfExperience"
@@ -462,13 +463,13 @@ export default function KGBVCompleteProfileScreen() {
                         )}
                     />
                     {errors.yearsOfExperience && (
-                        <Text style={styles.errorText}>{errors.yearsOfExperience.message}</Text>
+                        <AppText style={styles.errorText}>{errors.yearsOfExperience.message}</AppText>
                     )}
                 </View>
 
                 {/* EBRC */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>EBRC *</Text>
+                    <AppText style={styles.label}>EBRC *</AppText>
                     <Controller
                         control={control}
                         name="ebrc"
@@ -482,13 +483,13 @@ export default function KGBVCompleteProfileScreen() {
                         )}
                     />
                     {errors.ebrc && (
-                        <Text style={styles.errorText}>{errors.ebrc.message}</Text>
+                        <AppText style={styles.errorText}>{errors.ebrc.message}</AppText>
                     )}
                 </View>
 
                 {/* Aadhaar Number */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Aadhaar Number *</Text>
+                    <AppText style={styles.label}>Aadhaar Number *</AppText>
                     <Controller
                         control={control}
                         name="aadhaarNumber"
@@ -504,7 +505,7 @@ export default function KGBVCompleteProfileScreen() {
                         )}
                     />
                     {errors.aadhaarNumber && (
-                        <Text style={styles.errorText}>{errors.aadhaarNumber.message}</Text>
+                        <AppText style={styles.errorText}>{errors.aadhaarNumber.message}</AppText>
                     )}
                 </View>
 
@@ -512,31 +513,31 @@ export default function KGBVCompleteProfileScreen() {
                 <View style={styles.divider} />
 
                 {/* Personal Details (Read-only) */}
-                <Text style={styles.sectionTitle}>Personal Details</Text>
-                <Text style={styles.sectionSubtitle}>
+                <AppText style={styles.sectionTitle}>Personal Details</AppText>
+                <AppText style={styles.sectionSubtitle}>
                     To update Personal Details, go to Settings {'>'} Edit Profile
-                </Text>
+                </AppText>
 
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Full Name</Text>
+                    <AppText style={styles.label}>Full Name</AppText>
                     <View style={styles.readOnlyInput}>
-                        <Text style={styles.readOnlyText}>{user?.name || ''}</Text>
+                        <AppText style={styles.readOnlyText}>{user?.name || ''}</AppText>
                     </View>
                 </View>
 
                 <View style={styles.rowFields}>
                     <View style={[styles.fieldContainer, { flex: 1, marginRight: 8 }]}>
-                        <Text style={styles.label}>Gender</Text>
+                        <AppText style={styles.label}>Gender</AppText>
                         <View style={styles.readOnlyInput}>
-                            <Text style={styles.readOnlyText}>
+                            <AppText style={styles.readOnlyText}>
                                 {user?.gender === 'MALE' ? 'Male' : user?.gender === 'FEMALE' ? 'Female' : '-'}
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                     <View style={[styles.fieldContainer, { flex: 1, marginLeft: 8 }]}>
-                        <Text style={styles.label}>Phone Number</Text>
+                        <AppText style={styles.label}>Phone Number</AppText>
                         <View style={styles.readOnlyInput}>
-                            <Text style={styles.readOnlyText}>{user?.phone || ''}</Text>
+                            <AppText style={styles.readOnlyText}>{user?.phone || ''}</AppText>
                         </View>
                     </View>
                 </View>
@@ -550,7 +551,7 @@ export default function KGBVCompleteProfileScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text style={styles.submitButtonText}>Submit</Text>
+                        <AppText style={styles.submitButtonText}>Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

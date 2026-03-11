@@ -12,6 +12,7 @@
  */
 
 import React, { useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -55,7 +56,7 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{title}</Text>
+                        <AppText style={styles.modalTitle}>{title}</AppText>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} color="#374151" />
                         </TouchableOpacity>
@@ -77,19 +78,19 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
                                         onClose();
                                     }}
                                 >
-                                    <Text style={[
+                                    <AppText style={[
                                         styles.modalItemText,
                                         selectedValue === item.id && styles.modalItemTextSelected,
                                     ]}>
                                         {item.name}
-                                    </Text>
+                                    </AppText>
                                     {selectedValue === item.id && (
                                         <Ionicons name="checkmark" size={20} color="#2c3e6b" />
                                     )}
                                 </TouchableOpacity>
                             )}
                             ListEmptyComponent={
-                                <Text style={styles.emptyText}>No items available</Text>
+                                <AppText style={styles.emptyText}>No items available</AppText>
                             }
                         />
                     )}
@@ -200,30 +201,30 @@ export default function CompleteProfileScreen() {
                         />
                     </View>
                     <View>
-                        <Text style={styles.headerTitle}>Complete Profile</Text>
-                        <Text style={styles.headerSubtitle}>Add your experience details</Text>
+                        <AppText style={styles.headerTitle}>Complete Profile</AppText>
+                        <AppText style={styles.headerSubtitle}>Add your experience details</AppText>
                     </View>
                 </View>
             </View>
 
             {/* White Card */}
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-                <Text style={styles.title}>Add Experience</Text>
-                <Text style={styles.subtitle}>
+                <AppText style={styles.title}>Add Experience</AppText>
+                <AppText style={styles.subtitle}>
                     Please make sure all the required fields are properly filled.
-                </Text>
+                </AppText>
 
                 {/* Warning Banner */}
                 <View style={styles.warningBanner}>
                     <Ionicons name="warning" size={20} color="#856404" />
-                    <Text style={styles.warningText}>
+                    <AppText style={styles.warningText}>
                         Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* District Select */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>District *</Text>
+                    <AppText style={styles.label}>District *</AppText>
                     {loadingDistricts ? (
                         <View style={styles.pickerButton}>
                             <ActivityIndicator size="small" color="#2c3e6b" />
@@ -233,14 +234,14 @@ export default function CompleteProfileScreen() {
                             style={styles.pickerButton}
                             onPress={() => setDistrictModalVisible(true)}
                         >
-                            <Text style={selectedDistrict ? styles.pickerButtonText : styles.pickerPlaceholder}>
+                            <AppText style={selectedDistrict ? styles.pickerButtonText : styles.pickerPlaceholder}>
                                 {selectedDistrictName || 'Select District'}
-                            </Text>
+                            </AppText>
                             <Ionicons name="chevron-down" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     )}
                     {errors.districtId && (
-                        <Text style={styles.errorText}>{errors.districtId.message}</Text>
+                        <AppText style={styles.errorText}>{errors.districtId.message}</AppText>
                     )}
                 </View>
 
@@ -259,7 +260,7 @@ export default function CompleteProfileScreen() {
 
                 {/* School Select */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>School (Currently Employed In) *</Text>
+                    <AppText style={styles.label}>School (Currently Employed In) *</AppText>
                     {loadingSchools && selectedDistrict ? (
                         <View style={styles.pickerButton}>
                             <ActivityIndicator size="small" color="#2c3e6b" />
@@ -270,14 +271,14 @@ export default function CompleteProfileScreen() {
                             onPress={() => selectedDistrict && setSchoolModalVisible(true)}
                             disabled={!selectedDistrict}
                         >
-                            <Text style={selectedSchool ? styles.pickerButtonText : styles.pickerPlaceholder}>
+                            <AppText style={selectedSchool ? styles.pickerButtonText : styles.pickerPlaceholder}>
                                 {selectedSchoolName || (selectedDistrict ? 'Select School' : 'Select District First')}
-                            </Text>
+                            </AppText>
                             <Ionicons name="chevron-down" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     )}
                     {errors.schoolId && (
-                        <Text style={styles.errorText}>{errors.schoolId.message}</Text>
+                        <AppText style={styles.errorText}>{errors.schoolId.message}</AppText>
                     )}
                 </View>
 
@@ -293,7 +294,7 @@ export default function CompleteProfileScreen() {
 
                 {/* Years of Experience */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Total Years of Experience *</Text>
+                    <AppText style={styles.label}>Total Years of Experience *</AppText>
                     <Controller
                         control={control}
                         name="yearsOfExperience"
@@ -308,13 +309,13 @@ export default function CompleteProfileScreen() {
                         )}
                     />
                     {errors.yearsOfExperience && (
-                        <Text style={styles.errorText}>{errors.yearsOfExperience.message}</Text>
+                        <AppText style={styles.errorText}>{errors.yearsOfExperience.message}</AppText>
                     )}
                 </View>
 
                 {/* Role Assigned (Responsibilities) */}
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Role Assigned</Text>
+                    <AppText style={styles.label}>Role Assigned</AppText>
                     <View style={styles.checkboxGroup}>
                         {RESPONSIBILITY_OPTIONS.map((item) => {
                             const isSelected = (selectedResponsibilities || []).includes(item);
@@ -328,7 +329,7 @@ export default function CompleteProfileScreen() {
                                     <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
                                         {isSelected && <Ionicons name="checkmark" size={14} color="#fff" />}
                                     </View>
-                                    <Text style={styles.checkboxLabel}>{item}</Text>
+                                    <AppText style={styles.checkboxLabel}>{item}</AppText>
                                 </TouchableOpacity>
                             );
                         })}
@@ -339,31 +340,31 @@ export default function CompleteProfileScreen() {
                 <View style={styles.divider} />
 
                 {/* Personal Details (Read-only) */}
-                <Text style={styles.sectionTitle}>Personal Details</Text>
-                <Text style={styles.sectionSubtitle}>
+                <AppText style={styles.sectionTitle}>Personal Details</AppText>
+                <AppText style={styles.sectionSubtitle}>
                     To update Personal Details, go to Settings {'>'} Edit Profile
-                </Text>
+                </AppText>
 
                 <View style={styles.fieldContainer}>
-                    <Text style={styles.label}>Full Name</Text>
+                    <AppText style={styles.label}>Full Name</AppText>
                     <View style={styles.readOnlyInput}>
-                        <Text style={styles.readOnlyText}>{user?.name || ''}</Text>
+                        <AppText style={styles.readOnlyText}>{user?.name || ''}</AppText>
                     </View>
                 </View>
 
                 <View style={styles.rowFields}>
                     <View style={[styles.fieldContainer, { flex: 1, marginRight: 8 }]}>
-                        <Text style={styles.label}>Gender</Text>
+                        <AppText style={styles.label}>Gender</AppText>
                         <View style={styles.readOnlyInput}>
-                            <Text style={styles.readOnlyText}>
+                            <AppText style={styles.readOnlyText}>
                                 {user?.gender === 'MALE' ? 'Male' : user?.gender === 'FEMALE' ? 'Female' : '-'}
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                     <View style={[styles.fieldContainer, { flex: 1, marginLeft: 8 }]}>
-                        <Text style={styles.label}>Phone Number</Text>
+                        <AppText style={styles.label}>Phone Number</AppText>
                         <View style={styles.readOnlyInput}>
-                            <Text style={styles.readOnlyText}>{user?.phone || ''}</Text>
+                            <AppText style={styles.readOnlyText}>{user?.phone || ''}</AppText>
                         </View>
                     </View>
                 </View>
@@ -377,7 +378,7 @@ export default function CompleteProfileScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text style={styles.submitButtonText}>Submit</Text>
+                        <AppText style={styles.submitButtonText}>Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

@@ -674,6 +674,10 @@ export async function submitProjectUpdate(
     try {
         console.log('[Project] Submitting project update...');
 
+        const normalizedProgress = Math.max(0, Math.min(100, input.completionStatus));
+        const derivedStatus: Project['status'] =
+            normalizedProgress >= 100 ? 'Completed' : normalizedProgress > 0 ? 'In Progress' : 'Not Started';
+
         // 1. Upload photos
         const uploadedUrls: string[] = [];
         for (const uri of input.photoUris) {
@@ -691,7 +695,7 @@ export async function submitProjectUpdate(
             project_id: input.projectId,
             user_id: input.userId,
             user_name: input.userName,
-            completion_status: input.completionStatus,
+            completion_status: normalizedProgress,
             comment: input.comment || null,
             photos: uploadedUrls,
             location_address: input.locationAddress || null,
@@ -705,7 +709,8 @@ export async function submitProjectUpdate(
         // 3. Update parent project progress & append photos
         const projectRef = doc(db, 'projects', input.projectId);
         await updateDoc(projectRef, {
-            progress: input.completionStatus,
+            progress: normalizedProgress,
+            status: derivedStatus,
             photos: uploadedUrls, // Latest photos replace old ones
             updated_at: Timestamp.now(),
         });

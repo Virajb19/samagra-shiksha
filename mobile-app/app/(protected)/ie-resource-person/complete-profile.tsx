@@ -15,6 +15,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -58,7 +59,7 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
             <View className="flex-1 bg-black/50 justify-end">
                 <View className="bg-white rounded-t-[20px] max-h-[70%]">
                     <View className="flex-row justify-between items-center p-4 border-b border-[#e5e7eb]">
-                        <Text className="text-lg font-semibold text-[#1f2937]">{title}</Text>
+                        <AppText className="text-lg font-semibold text-[#1f2937]">{title}</AppText>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} color="#374151" />
                         </TouchableOpacity>
@@ -77,16 +78,16 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
                                         onClose();
                                     }}
                                 >
-                                    <Text className={`text-base text-[#374151] ${selectedValue === item.id ? 'text-[#2c3e6b] font-semibold' : ''}`}>
+                                    <AppText className={`text-base text-[#374151] ${selectedValue === item.id ? 'text-[#2c3e6b] font-semibold' : ''}`}>
                                         {item.name}
-                                    </Text>
+                                    </AppText>
                                     {selectedValue === item.id && (
                                         <Ionicons name="checkmark" size={20} color="#2c3e6b" />
                                     )}
                                 </TouchableOpacity>
                             )}
                             ListEmptyComponent={
-                                <Text className="text-center p-5 text-[#6b7280] text-sm">No items available</Text>
+                                <AppText className="text-center p-5 text-[#6b7280] text-sm">No items available</AppText>
                             }
                         />
                     )}
@@ -152,13 +153,13 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                         <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn}>
                             <Ionicons name="chevron-back" size={22} color="#2c3e6b" />
                         </TouchableOpacity>
-                        <Text style={calStyles.monthText}>{MONTHS[viewMonth]} {viewYear}</Text>
+                        <AppText style={calStyles.monthText}>{MONTHS[viewMonth]} {viewYear}</AppText>
                         <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn}>
                             <Ionicons name="chevron-forward" size={22} color="#2c3e6b" />
                         </TouchableOpacity>
                     </View>
                     <View style={calStyles.weekRow}>
-                        {WEEKDAYS.map(w => <Text key={w} style={calStyles.weekLabel}>{w}</Text>)}
+                        {WEEKDAYS.map(w => <AppText key={w} style={calStyles.weekLabel}>{w}</AppText>)}
                     </View>
                     <View style={calStyles.grid}>
                         {days.map((day, i) => (
@@ -173,17 +174,17 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                                 disabled={!day}
                             >
                                 {day ? (
-                                    <Text style={[
+                                    <AppText style={[
                                         calStyles.dayText,
                                         isSelected(day) && calStyles.dayTextSelected,
                                         isToday(day) && !isSelected(day) && calStyles.dayTextToday,
-                                    ]}>{day}</Text>
+                                    ]}>{day}</AppText>
                                 ) : null}
                             </TouchableOpacity>
                         ))}
                     </View>
                     <TouchableOpacity style={calStyles.todayBtn} onPress={() => handleSelect(today.getDate())}>
-                        <Text style={calStyles.todayBtnText}>Today</Text>
+                        <AppText style={calStyles.todayBtnText}>Today</AppText>
                     </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -299,30 +300,30 @@ export default function IECompleteProfileScreen() {
                         />
                     </View>
                     <View>
-                        <Text className="text-xl font-bold text-white">Complete Profile</Text>
-                        <Text className="text-[13px] text-white/70 mt-[2px]">Add your professional details</Text>
+                        <AppText className="text-xl font-bold text-white">Complete Profile</AppText>
+                        <AppText className="text-[13px] text-white/70 mt-[2px]">Add your professional details</AppText>
                     </View>
                 </View>
             </View>
 
             {/* White Card */}
             <ScrollView className="flex-1 bg-white rounded-t-[24px]" contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-                <Text className="text-2xl font-bold text-[#1f2937] mb-2">IE Resource Person Profile</Text>
-                <Text className="text-sm text-[#6b7280] mb-6">
+                <AppText className="text-2xl font-bold text-[#1f2937] mb-2">IE Resource Person Profile</AppText>
+                <AppText className="text-sm text-[#6b7280] mb-6">
                     Please make sure all the required fields are properly filled.
-                </Text>
+                </AppText>
 
                 {/* Warning Banner */}
                 <View className="bg-[#fff3cd] border border-[#ffc107] rounded-lg p-3 flex-row items-start mb-5 gap-2">
                     <Ionicons name="warning" size={20} color="#856404" />
-                    <Text className="flex-1 text-[13px] text-[#856404] leading-[18px]">
+                    <AppText className="flex-1 text-[13px] text-[#856404] leading-[18px]">
                         Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* District Select */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">District *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">District *</AppText>
                     {loadingDistricts ? (
                         <View className="bg-white rounded-lg border border-[#d1d5db] px-4 py-[14px] flex-row justify-between items-center">
                             <ActivityIndicator size="small" color="#2c3e6b" />
@@ -332,14 +333,14 @@ export default function IECompleteProfileScreen() {
                             className="bg-white rounded-lg border border-[#d1d5db] px-4 py-[14px] flex-row justify-between items-center"
                             onPress={() => setDistrictModalVisible(true)}
                         >
-                            <Text className={selectedDistrict ? 'text-base text-[#1f2937]' : 'text-base text-[#9ca3af]'}>
+                            <AppText className={selectedDistrict ? 'text-base text-[#1f2937]' : 'text-base text-[#9ca3af]'}>
                                 {selectedDistrictName || 'Select District'}
-                            </Text>
+                            </AppText>
                             <Ionicons name="chevron-down" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     )}
                     {errors.districtId && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.districtId.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.districtId.message}</AppText>
                     )}
                 </View>
 
@@ -357,7 +358,7 @@ export default function IECompleteProfileScreen() {
 
                 {/* Qualification */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">Qualification *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">Qualification *</AppText>
                     <Controller
                         control={control}
                         name="qualification"
@@ -372,13 +373,13 @@ export default function IECompleteProfileScreen() {
                         )}
                     />
                     {errors.qualification && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.qualification.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.qualification.message}</AppText>
                     )}
                 </View>
 
                 {/* Years of Experience */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">Total Years of Experience *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">Total Years of Experience *</AppText>
                     <Controller
                         control={control}
                         name="yearsOfExperience"
@@ -393,13 +394,13 @@ export default function IECompleteProfileScreen() {
                         )}
                     />
                     {errors.yearsOfExperience && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.yearsOfExperience.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.yearsOfExperience.message}</AppText>
                     )}
                 </View>
 
                 {/* RCI Number */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">RCI Number *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">RCI Number *</AppText>
                     <Controller
                         control={control}
                         name="rciNumber"
@@ -414,24 +415,24 @@ export default function IECompleteProfileScreen() {
                         )}
                     />
                     {errors.rciNumber && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.rciNumber.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.rciNumber.message}</AppText>
                     )}
                 </View>
 
                 {/* Date of Joining */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">Date of Joining *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">Date of Joining *</AppText>
                     <TouchableOpacity
                         className="bg-white rounded-lg border border-[#d1d5db] px-4 py-[14px] flex-row justify-between items-center"
                         onPress={() => setDatePickerVisible(true)}
                     >
-                        <Text className={dateOfJoining ? 'text-base text-[#1f2937]' : 'text-base text-[#9ca3af]'}>
+                        <AppText className={dateOfJoining ? 'text-base text-[#1f2937]' : 'text-base text-[#9ca3af]'}>
                             {dateOfJoining || 'Select date'}
-                        </Text>
+                        </AppText>
                         <Ionicons name="calendar-outline" size={20} color="#6b7280" />
                     </TouchableOpacity>
                     {errors.dateOfJoining && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.dateOfJoining.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.dateOfJoining.message}</AppText>
                     )}
                 </View>
 
@@ -444,7 +445,7 @@ export default function IECompleteProfileScreen() {
 
                 {/* EBRC */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">EBRC *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">EBRC *</AppText>
                     <Controller
                         control={control}
                         name="ebrc"
@@ -459,13 +460,13 @@ export default function IECompleteProfileScreen() {
                         )}
                     />
                     {errors.ebrc && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.ebrc.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.ebrc.message}</AppText>
                     )}
                 </View>
 
                 {/* Aadhaar Number */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">Aadhaar Number *</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">Aadhaar Number *</AppText>
                     <Controller
                         control={control}
                         name="aadhaarNumber"
@@ -482,7 +483,7 @@ export default function IECompleteProfileScreen() {
                         )}
                     />
                     {errors.aadhaarNumber && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.aadhaarNumber.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.aadhaarNumber.message}</AppText>
                     )}
                 </View>
 
@@ -490,31 +491,31 @@ export default function IECompleteProfileScreen() {
                 <View className="h-[1px] bg-[#e5e7eb] my-6" />
 
                 {/* Personal Details (Read-only) */}
-                <Text className="text-lg font-bold text-[#1f2937] mb-1">Personal Details</Text>
-                <Text className="text-xs text-[#6b7280] mb-5">
+                <AppText className="text-lg font-bold text-[#1f2937] mb-1">Personal Details</AppText>
+                <AppText className="text-xs text-[#6b7280] mb-5">
                     To update Personal Details, go to Settings {'>'} Edit Profile
-                </Text>
+                </AppText>
 
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-[#374151] mb-2">Full Name</Text>
+                    <AppText className="text-sm font-semibold text-[#374151] mb-2">Full Name</AppText>
                     <View className="bg-[#f3f4f6] rounded-lg border border-[#e5e7eb] px-4 py-3">
-                        <Text className="text-base text-[#6b7280]">{user?.name || ''}</Text>
+                        <AppText className="text-base text-[#6b7280]">{user?.name || ''}</AppText>
                     </View>
                 </View>
 
                 <View className="flex-row">
                     <View className="mb-5 flex-1 mr-2">
-                        <Text className="text-sm font-semibold text-[#374151] mb-2">Gender</Text>
+                        <AppText className="text-sm font-semibold text-[#374151] mb-2">Gender</AppText>
                         <View className="bg-[#f3f4f6] rounded-lg border border-[#e5e7eb] px-4 py-3">
-                            <Text className="text-base text-[#6b7280]">
+                            <AppText className="text-base text-[#6b7280]">
                                 {user?.gender === 'MALE' ? 'Male' : user?.gender === 'FEMALE' ? 'Female' : '-'}
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                     <View className="mb-5 flex-1 ml-2">
-                        <Text className="text-sm font-semibold text-[#374151] mb-2">Phone Number</Text>
+                        <AppText className="text-sm font-semibold text-[#374151] mb-2">Phone Number</AppText>
                         <View className="bg-[#f3f4f6] rounded-lg border border-[#e5e7eb] px-4 py-3">
-                            <Text className="text-base text-[#6b7280]">{user?.phone || ''}</Text>
+                            <AppText className="text-base text-[#6b7280]">{user?.phone || ''}</AppText>
                         </View>
                     </View>
                 </View>
@@ -528,7 +529,7 @@ export default function IECompleteProfileScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text className="text-base font-semibold text-white">Submit</Text>
+                        <AppText className="text-base font-semibold text-white">Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

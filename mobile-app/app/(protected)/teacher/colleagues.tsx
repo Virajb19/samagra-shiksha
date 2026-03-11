@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -79,9 +80,9 @@ function StaffCard({ staff, expanded, onToggle }: StaffCardProps) {
                         />
                     ) : (
                         <View className="w-[50px] h-[50px] rounded-[10px] bg-[#e8ecf4] justify-center items-center" style={{ borderWidth: 2.5, borderColor: isActive ? '#22c55e' : '#ef4444' }}>
-                            <Text className="text-xl font-semibold text-[#2c3e6b]">
+                            <AppText className="text-xl font-semibold text-[#2c3e6b]">
                                 {staff.user.name.charAt(0).toUpperCase()}
-                            </Text>
+                            </AppText>
                         </View>
                     )}
                     <View
@@ -92,8 +93,8 @@ function StaffCard({ staff, expanded, onToggle }: StaffCardProps) {
                     </View>
                 </View>
                 <View className="flex-1">
-                    <Text className="text-base font-semibold text-[#1a1a2e]">{staff.user.name}</Text>
-                    <Text className="text-[13px] text-[#2c3e6b]">{getRoleDisplay()}</Text>
+                    <AppText className="text-base font-semibold text-[#1a1a2e]">{staff.user.name}</AppText>
+                    <AppText className="text-[13px] text-[#2c3e6b]">{getRoleDisplay()}</AppText>
                 </View>
                 <Ionicons
                     name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -107,29 +108,29 @@ function StaffCard({ staff, expanded, onToggle }: StaffCardProps) {
                     {staff.user.phone ? (
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="call-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Phone:</Text>
-                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.user.phone}</Text>
+                            <AppText className="text-[13px] text-[#6b7280] w-[90px]">Phone:</AppText>
+                            <AppText className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.user.phone}</AppText>
                         </View>
                     ) : null}
                     {staff.user.email ? (
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="mail-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Email:</Text>
-                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1" numberOfLines={1}>{staff.user.email}</Text>
+                            <AppText className="text-[13px] text-[#6b7280] w-[90px]">Email:</AppText>
+                            <AppText className="text-[13px] text-[#1a1a2e] font-medium flex-1" numberOfLines={1}>{staff.user.email}</AppText>
                         </View>
                     ) : null}
                     {staff.years_of_experience != null && (
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="briefcase-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Experience:</Text>
-                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.years_of_experience} years</Text>
+                            <AppText className="text-[13px] text-[#6b7280] w-[90px]">Experience:</AppText>
+                            <AppText className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.years_of_experience} years</AppText>
                         </View>
                     )}
                     {staff.designation ? (
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="ribbon-outline" size={16} color="#6b7280" style={{ marginRight: 8, marginTop: 1 }} />
-                            <Text className="text-[13px] text-[#6b7280] w-[90px]">Designation:</Text>
-                            <Text className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.designation}</Text>
+                            <AppText className="text-[13px] text-[#6b7280] w-[90px]">Designation:</AppText>
+                            <AppText className="text-[13px] text-[#1a1a2e] font-medium flex-1">{staff.designation}</AppText>
                         </View>
                     ) : null}
                 </View>
@@ -185,7 +186,7 @@ export default function ColleaguesScreen() {
         return (
             <View className="flex-1 justify-center items-center bg-[#f0f2f8]">
                 <ActivityIndicator size="large" color="#2c3e6b" />
-                <Text className="mt-3 text-base text-[#6b7280]">Loading colleagues...</Text>
+                <AppText className="mt-3 text-base text-[#6b7280]">Loading colleagues...</AppText>
             </View>
         );
     }
@@ -201,8 +202,8 @@ export default function ColleaguesScreen() {
                     <Ionicons name="arrow-back" size={24} color="#ffffff" />
                 </TouchableOpacity>
                 <View className="flex-1">
-                    <Text className="text-[32px] font-bold text-white mb-1">View Colleagues</Text>
-                    <Text className="text-sm text-white/70">{schoolName}</Text>
+                    <AppText className="text-[32px] font-bold text-white mb-1">View Colleagues</AppText>
+                    <AppText className="text-sm text-white/70">{schoolName}</AppText>
                 </View>
             </View>
 
@@ -215,7 +216,7 @@ export default function ColleaguesScreen() {
                         <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
                     }
                 >
-                    <Text className="text-lg font-bold text-[#1a1a2e] mb-3">Find your colleagues</Text>
+                    <AppText className="text-lg font-bold text-[#1a1a2e] mb-3">Find your colleagues</AppText>
 
                     {/* Search Input */}
                     <View className="flex-row items-center bg-[#e8ecf4] rounded-[10px] px-3 mb-3">
@@ -231,16 +232,16 @@ export default function ColleaguesScreen() {
                     {/* Stats */}
                     <View className="flex-row gap-[10px] mb-4">
                         <View className="flex-1 bg-[#eff6ff] rounded-[10px] py-[10px] items-center">
-                            <Text className="text-xl font-bold text-[#1565C0]">{filteredStaff.length}</Text>
-                            <Text className="text-[11px] font-medium text-[#3b82f6] mt-[2px]">Total</Text>
+                            <AppText className="text-xl font-bold text-[#1565C0]">{filteredStaff.length}</AppText>
+                            <AppText className="text-[11px] font-medium text-[#3b82f6] mt-[2px]">Total</AppText>
                         </View>
                         <View className="flex-1 bg-[#dcfce7] rounded-[10px] py-[10px] items-center">
-                            <Text className="text-xl font-bold text-[#22c55e]">{filteredStaff.filter(s => s.user.is_active).length}</Text>
-                            <Text className="text-[11px] font-medium text-[#16a34a] mt-[2px]">Active</Text>
+                            <AppText className="text-xl font-bold text-[#22c55e]">{filteredStaff.filter(s => s.user.is_active).length}</AppText>
+                            <AppText className="text-[11px] font-medium text-[#16a34a] mt-[2px]">Active</AppText>
                         </View>
                         <View className="flex-1 bg-[#fee2e2] rounded-[10px] py-[10px] items-center">
-                            <Text className="text-xl font-bold text-[#ef4444]">{filteredStaff.filter(s => !s.user.is_active).length}</Text>
-                            <Text className="text-[11px] font-medium text-[#dc2626] mt-[2px]">Inactive</Text>
+                            <AppText className="text-xl font-bold text-[#ef4444]">{filteredStaff.filter(s => !s.user.is_active).length}</AppText>
+                            <AppText className="text-[11px] font-medium text-[#dc2626] mt-[2px]">Inactive</AppText>
                         </View>
                     </View>
 
@@ -256,9 +257,9 @@ export default function ColleaguesScreen() {
                     ) : (
                         <View className="items-center py-10">
                             <Ionicons name="people-outline" size={48} color="#d1d5db" />
-                            <Text className="text-sm text-[#9ca3af] mt-3 text-center">
+                            <AppText className="text-sm text-[#9ca3af] mt-3 text-center">
                                 {searchQuery ? 'No colleagues found matching your search' : 'No colleagues found'}
-                            </Text>
+                            </AppText>
                         </View>
                     )}
                 </ScrollView>

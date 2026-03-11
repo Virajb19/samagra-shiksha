@@ -7,9 +7,10 @@
  * - Loading → Splash screen
  */
 
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '../src/lib/store';
+import { AppText } from '@/components/AppText';
 
 export default function Index() {
     const { isAuthenticated, isLoading } = useAuthStore();
@@ -19,14 +20,14 @@ export default function Index() {
         return (
             <View className="flex-1 bg-[#0f0f1a] justify-center items-center">
                 <View className="items-center px-10">
-                    <Text className="text-3xl font-bold text-white mb-2 tracking-wide">Secure Delivery</Text>
-                    <Text className="text-sm text-gray-500 mb-10 uppercase tracking-widest">Government Tracking System</Text>
+                    <AppText className="text-3xl font-bold text-white mb-2 tracking-wide">Secure Delivery</AppText>
+                    <AppText className="text-sm text-gray-500 mb-10 uppercase tracking-widest">Government Tracking System</AppText>
                     <ActivityIndicator
                         size="large"
                         color="#4f8cff"
                         className="mb-4"
                     />
-                    <Text className="text-sm text-gray-400">Initializing...</Text>
+                    <AppText className="text-sm text-gray-400">Initializing...</AppText>
                 </View>
             </View>
         );

@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -31,11 +32,11 @@ function InfoRow({ icon, label, value, loading = false }: { icon: keyof typeof I
     return (
         <View className="flex-row items-center gap-3 py-1">
             <Ionicons name={icon} size={22} color="#374151" />
-            <Text className="text-[15px] font-semibold text-gray-900">{label}:</Text>
+            <AppText className="text-[15px] font-semibold text-gray-900">{label}:</AppText>
             {loading ? (
                 <ActivityIndicator size="small" color={BLUE} />
             ) : (
-                <Text className="text-[15px] text-gray-700 flex-1">{value}</Text>
+                <AppText className="text-[15px] text-gray-700 flex-1">{value}</AppText>
             )}
         </View>
     );
@@ -69,9 +70,9 @@ export default function NSCBAVWardenViewProfileScreen() {
         return (
             <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                <Text className="text-base text-gray-500 mt-3 mb-4">Not authenticated</Text>
+                <AppText className="text-base text-gray-500 mt-3 mb-4">Not authenticated</AppText>
                 <TouchableOpacity className="px-6 py-3 rounded-xl" style={{ backgroundColor: BLUE }} onPress={() => router.back()}>
-                    <Text className="text-white text-sm font-semibold">Go Back</Text>
+                    <AppText className="text-white text-sm font-semibold">Go Back</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -81,13 +82,13 @@ export default function NSCBAVWardenViewProfileScreen() {
         return (
             <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="person-circle-outline" size={64} color="#9ca3af" />
-                <Text className="text-base text-gray-500 mt-3 mb-4">Profile not completed yet</Text>
+                <AppText className="text-base text-gray-500 mt-3 mb-4">Profile not completed yet</AppText>
                 <TouchableOpacity
                     className="px-6 py-3 rounded-xl"
                     style={{ backgroundColor: BLUE }}
                     onPress={() => router.replace('/(protected)/nscbav-warden/complete-profile')}
                 >
-                    <Text className="text-white text-sm font-semibold">Complete Profile</Text>
+                    <AppText className="text-white text-sm font-semibold">Complete Profile</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -123,13 +124,13 @@ export default function NSCBAVWardenViewProfileScreen() {
                         )}
                     </View>
                     <View className="flex-1">
-                        <Text className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user.name || 'User'}</Text>
+                        <AppText className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user.name || 'User'}</AppText>
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.8)" />
-                            <Text className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user.email || 'No email'}</Text>
+                            <AppText className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user.email || 'No email'}</AppText>
                         </View>
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' }}>
-                            <Text className="text-white text-xs font-semibold">NSCBAV Warden</Text>
+                            <AppText className="text-white text-xs font-semibold">NSCBAV Warden</AppText>
                         </View>
                     </View>
                 </View>
@@ -138,7 +139,7 @@ export default function NSCBAVWardenViewProfileScreen() {
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
                 {/* Profile Details */}
                 <View className="mb-5">
-                    <Text className="text-lg font-bold text-gray-900 mb-4">NSCBAV Warden Details</Text>
+                    <AppText className="text-lg font-bold text-gray-900 mb-4">NSCBAV Warden Details</AppText>
                     <View className="bg-white rounded-2xl p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }}>
                         <InfoRow icon="home-outline" label="Hostel Location" value={user.residential_location || '-'} />
                         <View className="h-[1px] bg-[#f0f2f8] my-3" />
@@ -165,7 +166,7 @@ export default function NSCBAVWardenViewProfileScreen() {
                         style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#34d399', backgroundColor: '#ecfdf5' }}
                     >
                         <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-                        <Text className="text-[15px] font-semibold text-emerald-500">Your account is verified</Text>
+                        <AppText className="text-[15px] font-semibold text-emerald-500">Your account is verified</AppText>
                     </View>
                 )}
 
@@ -176,7 +177,7 @@ export default function NSCBAVWardenViewProfileScreen() {
                         style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
                     >
                         <Ionicons name="time-outline" size={24} color={BLUE} />
-                        <Text style={{ color: BLUE }} className="text-[15px] font-semibold">Your account is under verification</Text>
+                        <AppText style={{ color: BLUE }} className="text-[15px] font-semibold">Your account is under verification</AppText>
                     </View>
                 )}
             </ScrollView>

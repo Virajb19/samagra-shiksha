@@ -18,6 +18,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -244,7 +245,7 @@ export default function EventCamera({
         return (
             <View style={styles.container}>
                 <ActivityIndicator size="large" color="#4f8cff" />
-                <Text style={styles.loadingText}>Preparing camera...</Text>
+                <AppText style={styles.loadingText}>Preparing camera...</AppText>
             </View>
         );
     }
@@ -253,16 +254,16 @@ export default function EventCamera({
     if (!cameraPermission) {
         return (
             <View style={styles.permissionContainer}>
-                <Text style={styles.permissionIcon}>📷</Text>
-                <Text style={styles.permissionTitle}>Camera Permission Required</Text>
-                <Text style={styles.permissionText}>
+                <AppText style={styles.permissionIcon}>📷</AppText>
+                <AppText style={styles.permissionTitle}>Camera Permission Required</AppText>
+                <AppText style={styles.permissionText}>
                     Camera access is required to capture evidence photos. Please enable it in settings.
-                </Text>
+                </AppText>
                 <TouchableOpacity style={styles.settingsButton} onPress={openSettings}>
-                    <Text style={styles.settingsButtonText}>⚙️ Open Settings</Text>
+                    <AppText style={styles.settingsButtonText}>⚙️ Open Settings</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <AppText style={styles.cancelButtonText}>Cancel</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -272,16 +273,16 @@ export default function EventCamera({
     if (!locationPermission) {
         return (
             <View style={styles.permissionContainer}>
-                <Text style={styles.permissionIcon}>📍</Text>
-                <Text style={styles.permissionTitle}>Location Permission Required</Text>
-                <Text style={styles.permissionText}>
+                <AppText style={styles.permissionIcon}>📍</AppText>
+                <AppText style={styles.permissionTitle}>Location Permission Required</AppText>
+                <AppText style={styles.permissionText}>
                     Location access is required to verify where the photo was taken.
-                </Text>
+                </AppText>
                 <TouchableOpacity style={styles.settingsButton} onPress={openSettings}>
-                    <Text style={styles.settingsButtonText}>⚙️ Open Settings</Text>
+                    <AppText style={styles.settingsButtonText}>⚙️ Open Settings</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <AppText style={styles.cancelButtonText}>Cancel</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -292,9 +293,9 @@ export default function EventCamera({
         return (
             <View style={styles.container}>
                 <ActivityIndicator size="large" color="#4f8cff" />
-                <Text style={styles.loadingText}>
+                <AppText style={styles.loadingText}>
                     {captureState === 'capturing' ? 'Opening camera...' : 'Getting location...'}
-                </Text>
+                </AppText>
             </View>
         );
     }
@@ -305,21 +306,21 @@ export default function EventCamera({
             <View style={styles.container}>
                 <View style={styles.readyHeader}>
                     <TouchableOpacity style={styles.closeButton} onPress={onCancel}>
-                        <Text style={styles.closeButtonText}>✕</Text>
+                        <AppText style={styles.closeButtonText}>✕</AppText>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.readyContent}>
-                    <Text style={styles.readyIcon}>📷</Text>
-                    <Text style={styles.readyTitle}>{eventLabel.title}</Text>
-                    <Text style={styles.readyInstruction}>{eventLabel.instruction}</Text>
+                    <AppText style={styles.readyIcon}>📷</AppText>
+                    <AppText style={styles.readyTitle}>{eventLabel.title}</AppText>
+                    <AppText style={styles.readyInstruction}>{eventLabel.instruction}</AppText>
                     <TouchableOpacity style={styles.captureButton} onPress={launchCamera}>
-                        <Text style={styles.captureButtonText}>Open Camera</Text>
+                        <AppText style={styles.captureButtonText}>Open Camera</AppText>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.securityNotice}>
-                    <Text style={styles.securityText}>
+                    <AppText style={styles.securityText}>
                         🔒 Photo will be verified with GPS and timestamp
-                    </Text>
+                    </AppText>
                 </View>
             </View>
         );
@@ -330,8 +331,8 @@ export default function EventCamera({
         return (
             <View style={styles.container}>
                 <View style={styles.previewHeader}>
-                    <Text style={styles.previewTitle}>{eventLabel.title}</Text>
-                    <Text style={styles.previewSubtitle}>Review your photo</Text>
+                    <AppText style={styles.previewTitle}>{eventLabel.title}</AppText>
+                    <AppText style={styles.previewSubtitle}>Review your photo</AppText>
                 </View>
 
                 <View style={styles.previewImageContainer}>
@@ -339,14 +340,14 @@ export default function EventCamera({
                 </View>
 
                 <View style={styles.locationInfo}>
-                    <Text style={styles.locationLabel}>📍 Location Captured</Text>
-                    <Text style={styles.locationText}>
+                    <AppText style={styles.locationLabel}>📍 Location Captured</AppText>
+                    <AppText style={styles.locationText}>
                         {formatCoordinates(location.latitude!, location.longitude!)}
-                    </Text>
+                    </AppText>
                     {location.accuracy && (
-                        <Text style={styles.accuracyText}>
+                        <AppText style={styles.accuracyText}>
                             Accuracy: ±{location.accuracy.toFixed(0)}m
-                        </Text>
+                        </AppText>
                     )}
                 </View>
 
@@ -356,7 +357,7 @@ export default function EventCamera({
                         onPress={retakePhoto}
                         disabled={isSubmitting}
                     >
-                        <Text style={styles.retakeButtonText}>📷 Retake</Text>
+                        <AppText style={styles.retakeButtonText}>📷 Retake</AppText>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -367,7 +368,7 @@ export default function EventCamera({
                         {isSubmitting ? (
                             <ActivityIndicator color="#ffffff" />
                         ) : (
-                            <Text style={styles.confirmButtonText}>✓ Submit</Text>
+                            <AppText style={styles.confirmButtonText}>✓ Submit</AppText>
                         )}
                     </TouchableOpacity>
                 </View>

@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -63,7 +64,7 @@ function YesNoField({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
             <View className="flex-row items-center gap-6">
                 <TouchableOpacity className="flex-row items-center" onPress={() => onChange('Yes')}>
                     <View
@@ -74,7 +75,7 @@ function YesNoField({
                             <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                         )}
                     </View>
-                    <Text className="text-[15px] text-[#1a1a1a]">Yes</Text>
+                    <AppText className="text-[15px] text-[#1a1a1a]">Yes</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-row items-center" onPress={() => onChange('No')}>
                     <View
@@ -85,10 +86,10 @@ function YesNoField({
                             <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                         )}
                     </View>
-                    <Text className="text-[15px] text-[#1a1a1a]">No</Text>
+                    <AppText className="text-[15px] text-[#1a1a1a]">No</AppText>
                 </TouchableOpacity>
             </View>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -109,7 +110,7 @@ function RadioField({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
             <View className="flex-row items-center gap-6">
                 {options.map((opt) => (
                     <TouchableOpacity key={opt} className="flex-row items-center" onPress={() => onChange(opt)}>
@@ -121,11 +122,11 @@ function RadioField({
                                 <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                             )}
                         </View>
-                        <Text className="text-[15px] text-[#1a1a1a]">{opt}</Text>
+                        <AppText className="text-[15px] text-[#1a1a1a]">{opt}</AppText>
                     </TouchableOpacity>
                 ))}
             </View>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -177,26 +178,26 @@ function PdfUploadField({
 
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</AppText>
             <TouchableOpacity
                 className="border border-gray-200 rounded-xl px-4 py-4 flex-row items-center bg-[#fafafa]"
                 onPress={pickPdf}
             >
                 <Ionicons name="document-outline" size={24} color={BLUE} style={{ marginRight: 12 }} />
-                <Text className="flex-1 text-[14px] text-gray-500" numberOfLines={1}>
+                <AppText className="flex-1 text-[14px] text-gray-500" numberOfLines={1}>
                     {fileName || placeholder}
-                </Text>
+                </AppText>
             </TouchableOpacity>
             {value && (
                 <View className="flex-row items-center mt-2 bg-blue-50 rounded-lg px-3 py-2">
                     <Ionicons name="document-text" size={20} color={BLUE} style={{ marginRight: 8 }} />
-                    <Text className="flex-1 text-xs text-[#1a1a1a] font-medium" numberOfLines={1}>{fileName}</Text>
+                    <AppText className="flex-1 text-xs text-[#1a1a1a] font-medium" numberOfLines={1}>{fileName}</AppText>
                     <TouchableOpacity onPress={() => onChange('')}>
                         <Ionicons name="close-circle" size={20} color="#ef4444" />
                     </TouchableOpacity>
                 </View>
             )}
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -217,10 +218,10 @@ function ImagePickerGrid({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-1">
                 GeoTagged Photo of each ICT material (at least 1, max {MAX_PHOTOS}) *
-            </Text>
-            <Text className="text-xs text-gray-500 mb-2.5">{images.length}/{MAX_PHOTOS} photos uploaded</Text>
+            </AppText>
+            <AppText className="text-xs text-gray-500 mb-2.5">{images.length}/{MAX_PHOTOS} photos uploaded</AppText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ overflow: 'visible' }} contentContainerStyle={{ gap: 12, paddingRight: 16, paddingTop: 10, paddingLeft: 2, paddingBottom: 4 }}>
                 {images.map((uri, idx) => (
                     <View key={idx} style={{ position: 'relative' }}>
@@ -242,7 +243,7 @@ function ImagePickerGrid({
                     </TouchableOpacity>
                 )}
             </ScrollView>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -259,9 +260,9 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                         resizeMode="contain"
                     />
                     <View>
-                        <Text className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</Text>
-                        <Text className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</Text>
-                        <Text className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</Text>
+                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
+                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
+                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
                     </View>
                 </View>
                 <Image
@@ -270,10 +271,10 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                     resizeMode="contain"
                 />
             </View>
-            <Text className="text-white text-[28px] font-extrabold mb-1">ICT Activities</Text>
-            <Text className="text-white/80 text-xs">
+            <AppText className="text-white text-[28px] font-extrabold mb-1">ICT Activities</AppText>
+            <AppText className="text-white/80 text-xs">
                 Please make sure all the required fields are properly filled.
-            </Text>
+            </AppText>
             <TouchableOpacity
                 onPress={onBack}
                 style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
@@ -290,7 +291,7 @@ function ICTFormDataTable({ submissions }: { submissions: ICTFormSubmission[] })
 
     return (
         <View className="mt-6 mb-4">
-            <Text className="text-lg font-bold text-[#1a1a1a] mb-3">Your ICT Submissions</Text>
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your ICT Submissions</AppText>
             {submissions.map((sub, idx) => (
                 <View
                     key={sub.id}
@@ -299,13 +300,13 @@ function ICTFormDataTable({ submissions }: { submissions: ICTFormSubmission[] })
                 >
                     <View className="flex-row items-center mb-2">
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <Text className="text-white font-bold text-sm">{idx + 1}</Text>
+                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
                         </View>
                         <View className="flex-1">
-                            <Text className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'ICT Submission'}</Text>
-                            <Text className="text-xs text-gray-500">
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'ICT Submission'}</AppText>
+                            <AppText className="text-xs text-gray-500">
                                 {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </Text>
+                            </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
@@ -329,7 +330,7 @@ function ICTFormDataTable({ submissions }: { submissions: ICTFormSubmission[] })
                         <DataRow label="Observations" value={sub.observations} />
                         {sub.photos_of_materials.length > 0 && (
                             <View className="mt-2">
-                                <Text className="text-xs font-semibold text-gray-600 mb-1">Photos ({sub.photos_of_materials.length})</Text>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Photos ({sub.photos_of_materials.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     {sub.photos_of_materials.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -347,8 +348,8 @@ function ICTFormDataTable({ submissions }: { submissions: ICTFormSubmission[] })
 function DataRow({ label, value }: { label: string; value: string }) {
     return (
         <View className="flex-row py-1.5">
-            <Text className="text-xs text-gray-500 w-[45%]">{label}</Text>
-            <Text className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</Text>
+            <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
+            <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
         </View>
     );
 }
@@ -547,10 +548,10 @@ export default function ICTFormScreen() {
                     {/* Success message */}
                     <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
                         <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-                        <Text className="text-lg font-bold text-green-700 mt-2">Form Submitted!</Text>
-                        <Text className="text-sm text-green-600 mt-1 text-center">
+                        <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
+                        <AppText className="text-sm text-green-600 mt-1 text-center">
                             Your ICT Activities form has been submitted successfully.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <ICTFormDataTable submissions={submissions} />
@@ -560,7 +561,7 @@ export default function ICTFormScreen() {
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
-                        <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
+                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -608,9 +609,9 @@ export default function ICTFormScreen() {
                             className="w-8 h-8 rounded-full items-center justify-center"
                             style={{ backgroundColor: currentPage >= page ? BLUE : '#e5e7eb' }}
                         >
-                            <Text className="text-sm font-bold" style={{ color: currentPage >= page ? '#fff' : '#9ca3af' }}>
+                            <AppText className="text-sm font-bold" style={{ color: currentPage >= page ? '#fff' : '#9ca3af' }}>
                                 {page}
-                            </Text>
+                            </AppText>
                         </View>
                         {page < 3 && (
                             <View
@@ -751,7 +752,7 @@ function Page1({
                 style={{ backgroundColor: BLUE }}
                 onPress={onNext}
             >
-                <Text className="text-base font-bold text-white">Next</Text>
+                <AppText className="text-base font-bold text-white">Next</AppText>
             </TouchableOpacity>
         </View>
     );
@@ -801,9 +802,9 @@ function Page2({
                 )}
             />
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of days in a week Smart Class is conducted
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="weeklySmartClassDays"
@@ -819,7 +820,7 @@ function Page2({
                 )}
             />
             {errors.weeklySmartClassDays && (
-                <Text className="text-xs text-red-500 mb-4">{errors.weeklySmartClassDays.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.weeklySmartClassDays.message}</AppText>
             )}
 
             <Controller
@@ -856,14 +857,14 @@ function Page2({
                     style={{ borderColor: BLUE }}
                     onPress={onBack}
                 >
-                    <Text className="text-base font-bold" style={{ color: BLUE }}>Go Back</Text>
+                    <AppText className="text-base font-bold" style={{ color: BLUE }}>Go Back</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity
                     className="flex-1 rounded-xl py-4 items-center"
                     style={{ backgroundColor: BLUE }}
                     onPress={onNext}
                 >
-                    <Text className="text-base font-bold text-white">Next</Text>
+                    <AppText className="text-base font-bold text-white">Next</AppText>
                 </TouchableOpacity>
             </View>
         </View>
@@ -889,9 +890,9 @@ function Page3({
 
     return (
         <View>
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of students between Class 6 to 12 benefitting from the Smart Classroom Program
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="studentsBenefited"
@@ -907,7 +908,7 @@ function Page3({
                 )}
             />
             {errors.studentsBenefited && (
-                <Text className="text-xs text-red-500 mb-4">{errors.studentsBenefited.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.studentsBenefited.message}</AppText>
             )}
 
             <Controller
@@ -936,7 +937,7 @@ function Page3({
                 )}
             />
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">If Yes, comment in detail</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">If Yes, comment in detail</AppText>
             <Controller
                 control={control}
                 name="benefitComment"
@@ -954,9 +955,9 @@ function Page3({
                 )}
             />
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Have the teachers noticed any impact on students' performance after introduction of the Smart Class Program?
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="teacherImpact"
@@ -974,12 +975,12 @@ function Page3({
                 )}
             />
             {errors.teacherImpact && (
-                <Text className="text-xs text-red-500 mb-4">{errors.teacherImpact.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.teacherImpact.message}</AppText>
             )}
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 How far has the Program helped the Teachers?
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="howProgramHelped"
@@ -997,12 +998,12 @@ function Page3({
                 )}
             />
             {errors.howProgramHelped && (
-                <Text className="text-xs text-red-500 mb-4">{errors.howProgramHelped.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.howProgramHelped.message}</AppText>
             )}
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 What are the basic observations made by the teachers while conducting the Smart Classes?
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="observations"
@@ -1020,7 +1021,7 @@ function Page3({
                 )}
             />
             {errors.observations && (
-                <Text className="text-xs text-red-500 mb-4">{errors.observations.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.observations.message}</AppText>
             )}
 
             {/* Navigation Buttons */}
@@ -1031,7 +1032,7 @@ function Page3({
                     onPress={onBack}
                     disabled={isSubmitting}
                 >
-                    <Text className="text-base font-bold" style={{ color: BLUE }}>Go Back</Text>
+                    <AppText className="text-base font-bold" style={{ color: BLUE }}>Go Back</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity
                     className={`flex-1 rounded-xl py-4 items-center ${isSubmitting ? 'bg-gray-400' : ''}`}
@@ -1042,7 +1043,7 @@ function Page3({
                     {isSubmitting ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
-                        <Text className="text-base font-bold text-white">Submit</Text>
+                        <AppText className="text-base font-bold text-white">Submit</AppText>
                     )}
                 </TouchableOpacity>
             </View>

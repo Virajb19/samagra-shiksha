@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -72,7 +73,7 @@ export default function ViewProfileScreen() {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#2c3e6b" />
-                <Text style={styles.loadingText}>Loading profile...</Text>
+                <AppText style={styles.loadingText}>Loading profile...</AppText>
             </View>
         );
     }
@@ -81,9 +82,9 @@ export default function ViewProfileScreen() {
         return (
             <View style={styles.errorContainer}>
                 <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                <Text style={styles.errorText}>Failed to load profile</Text>
+                <AppText style={styles.errorText}>Failed to load profile</AppText>
                 <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
-                    <Text style={styles.retryButtonText}>Go Back</Text>
+                    <AppText style={styles.retryButtonText}>Go Back</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -93,12 +94,12 @@ export default function ViewProfileScreen() {
         return (
             <View style={styles.errorContainer}>
                 <Ionicons name="person-circle-outline" size={64} color="#9ca3af" />
-                <Text style={[styles.errorText, { marginTop: 12 }]}>Profile not completed yet</Text>
+                <AppText style={[styles.errorText, { marginTop: 12 }]}>Profile not completed yet</AppText>
                 <TouchableOpacity
                     style={styles.retryButton}
                     onPress={() => router.replace('/(protected)/headmaster/complete-profile')}
                 >
-                    <Text style={styles.retryButtonText}>Complete Profile</Text>
+                    <AppText style={styles.retryButtonText}>Complete Profile</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -114,13 +115,13 @@ export default function ViewProfileScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color="#ffffff" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>My Profile</Text>
+                <AppText style={styles.headerTitle}>My Profile</AppText>
                 {!profile.is_profile_locked && (
                     <TouchableOpacity
                         style={styles.editButton}
                         onPress={() => router.push('/headmaster/complete-profile')}
                     >
-                        <Text style={styles.editButtonText}>Edit Details</Text>
+                        <AppText style={styles.editButtonText}>Edit Details</AppText>
                     </TouchableOpacity>
                 )}
                 {profile.is_profile_locked && <View style={styles.placeholder} />}
@@ -131,37 +132,37 @@ export default function ViewProfileScreen() {
                 {profile.is_profile_locked && (
                     <View style={styles.lockedBadge}>
                         <Ionicons name="lock-closed" size={16} color="#2c3e6b" />
-                        <Text style={styles.lockedText}>
+                        <AppText style={styles.lockedText}>
                             Profile is locked and cannot be edited
-                        </Text>
+                        </AppText>
                     </View>
                 )}
 
                 {/* Personal Information */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Personal Information</Text>
+                    <AppText style={styles.sectionTitle}>Personal Information</AppText>
                     <View style={styles.card}>
                         <View style={styles.infoRow}>
                             <Ionicons name="person-outline" size={20} color="#6b7280" />
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Full Name</Text>
-                                <Text style={styles.infoValue}>{user?.name || '-'}</Text>
+                                <AppText style={styles.infoLabel}>Full Name</AppText>
+                                <AppText style={styles.infoValue}>{user?.name || '-'}</AppText>
                             </View>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.infoRow}>
                             <Ionicons name="call-outline" size={20} color="#6b7280" />
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Phone Number</Text>
-                                <Text style={styles.infoValue}>{user?.phone || '-'}</Text>
+                                <AppText style={styles.infoLabel}>Phone Number</AppText>
+                                <AppText style={styles.infoValue}>{user?.phone || '-'}</AppText>
                             </View>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.infoRow}>
                             <Ionicons name={user?.gender === 'MALE' ? 'male' : user?.gender === 'FEMALE' ? 'female' : 'person-outline'} size={20} color="#6b7280" />
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Gender</Text>
-                                <Text style={styles.infoValue}>{formatGender(user?.gender)}</Text>
+                                <AppText style={styles.infoLabel}>Gender</AppText>
+                                <AppText style={styles.infoValue}>{formatGender(user?.gender)}</AppText>
                             </View>
                         </View>
                         {user?.email && (
@@ -170,8 +171,8 @@ export default function ViewProfileScreen() {
                                 <View style={styles.infoRow}>
                                     <Ionicons name="mail-outline" size={20} color="#6b7280" />
                                     <View style={styles.infoContent}>
-                                        <Text style={styles.infoLabel}>Email</Text>
-                                        <Text style={styles.infoValue}>{user.email}</Text>
+                                        <AppText style={styles.infoLabel}>Email</AppText>
+                                        <AppText style={styles.infoValue}>{user.email}</AppText>
                                     </View>
                                 </View>
                             </>
@@ -182,21 +183,21 @@ export default function ViewProfileScreen() {
                 {/* School Information */}
                 {profile.school && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>School Information</Text>
+                        <AppText style={styles.sectionTitle}>School Information</AppText>
                         <View style={styles.card}>
                             <View style={styles.infoRow}>
                                 <Ionicons name="school-outline" size={20} color="#6b7280" />
                                 <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>School Name</Text>
-                                    <Text style={styles.infoValue}>{profile.school.name}</Text>
+                                    <AppText style={styles.infoLabel}>School Name</AppText>
+                                    <AppText style={styles.infoValue}>{profile.school.name}</AppText>
                                 </View>
                             </View>
                             <View style={styles.divider} />
                             <View style={styles.infoRow}>
                                 <Ionicons name="barcode-outline" size={20} color="#6b7280" />
                                 <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>School Code</Text>
-                                    <Text style={styles.infoValue}>{profile.school.registration_code || profile.school.code || '-'}</Text>
+                                    <AppText style={styles.infoLabel}>School Code</AppText>
+                                    <AppText style={styles.infoValue}>{profile.school.registration_code || profile.school.code || '-'}</AppText>
                                 </View>
                             </View>
                             {profile.school.district && (
@@ -205,8 +206,8 @@ export default function ViewProfileScreen() {
                                     <View style={styles.infoRow}>
                                         <Ionicons name="location-outline" size={20} color="#6b7280" />
                                         <View style={styles.infoContent}>
-                                            <Text style={styles.infoLabel}>District</Text>
-                                            <Text style={styles.infoValue}>{profile.school.district.name}</Text>
+                                            <AppText style={styles.infoLabel}>District</AppText>
+                                            <AppText style={styles.infoValue}>{profile.school.district.name}</AppText>
                                         </View>
                                     </View>
                                 </>
@@ -217,35 +218,35 @@ export default function ViewProfileScreen() {
 
                 {/* Experience Details */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Experience Details</Text>
+                    <AppText style={styles.sectionTitle}>Experience Details</AppText>
                     <View style={styles.card}>
                         <View style={styles.infoRow}>
                             <Ionicons name="briefcase-outline" size={20} color="#6b7280" />
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Designation</Text>
-                                <Text style={styles.infoValue}>
+                                <AppText style={styles.infoLabel}>Designation</AppText>
+                                <AppText style={styles.infoValue}>
                                     {profile.designation || 'Principal/Headmaster'}
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.infoRow}>
                             <Ionicons name="ribbon-outline" size={20} color="#6b7280" />
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Highest Qualification</Text>
-                                <Text style={styles.infoValue}>
+                                <AppText style={styles.infoLabel}>Highest Qualification</AppText>
+                                <AppText style={styles.infoValue}>
                                     {profile.highest_qualification}
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.infoRow}>
                             <Ionicons name="time-outline" size={20} color="#6b7280" />
                             <View style={styles.infoContent}>
-                                <Text style={styles.infoLabel}>Years of Experience</Text>
-                                <Text style={styles.infoValue}>
+                                <AppText style={styles.infoLabel}>Years of Experience</AppText>
+                                <AppText style={styles.infoValue}>
                                     {profile.years_of_experience} years
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                     </View>

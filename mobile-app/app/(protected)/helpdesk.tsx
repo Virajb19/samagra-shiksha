@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -51,12 +52,12 @@ export default function HelpdeskScreen() {
     return (
         <KeyboardAvoidingView className="flex-1 bg-[#eaf0fb]" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-                <Text className="text-2xl font-bold text-[#1a1a2e] mb-1">Helpdesk</Text>
-                <Text className="text-sm text-gray-500 mb-6">Please mention your query below. We will respond within 48 hours.</Text>
+                <AppText className="text-2xl font-bold text-[#1a1a2e] mb-1">Helpdesk</AppText>
+                <AppText className="text-sm text-gray-500 mb-6">Please mention your query below. We will respond within 48 hours.</AppText>
 
                 {/* Full Name (read-only) */}
                 <View className="mb-4">
-                    <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Full Name</Text>
+                    <AppText className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Full Name</AppText>
                     <TextInput
                         className="bg-[#f3f4f6] rounded-xl px-4 h-12 text-base text-gray-500 border border-[#e5e7eb]"
                         value={user?.name || ''}
@@ -66,7 +67,7 @@ export default function HelpdeskScreen() {
 
                 {/* Phone Number (read-only) */}
                 <View className="mb-4">
-                    <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Phone Number</Text>
+                    <AppText className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Phone Number</AppText>
                     <TextInput
                         className="bg-[#f3f4f6] rounded-xl px-4 h-12 text-base text-gray-500 border border-[#e5e7eb]"
                         value={user?.phone || ''}
@@ -76,7 +77,7 @@ export default function HelpdeskScreen() {
 
                 {/* Message */}
                 <View className="mb-6">
-                    <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Message</Text>
+                    <AppText className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Message</AppText>
                     <Controller
                         control={control}
                         name="message"
@@ -93,8 +94,8 @@ export default function HelpdeskScreen() {
                             />
                         )}
                     />
-                    {errors.message && <Text className="text-xs text-red-500 mt-1 ml-1">{errors.message.message}</Text>}
-                    <Text className="text-xs text-gray-400 text-right mt-1">{messageValue?.length || 0}/1000</Text>
+                    {errors.message && <AppText className="text-xs text-red-500 mt-1 ml-1">{errors.message.message}</AppText>}
+                    <AppText className="text-xs text-gray-400 text-right mt-1">{messageValue?.length || 0}/1000</AppText>
                 </View>
 
                 {/* Submit Button */}
@@ -106,7 +107,7 @@ export default function HelpdeskScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text className="text-base font-semibold text-white">Submit</Text>
+                        <AppText className="text-base font-semibold text-white">Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

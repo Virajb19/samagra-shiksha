@@ -14,6 +14,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -52,7 +53,7 @@ function ActionCard({ title, icon, onPress, iconBgColor = '#e5e7eb', disabled = 
             <View className="w-16 h-16 rounded-full justify-center items-center mb-2" style={{ backgroundColor: iconBgColor }}>
                 <Ionicons name={icon} size={32} color={disabled ? '#9ca3af' : '#374151'} />
             </View>
-            <Text className={`text-xs font-semibold text-center ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{title}</Text>
+            <AppText className={`text-xs font-semibold text-center ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{title}</AppText>
         </TouchableOpacity>
     );
 }
@@ -137,17 +138,17 @@ export default function TeacherHomeScreen() {
                     )}
                 </View>
                 <View className="flex-1">
-                    <Text className="text-xl font-bold text-[#1f2937] mb-1">{user?.name || 'User'}</Text>
+                    <AppText className="text-xl font-bold text-[#1f2937] mb-1">{user?.name || 'User'}</AppText>
                     <View className="flex-row items-center mb-2">
                         <Ionicons name="mail-outline" size={16} color="#6b7280" />
-                        <Text className="text-sm text-gray-500 ml-1 flex-1" numberOfLines={1}>
+                        <AppText className="text-sm text-gray-500 ml-1 flex-1" numberOfLines={1}>
                             {user?.email || 'No email'}
-                        </Text>
+                        </AppText>
                     </View>
                     <View className="bg-gray-200 px-3 py-1 rounded-2xl self-start">
-                        <Text className="text-xs text-[#4b5563] font-medium">
+                        <AppText className="text-xs text-[#4b5563] font-medium">
                             {user?.role === 'TEACHER' ? 'Teacher' : user?.role === 'HEADMASTER' ? 'Headmaster' : user?.role}
-                        </Text>
+                        </AppText>
                     </View>
                 </View>
             </View>
@@ -159,9 +160,9 @@ export default function TeacherHomeScreen() {
                     onPress={handleCompleteProfile}
                 >
                     <Ionicons name="alert-circle" size={20} color="#f59e0b" />
-                    <Text className="flex-1 ml-2 text-sm text-[#92400e] font-medium">
+                    <AppText className="flex-1 ml-2 text-sm text-[#92400e] font-medium">
                         Complete your profile to access all features
-                    </Text>
+                    </AppText>
                     <Ionicons name="chevron-forward" size={20} color="#f59e0b" />
                 </TouchableOpacity>
             )}
@@ -169,9 +170,9 @@ export default function TeacherHomeScreen() {
             {hasCompletedProfile && (
                 <View className="bg-[#dcfce7] rounded-xl p-3 mt-4 flex-row items-center border border-[#86efac]">
                     <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
-                    <Text className="ml-2 text-sm text-[#166534] font-medium">
+                    <AppText className="ml-2 text-sm text-[#166534] font-medium">
                         Profile completed - Pending approval
-                    </Text>
+                    </AppText>
                 </View>
             )}
 
@@ -217,10 +218,10 @@ export default function TeacherHomeScreen() {
                 <View className="bg-[#eff6ff] rounded-xl p-4 mt-6 flex-row border border-[#bfdbfe]">
                     <Ionicons name="information-circle" size={24} color="#3b82f6" />
                     <View className="flex-1 ml-3">
-                        <Text className="text-sm font-semibold text-[#1e40af] mb-1">Important Notice</Text>
-                        <Text className="text-[13px] text-[#3b82f6] leading-[18px]">
+                        <AppText className="text-sm font-semibold text-[#1e40af] mb-1">Important Notice</AppText>
+                        <AppText className="text-[13px] text-[#3b82f6] leading-[18px]">
                             You can only create your profile once. Please ensure all details are correct before submitting as they cannot be modified later.
-                        </Text>
+                        </AppText>
                     </View>
                 </View>
             )}

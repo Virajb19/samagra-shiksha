@@ -13,6 +13,7 @@
  */
 
 import React, { useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -63,7 +64,7 @@ function YesNoField({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
             <View className="flex-row items-center gap-6">
                 <TouchableOpacity className="flex-row items-center" onPress={() => onChange('Yes')}>
                     <View
@@ -74,7 +75,7 @@ function YesNoField({
                             <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                         )}
                     </View>
-                    <Text className="text-[15px] text-[#1a1a1a]">Yes</Text>
+                    <AppText className="text-[15px] text-[#1a1a1a]">Yes</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-row items-center" onPress={() => onChange('No')}>
                     <View
@@ -85,10 +86,10 @@ function YesNoField({
                             <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                         )}
                     </View>
-                    <Text className="text-[15px] text-[#1a1a1a]">No</Text>
+                    <AppText className="text-[15px] text-[#1a1a1a]">No</AppText>
                 </TouchableOpacity>
             </View>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -111,10 +112,10 @@ function ImagePickerGrid({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-1">
                 {label}
-            </Text>
-            <Text className="text-xs text-gray-500 mb-2.5">{images.length}/{MAX_PHOTOS} photos uploaded</Text>
+            </AppText>
+            <AppText className="text-xs text-gray-500 mb-2.5">{images.length}/{MAX_PHOTOS} photos uploaded</AppText>
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -149,7 +150,7 @@ function ImagePickerGrid({
                     </TouchableOpacity>
                 )}
             </ScrollView>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -166,9 +167,9 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                         resizeMode="contain"
                     />
                     <View>
-                        <Text className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</Text>
-                        <Text className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</Text>
-                        <Text className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</Text>
+                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
+                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
+                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
                     </View>
                 </View>
                 <Image
@@ -177,10 +178,10 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                     resizeMode="contain"
                 />
             </View>
-            <Text className="text-white text-[28px] font-extrabold mb-1">Library</Text>
-            <Text className="text-white/80 text-xs">
+            <AppText className="text-white text-[28px] font-extrabold mb-1">Library</AppText>
+            <AppText className="text-white/80 text-xs">
                 Please make sure all the required fields are properly filled.
-            </Text>
+            </AppText>
             <TouchableOpacity
                 onPress={onBack}
                 style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
@@ -197,7 +198,7 @@ function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmiss
 
     return (
         <View className="mt-6 mb-4">
-            <Text className="text-lg font-bold text-[#1a1a1a] mb-3">Your Library Submissions</Text>
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Library Submissions</AppText>
             {submissions.map((sub, idx) => (
                 <View
                     key={sub.id}
@@ -206,13 +207,13 @@ function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmiss
                 >
                     <View className="flex-row items-center mb-2">
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <Text className="text-white font-bold text-sm">{idx + 1}</Text>
+                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
                         </View>
                         <View className="flex-1">
-                            <Text className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Library Submission'}</Text>
-                            <Text className="text-xs text-gray-500">
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Library Submission'}</AppText>
+                            <AppText className="text-xs text-gray-500">
                                 {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </Text>
+                            </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
@@ -235,7 +236,7 @@ function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmiss
                         {sub.suggestions_feedback ? <DataRow label="Feedback" value={sub.suggestions_feedback} /> : null}
                         {sub.student_photos.length > 0 && (
                             <View className="mt-2">
-                                <Text className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({sub.student_photos.length})</Text>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({sub.student_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     {sub.student_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -245,7 +246,7 @@ function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmiss
                         )}
                         {sub.logbook_photos.length > 0 && (
                             <View className="mt-2">
-                                <Text className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({sub.logbook_photos.length})</Text>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({sub.logbook_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     {sub.logbook_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -263,8 +264,8 @@ function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmiss
 function DataRow({ label, value }: { label: string; value: string }) {
     return (
         <View className="flex-row py-1.5">
-            <Text className="text-xs text-gray-500 w-[45%]">{label}</Text>
-            <Text className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</Text>
+            <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
+            <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
         </View>
     );
 }
@@ -418,10 +419,10 @@ export default function LibraryFormScreen() {
                     {/* Success message */}
                     <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
                         <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-                        <Text className="text-lg font-bold text-green-700 mt-2">Form Submitted!</Text>
-                        <Text className="text-sm text-green-600 mt-1 text-center">
+                        <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
+                        <AppText className="text-sm text-green-600 mt-1 text-center">
                             Your Library form has been submitted successfully.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <LibraryFormDataTable submissions={submissions} />
@@ -431,7 +432,7 @@ export default function LibraryFormScreen() {
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
-                        <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
+                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -495,9 +496,9 @@ export default function LibraryFormScreen() {
             />
 
             {/* Teacher In-charge */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Name of Library Teacher In-charge
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="libraryTeacherName"
@@ -512,7 +513,7 @@ export default function LibraryFormScreen() {
                 )}
             />
             {errors.libraryTeacherName && (
-                <Text className="text-xs text-red-500 mb-4">{errors.libraryTeacherName.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.libraryTeacherName.message}</AppText>
             )}
 
             {/* Reading Corner */}
@@ -529,9 +530,9 @@ export default function LibraryFormScreen() {
                 )}
             />
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of Reading Corners
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="numberOfReadingCorners"
@@ -547,13 +548,13 @@ export default function LibraryFormScreen() {
                 )}
             />
             {errors.numberOfReadingCorners && (
-                <Text className="text-xs text-red-500 mb-4">{errors.numberOfReadingCorners.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.numberOfReadingCorners.message}</AppText>
             )}
 
             {/* Computers */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of functional Computers in Library
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="numberOfComputers"
@@ -569,7 +570,7 @@ export default function LibraryFormScreen() {
                 )}
             />
             {errors.numberOfComputers && (
-                <Text className="text-xs text-red-500 mb-4">{errors.numberOfComputers.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.numberOfComputers.message}</AppText>
             )}
 
             {/* Readers Club */}
@@ -600,9 +601,9 @@ export default function LibraryFormScreen() {
                 )}
             />
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of Library periods in a week
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="libraryPeriodsPerWeek"
@@ -618,7 +619,7 @@ export default function LibraryFormScreen() {
                 )}
             />
             {errors.libraryPeriodsPerWeek && (
-                <Text className="text-xs text-red-500 mb-4">{errors.libraryPeriodsPerWeek.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.libraryPeriodsPerWeek.message}</AppText>
             )}
 
             {/* Samagra Shiksha Books */}
@@ -635,9 +636,9 @@ export default function LibraryFormScreen() {
                 )}
             />
 
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of Library books received from Samagra Shiksha (till date)
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="numberOfBooksReceived"
@@ -653,13 +654,13 @@ export default function LibraryFormScreen() {
                 )}
             />
             {errors.numberOfBooksReceived && (
-                <Text className="text-xs text-red-500 mb-4">{errors.numberOfBooksReceived.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.numberOfBooksReceived.message}</AppText>
             )}
 
             {/* Innovative Initiative */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Any innovative initiative taken up to develop reading culture in children
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="innovativeInitiative"
@@ -677,13 +678,13 @@ export default function LibraryFormScreen() {
                 )}
             />
             {errors.innovativeInitiative && (
-                <Text className="text-xs text-red-500 mb-4">{errors.innovativeInitiative.message}</Text>
+                <AppText className="text-xs text-red-500 mb-4">{errors.innovativeInitiative.message}</AppText>
             )}
 
             {/* Suggestions / Feedback */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Suggestions / Feedback
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="suggestionsFeedback"
@@ -729,7 +730,7 @@ export default function LibraryFormScreen() {
                 {submitMutation.isPending ? (
                     <ActivityIndicator color="#fff" />
                 ) : (
-                    <Text className="text-base font-bold text-white">Submit</Text>
+                    <AppText className="text-base font-bold text-white">Submit</AppText>
                 )}
             </TouchableOpacity>
         </View>

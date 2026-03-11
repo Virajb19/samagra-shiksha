@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -231,6 +232,7 @@ export default function UpdateProjectStatusScreen() {
             queryClient.invalidateQueries({ queryKey: ['project-updates', projectId] });
             queryClient.invalidateQueries({ queryKey: ['projects-list'] });
             queryClient.invalidateQueries({ queryKey: ['recent-projects'] });
+            queryClient.invalidateQueries({ queryKey: ['recent-projects-all'] });
             router.back();
         },
         onError: (error: Error) => {
@@ -284,27 +286,27 @@ export default function UpdateProjectStatusScreen() {
                 <View className="flex-row justify-between items-start">
                     <View className="flex-1 mr-3">
                         {activity ? (
-                            <Text className="text-white/80 text-xs font-semibold tracking-wide uppercase">{activity}</Text>
+                            <AppText className="text-white/80 text-xs font-semibold tracking-wide uppercase">{activity}</AppText>
                         ) : null}
                         {schoolName ? (
-                            <Text className="text-white text-lg font-bold mt-1" numberOfLines={2}>{schoolName}</Text>
+                            <AppText className="text-white text-lg font-bold mt-1" numberOfLines={2}>{schoolName}</AppText>
                         ) : null}
                         <View className="mt-2 gap-y-0.5">
                             {udiseCode ? (
-                                <Text className="text-white/70 text-xs">
-                                    <Text className="text-white/50">Project ID: </Text>#{udiseCode}
-                                </Text>
+                                <AppText className="text-white/70 text-xs">
+                                    <AppText className="text-white/50">Project ID: </AppText>#{udiseCode}
+                                </AppText>
                             ) : null}
                             {category ? (
-                                <Text className="text-white/70 text-xs">
-                                    <Text className="text-white/50">Category: </Text>{category}
-                                </Text>
+                                <AppText className="text-white/70 text-xs">
+                                    <AppText className="text-white/50">Category: </AppText>{category}
+                                </AppText>
                             ) : null}
                         </View>
                         {districtName ? (
                             <View className="flex-row items-center mt-1.5">
                                 <Ionicons name="location-outline" size={12} color="rgba(255,255,255,0.7)" />
-                                <Text className="text-white/70 text-xs ml-1">{districtName}</Text>
+                                <AppText className="text-white/70 text-xs ml-1">{districtName}</AppText>
                             </View>
                         ) : null}
                     </View>
@@ -313,8 +315,8 @@ export default function UpdateProjectStatusScreen() {
                         className="rounded-xl px-3 py-1.5 items-center"
                         style={{ backgroundColor: progressColor }}
                     >
-                        <Text className="text-white text-lg font-bold">{progressNum}%</Text>
-                        <Text className="text-white/80 text-[9px] font-semibold">PROGRESS</Text>
+                        <AppText className="text-white text-lg font-bold">{progressNum}%</AppText>
+                        <AppText className="text-white/80 text-[9px] font-semibold">PROGRESS</AppText>
                     </View>
                 </View>
 
@@ -328,10 +330,10 @@ export default function UpdateProjectStatusScreen() {
                         size={14}
                         color={locationGranted === false ? '#fbbf24' : 'rgba(255,255,255,0.8)'}
                     />
-                    <Text className="text-white/80 text-[11px] ml-2 flex-1" numberOfLines={2}>
-                        <Text style={{ fontWeight: '700' }}>Live Location: </Text>
+                    <AppText className="text-white/80 text-[11px] ml-2 flex-1" numberOfLines={2}>
+                        <AppText style={{ fontWeight: '700' }}>Live Location: </AppText>
                         {liveAddress}
-                    </Text>
+                    </AppText>
                 </View>
             </View>
 
@@ -339,12 +341,12 @@ export default function UpdateProjectStatusScreen() {
             <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
                 {/* ─ Project Completion Status ─ */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-gray-800 mb-1">
-                        Project Completion Status <Text className="text-red-500">*</Text>
-                    </Text>
-                    <Text className="text-xs text-gray-400 mb-2">
+                    <AppText className="text-[15px] font-bold text-gray-800 mb-1">
+                        Project Completion Status <AppText className="text-red-500">*</AppText>
+                    </AppText>
+                    <AppText className="text-xs text-gray-400 mb-2">
                         Select the current completion percentage
-                    </Text>
+                    </AppText>
 
                     <TouchableOpacity
                         onPress={() => setShowStatusPicker(!showStatusPicker)}
@@ -359,7 +361,7 @@ export default function UpdateProjectStatusScreen() {
                         }}
                         activeOpacity={0.7}
                     >
-                        <Text
+                        <AppText
                             style={{
                                 fontSize: 15,
                                 color: selectedStatus ? '#1a1a1a' : '#94a3b8',
@@ -367,7 +369,7 @@ export default function UpdateProjectStatusScreen() {
                             }}
                         >
                             {selectedStatus ? `${selectedStatus}%` : 'Select option'}
-                        </Text>
+                        </AppText>
                         <Ionicons
                             name={showStatusPicker ? 'chevron-up' : 'chevron-down'}
                             size={20}
@@ -423,7 +425,7 @@ export default function UpdateProjectStatusScreen() {
                                                 opacity: 0.7,
                                             }}
                                         />
-                                        <Text
+                                        <AppText
                                             style={{
                                                 fontSize: 15,
                                                 color: selectedStatus === option ? BLUE : '#374151',
@@ -431,7 +433,7 @@ export default function UpdateProjectStatusScreen() {
                                             }}
                                         >
                                             {option}%
-                                        </Text>
+                                        </AppText>
                                     </View>
                                     {selectedStatus === option && (
                                         <Ionicons name="checkmark-circle" size={20} color={BLUE} />
@@ -444,18 +446,18 @@ export default function UpdateProjectStatusScreen() {
                     {errors.completionStatus && (
                         <View className="flex-row items-center mt-1.5">
                             <Ionicons name="alert-circle" size={13} color="#ef4444" />
-                            <Text className="text-xs text-red-500 ml-1">
+                            <AppText className="text-xs text-red-500 ml-1">
                                 {errors.completionStatus.message}
-                            </Text>
+                            </AppText>
                         </View>
                     )}
                 </View>
 
                 {/* ─ Any Comment ─ */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-gray-800 mb-1">
+                    <AppText className="text-[15px] font-bold text-gray-800 mb-1">
                         Any Comment
-                    </Text>
+                    </AppText>
                     <Controller
                         control={control}
                         name="comment"
@@ -487,12 +489,12 @@ export default function UpdateProjectStatusScreen() {
 
                 {/* ─ Photos ─ */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-gray-800 mb-0.5">
-                        Photos of project status <Text className="text-red-500">*</Text>
-                    </Text>
-                    <Text className="text-xs text-gray-400 mb-3">
+                    <AppText className="text-[15px] font-bold text-gray-800 mb-0.5">
+                        Photos of project status <AppText className="text-red-500">*</AppText>
+                    </AppText>
+                    <AppText className="text-xs text-gray-400 mb-3">
                         {photos.length}/{MAX_PHOTOS} photos — at least 1 required
-                    </Text>
+                    </AppText>
 
                     <ScrollView
                         horizontal
@@ -566,9 +568,9 @@ export default function UpdateProjectStatusScreen() {
                     {errors.photos && (
                         <View className="flex-row items-center mt-2">
                             <Ionicons name="alert-circle" size={13} color="#ef4444" />
-                            <Text className="text-xs text-red-500 ml-1">
+                            <AppText className="text-xs text-red-500 ml-1">
                                 {errors.photos.message}
-                            </Text>
+                            </AppText>
                         </View>
                     )}
                 </View>
@@ -579,9 +581,9 @@ export default function UpdateProjectStatusScreen() {
                     style={{ backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fef3c7' }}
                 >
                     <Ionicons name="location-outline" size={16} color="#d97706" style={{ marginTop: 1 }} />
-                    <Text className="text-xs ml-2 flex-1" style={{ color: '#92400e', lineHeight: 18 }}>
+                    <AppText className="text-xs ml-2 flex-1" style={{ color: '#92400e', lineHeight: 18 }}>
                         Your GPS location will be captured when you submit for verification purposes.
-                    </Text>
+                    </AppText>
                 </View>
             </View>
         </ScrollView>
@@ -606,7 +608,7 @@ export default function UpdateProjectStatusScreen() {
                 >
                     <Ionicons name="arrow-back" size={22} color="#fff" />
                 </TouchableOpacity>
-                <Text className="text-white text-lg font-bold">Update Project Status</Text>
+                <AppText className="text-white text-lg font-bold">Update Project Status</AppText>
             </View>
 
             <View className="flex-1 bg-white">
@@ -647,9 +649,9 @@ export default function UpdateProjectStatusScreen() {
                                 shadowRadius: 16,
                             }}
                         >
-                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 20 }}>
+                            <AppText style={{ fontSize: 18, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 20 }}>
                                 Add Photo
-                            </Text>
+                            </AppText>
 
                             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 20 }}>
                                 {/* Camera Option */}
@@ -671,7 +673,7 @@ export default function UpdateProjectStatusScreen() {
                                     }}>
                                         <Ionicons name="camera" size={26} color="#fff" />
                                     </View>
-                                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#1e3a5f' }}>Camera</Text>
+                                    <AppText style={{ fontSize: 13, fontWeight: '600', color: '#1e3a5f' }}>Camera</AppText>
                                 </TouchableOpacity>
 
                                 {/* Gallery Option */}
@@ -693,7 +695,7 @@ export default function UpdateProjectStatusScreen() {
                                     }}>
                                         <Ionicons name="images" size={26} color="#fff" />
                                     </View>
-                                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#166534' }}>Gallery</Text>
+                                    <AppText style={{ fontSize: 13, fontWeight: '600', color: '#166534' }}>Gallery</AppText>
                                 </TouchableOpacity>
                             </View>
 
@@ -703,7 +705,7 @@ export default function UpdateProjectStatusScreen() {
                                 style={{ marginTop: 16, paddingVertical: 10, alignItems: 'center' }}
                                 activeOpacity={0.7}
                             >
-                                <Text style={{ fontSize: 14, fontWeight: '600', color: '#94a3b8' }}>Cancel</Text>
+                                <AppText style={{ fontSize: 14, fontWeight: '600', color: '#94a3b8' }}>Cancel</AppText>
                             </TouchableOpacity>
                         </Pressable>
                     </Pressable>
@@ -741,16 +743,16 @@ export default function UpdateProjectStatusScreen() {
                         {submitMutation.isPending ? (
                             <View className="flex-row items-center">
                                 <ActivityIndicator color="#fff" size="small" />
-                                <Text className="text-white text-base font-bold ml-2">
+                                <AppText className="text-white text-base font-bold ml-2">
                                     Submitting...
-                                </Text>
+                                </AppText>
                             </View>
                         ) : (
                             <View className="flex-row items-center">
                                 <Ionicons name="cloud-upload-outline" size={20} color="#fff" />
-                                <Text className="text-white text-base font-bold ml-2">
+                                <AppText className="text-white text-base font-bold ml-2">
                                     Submit
-                                </Text>
+                                </AppText>
                             </View>
                         )}
                     </TouchableOpacity>

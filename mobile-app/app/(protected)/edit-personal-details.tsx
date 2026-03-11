@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -110,21 +111,21 @@ export default function EditPersonalDetailsScreen() {
                             className={`flex-1 py-3 rounded-full items-center ${selectedGender === 'MALE' ? 'bg-[#3b82f6]' : ''}`}
                             onPress={() => setValue('gender', 'MALE', { shouldValidate: true })}
                         >
-                            <Text className={`text-sm font-semibold ${selectedGender === 'MALE' ? 'text-white' : 'text-gray-500'}`}>Male</Text>
+                            <AppText className={`text-sm font-semibold ${selectedGender === 'MALE' ? 'text-white' : 'text-gray-500'}`}>Male</AppText>
                         </TouchableOpacity>
                         <TouchableOpacity
                             className={`flex-1 py-3 rounded-full items-center ${selectedGender === 'FEMALE' ? 'bg-[#3b82f6]' : ''}`}
                             onPress={() => setValue('gender', 'FEMALE', { shouldValidate: true })}
                         >
-                            <Text className={`text-sm font-semibold ${selectedGender === 'FEMALE' ? 'text-white' : 'text-gray-500'}`}>Female</Text>
+                            <AppText className={`text-sm font-semibold ${selectedGender === 'FEMALE' ? 'text-white' : 'text-gray-500'}`}>Female</AppText>
                         </TouchableOpacity>
                     </View>
-                    {errors.gender && <Text className="text-xs text-red-500 mt-1 ml-1">{errors.gender.message}</Text>}
+                    {errors.gender && <AppText className="text-xs text-red-500 mt-1 ml-1">{errors.gender.message}</AppText>}
                 </View>
 
                 {/* Name Field */}
                 <View className="mb-4">
-                    <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Name</Text>
+                    <AppText className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Name</AppText>
                     <Controller
                         control={control}
                         name="name"
@@ -138,18 +139,18 @@ export default function EditPersonalDetailsScreen() {
                             />
                         )}
                     />
-                    {errors.name && <Text className="text-xs text-red-500 mt-1 ml-1">{errors.name.message}</Text>}
+                    {errors.name && <AppText className="text-xs text-red-500 mt-1 ml-1">{errors.name.message}</AppText>}
                 </View>
 
                 {/* Phone Field */}
                 <View className="mb-6">
-                    <Text className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Phone Number</Text>
+                    <AppText className="text-sm font-medium text-gray-600 mb-1.5 ml-1">Phone Number</AppText>
                     <Controller
                         control={control}
                         name="phone"
                         render={({ field: { onChange, value } }) => (
                             <View className={`flex-row items-center bg-white rounded-xl border ${errors.phone ? 'border-red-500' : 'border-[#e5e7eb]'}`}>
-                                <Text className="text-base text-gray-400 pl-4 pr-2">+91 |</Text>
+                                <AppText className="text-base text-gray-400 pl-4 pr-2">+91 |</AppText>
                                 <TextInput
                                     className="flex-1 h-12 text-base text-[#1f2937] pr-4"
                                     placeholder="10-digit number"
@@ -162,7 +163,7 @@ export default function EditPersonalDetailsScreen() {
                             </View>
                         )}
                     />
-                    {errors.phone && <Text className="text-xs text-red-500 mt-1 ml-1">{errors.phone.message}</Text>}
+                    {errors.phone && <AppText className="text-xs text-red-500 mt-1 ml-1">{errors.phone.message}</AppText>}
                 </View>
 
                 {/* Save Button */}
@@ -174,7 +175,7 @@ export default function EditPersonalDetailsScreen() {
                     {updateMutation.isPending ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text className="text-base font-semibold text-white">Save</Text>
+                        <AppText className="text-base font-semibold text-white">Save</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

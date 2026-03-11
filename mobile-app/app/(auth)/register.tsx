@@ -13,6 +13,7 @@
  */
 
 import { useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -200,8 +201,8 @@ export default function RegisterScreen() {
                         />
                     </View>
                     <View className="justify-center">
-                        <Text className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">NBSE</Text>
-                        <Text className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">CONNECT</Text>
+                        <AppText className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">NBSE</AppText>
+                        <AppText className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">CONNECT</AppText>
                     </View>
                 </View>
             </View>
@@ -218,10 +219,10 @@ export default function RegisterScreen() {
                 >
                     <View className="flex-1 bg-white rounded-t-[30px] px-7 pt-8 pb-10">
                         {/* Title */}
-                        <Text className="text-[28px] font-bold text-[#1a1a2e] mb-2">Create Account</Text>
-                        <Text className="text-sm text-gray-500 leading-5 mb-6">
+                        <AppText className="text-[28px] font-bold text-[#1a1a2e] mb-2">Create Account</AppText>
+                        <AppText className="text-sm text-gray-500 leading-5 mb-6">
                             Make sure you have access to the entered Email ID / Phone Number.
-                        </Text>
+                        </AppText>
 
                         {/* Profile Image */}
                         <View className="items-center mb-7 relative">
@@ -233,8 +234,8 @@ export default function RegisterScreen() {
                                     <Image source={{ uri: profileImage }} className="w-full h-full" />
                                 ) : (
                                     <View className="flex-1 bg-[#f9fafb] justify-center items-center">
-                                        <Text className="text-[28px] mb-0.5 opacity-40">📷</Text>
-                                        <Text className="text-xs text-gray-400 font-medium">IMG</Text>
+                                        <AppText className="text-[28px] mb-0.5 opacity-40">📷</AppText>
+                                        <AppText className="text-xs text-gray-400 font-medium">IMG</AppText>
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -248,7 +249,7 @@ export default function RegisterScreen() {
                                 </TouchableOpacity>
                             )}
                             {errors.profileImage && (
-                                <Text className="text-xs text-[#ef4444] mt-2">{errors.profileImage.message}</Text>
+                                <AppText className="text-xs text-[#ef4444] mt-2">{errors.profileImage.message}</AppText>
                             )}
                         </View>
 
@@ -260,16 +261,16 @@ export default function RegisterScreen() {
                                     className={`flex-1 flex-row items-center justify-center py-3 rounded-[25px] gap-1.5 ${selectedGender === option.value ? 'bg-[#2c3e6b]' : 'bg-[#f3f4f6] border border-[#e5e7eb]'}`}
                                     onPress={() => setValue('gender', option.value)}
                                 >
-                                    <Text
+                                    <AppText
                                         className={`text-base ${selectedGender === option.value ? 'text-white' : 'text-[#374151]'}`}
                                     >
                                         {option.icon}
-                                    </Text>
-                                    <Text
+                                    </AppText>
+                                    <AppText
                                         className={`text-[15px] font-semibold ${selectedGender === option.value ? 'text-white' : 'text-[#374151]'}`}
                                     >
                                         {option.label}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -294,7 +295,7 @@ export default function RegisterScreen() {
                             />
                             <View className={`h-px bg-[#d1d5db] ${errors.fullName ? 'bg-[#ef4444]' : ''}`} />
                             {errors.fullName && (
-                                <Text className="text-[#ef4444] text-xs mt-1">{errors.fullName.message}</Text>
+                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.fullName.message}</AppText>
                             )}
                         </View>
 
@@ -320,7 +321,7 @@ export default function RegisterScreen() {
                             />
                             <View className={`h-px bg-[#d1d5db] ${errors.email ? 'bg-[#ef4444]' : ''}`} />
                             {errors.email && (
-                                <Text className="text-[#ef4444] text-xs mt-1">{errors.email.message}</Text>
+                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.email.message}</AppText>
                             )}
                         </View>
 
@@ -349,14 +350,14 @@ export default function RegisterScreen() {
                                     onPress={() => setShowPassword(!showPassword)}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 >
-                                    <Text className="text-xl opacity-50">
+                                    <AppText className="text-xl opacity-50">
                                         {showPassword ? '👁' : '👁‍🗨'}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                             </View>
                             <View className={`h-px bg-[#d1d5db] ${errors.password ? 'bg-[#ef4444]' : ''}`} />
                             {errors.password && (
-                                <Text className="text-[#ef4444] text-xs mt-1">{errors.password.message}</Text>
+                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.password.message}</AppText>
                             )}
                         </View>
 
@@ -385,14 +386,14 @@ export default function RegisterScreen() {
                                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 >
-                                    <Text className="text-xl opacity-50">
+                                    <AppText className="text-xl opacity-50">
                                         {showConfirmPassword ? '👁' : '👁‍🗨'}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                             </View>
                             <View className={`h-px bg-[#d1d5db] ${errors.confirmPassword ? 'bg-[#ef4444]' : ''}`} />
                             {errors.confirmPassword && (
-                                <Text className="text-[#ef4444] text-xs mt-1">{errors.confirmPassword.message}</Text>
+                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.confirmPassword.message}</AppText>
                             )}
                         </View>
 
@@ -403,8 +404,8 @@ export default function RegisterScreen() {
                                 onPress={() => setShowRoleDropdown(!showRoleDropdown)}
                                 disabled={isSubmitting}
                             >
-                                <Text className="text-base text-[#1a1a2e] font-medium">{getRoleLabel(selectedRole)}</Text>
-                                <Text className="text-xs text-gray-500">{showRoleDropdown ? '▲' : '▼'}</Text>
+                                <AppText className="text-base text-[#1a1a2e] font-medium">{getRoleLabel(selectedRole)}</AppText>
+                                <AppText className="text-xs text-gray-500">{showRoleDropdown ? '▲' : '▼'}</AppText>
                             </TouchableOpacity>
                             <View className={`h-px bg-[#d1d5db] ${errors.role ? 'bg-[#ef4444]' : ''}`} />
 
@@ -419,25 +420,25 @@ export default function RegisterScreen() {
                                                 setShowRoleDropdown(false);
                                             }}
                                         >
-                                            <Text
+                                            <AppText
                                                 className={`text-base ${selectedRole === option.value ? 'text-[#2c3e6b] font-semibold' : 'text-gray-500'}`}
                                             >
                                                 {option.label}
-                                            </Text>
+                                            </AppText>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             )}
                             {errors.role && (
-                                <Text className="text-[#ef4444] text-xs mt-1">{errors.role.message}</Text>
+                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.role.message}</AppText>
                             )}
                         </View>
 
                         {/* Phone Number */}
                         <View className="mb-[22px]">
                             <View className="flex-row items-center">
-                                <Text className="text-base text-[#2c3e6b] font-medium py-3">+91</Text>
-                                <Text className="text-base text-[#d1d5db] mx-2.5">|</Text>
+                                <AppText className="text-base text-[#2c3e6b] font-medium py-3">+91</AppText>
+                                <AppText className="text-base text-[#d1d5db] mx-2.5">|</AppText>
                                 <Controller
                                     control={control}
                                     name="phone"
@@ -458,16 +459,16 @@ export default function RegisterScreen() {
                             </View>
                             <View className={`h-px bg-[#d1d5db] ${errors.phone ? 'bg-[#ef4444]' : ''}`} />
                             {errors.phone && (
-                                <Text className="text-[#ef4444] text-xs mt-1">{errors.phone.message}</Text>
+                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.phone.message}</AppText>
                             )}
                         </View>
 
                         {/* Terms & Privacy */}
-                        <Text className="text-[13px] text-gray-500 text-center leading-[18px] mb-5">
+                        <AppText className="text-[13px] text-gray-500 text-center leading-[18px] mb-5">
                             By registering, you agree to the{' '}
-                            <Text className="text-[#2c3e6b] font-semibold">Terms & Privacy Policy</Text>
+                            <AppText className="text-[#2c3e6b] font-semibold">Terms & Privacy Policy</AppText>
                             {' '}of NBSE, Government of Nagaland
-                        </Text>
+                        </AppText>
 
                         {/* Register Button */}
                         <TouchableOpacity
@@ -478,15 +479,15 @@ export default function RegisterScreen() {
                             {isSubmitting ? (
                                 <ActivityIndicator color="#ffffff" />
                             ) : (
-                                <Text className="text-white text-lg font-bold">Register</Text>
+                                <AppText className="text-white text-lg font-bold">Register</AppText>
                             )}
                         </TouchableOpacity>
 
                         {/* Login Link */}
                         <View className="flex-row justify-center items-center mt-5 gap-1.5">
-                            <Text className="text-gray-500 text-sm">Already have an account?</Text>
+                            <AppText className="text-gray-500 text-sm">Already have an account?</AppText>
                             <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-                                <Text className="text-[#2c3e6b] text-sm font-semibold">Login</Text>
+                                <AppText className="text-[#2c3e6b] text-sm font-semibold">Login</AppText>
                             </TouchableOpacity>
                         </View>
                     </View>

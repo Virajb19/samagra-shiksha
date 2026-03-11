@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -121,7 +122,7 @@ function FilterPicker({
 
     return (
         <View style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 4 }}>{label}</Text>
+            <AppText style={{ fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 4 }}>{label}</AppText>
             <TouchableOpacity
                 onPress={() => setOpen(!open)}
                 activeOpacity={0.7}
@@ -137,7 +138,7 @@ function FilterPicker({
                     backgroundColor: '#fff',
                 }}
             >
-                <Text style={{ fontSize: 14, color: value ? '#111827' : '#6b7280' }}>{displayValue}</Text>
+                <AppText style={{ fontSize: 14, color: value ? '#111827' : '#6b7280' }}>{displayValue}</AppText>
                 <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color="#6b7280" />
             </TouchableOpacity>
 
@@ -168,9 +169,9 @@ function FilterPicker({
                                 borderBottomColor: '#f3f4f6',
                             }}
                         >
-                            <Text style={{ fontSize: 14, color: !value ? BLUE : '#374151', fontWeight: !value ? '600' : '400' }}>
+                            <AppText style={{ fontSize: 14, color: !value ? BLUE : '#374151', fontWeight: !value ? '600' : '400' }}>
                                 {allLabel}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                         {options.map((opt) => (
                             <TouchableOpacity
@@ -184,9 +185,9 @@ function FilterPicker({
                                     borderBottomColor: '#f3f4f6',
                                 }}
                             >
-                                <Text style={{ fontSize: 14, color: value === opt ? BLUE : '#374151', fontWeight: value === opt ? '600' : '400' }}>
+                                <AppText style={{ fontSize: 14, color: value === opt ? BLUE : '#374151', fontWeight: value === opt ? '600' : '400' }}>
                                     {opt}
-                                </Text>
+                                </AppText>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -201,7 +202,14 @@ function FilterPicker({
 function ProjectCard({ project, onPress }: { project: Project; onPress: () => void }) {
     const progressWidth = `${Math.min(project.progress, 100)}%` as DimensionValue;
     const isCompleted = project.status === 'Completed';
-    const progressLabel = project.progress === 0 ? 'N/A' : isCompleted ? 'Completed' : `${project.progress}%`;
+    const progressLabel =
+        project.progress === 0
+            ? 'N/A'
+            : isCompleted
+                ? 'Completed'
+                : project.progress >= 100
+                    ? '100% (Pending close)'
+                    : `${project.progress}%`;
 
     return (
         <TouchableOpacity
@@ -213,11 +221,11 @@ function ProjectCard({ project, onPress }: { project: Project; onPress: () => vo
             <View style={{ backgroundColor: BLUE, padding: 16 }}>
                 <View className="flex-row justify-between items-start">
                     <View className="flex-1 mr-3">
-                        <Text className="text-white/80 text-xs font-semibold mb-1">{project.activity}</Text>
-                        <Text className="text-white text-lg font-bold" numberOfLines={1}>{project.school_name}</Text>
+                        <AppText className="text-white/80 text-xs font-semibold mb-1">{project.activity}</AppText>
+                        <AppText className="text-white text-lg font-bold" numberOfLines={1}>{project.school_name}</AppText>
                     </View>
                     <View className="rounded-lg px-3 py-1" style={{ backgroundColor: isCompleted ? '#22c55e' : 'rgba(255,255,255,0.2)' }}>
-                        <Text className="text-white text-xs font-bold">{progressLabel}</Text>
+                        <AppText className="text-white text-xs font-bold">{progressLabel}</AppText>
                     </View>
                 </View>
                 <View className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
@@ -225,7 +233,7 @@ function ProjectCard({ project, onPress }: { project: Project; onPress: () => vo
                 </View>
                 <View className="flex-row items-center mt-2">
                     <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.7)" />
-                    <Text className="text-white/70 text-xs ml-1">{project.district_name}</Text>
+                    <AppText className="text-white/70 text-xs ml-1">{project.district_name}</AppText>
                 </View>
             </View>
         </TouchableOpacity>
@@ -350,7 +358,7 @@ export default function ProjectsListScreen() {
         if (!hasNextPage && allProjects.length > 0) {
             return (
                 <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-                    <Text style={{ color: '#9ca3af', fontSize: 12 }}>All projects loaded</Text>
+                    <AppText style={{ color: '#9ca3af', fontSize: 12 }}>All projects loaded</AppText>
                 </View>
             );
         }
@@ -375,14 +383,14 @@ export default function ProjectsListScreen() {
                     <TouchableOpacity onPress={() => router.back()} className="mr-3">
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text className="text-white text-lg font-semibold">Projects</Text>
+                    <AppText className="text-white text-lg font-semibold">Projects</AppText>
                 </View>
                 <TouchableOpacity onPress={openFilterDialog}>
                     <View>
                         <Ionicons name="search" size={24} color="#fff" />
                         {activeFilterCount > 0 && (
                             <View className="absolute -top-1 -right-1.5 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
-                                <Text className="text-white text-[10px] font-bold">{activeFilterCount}</Text>
+                                <AppText className="text-white text-[10px] font-bold">{activeFilterCount}</AppText>
                             </View>
                         )}
                     </View>
@@ -408,9 +416,9 @@ export default function ProjectsListScreen() {
                         )}
                     </View>
                     {/* Result count */}
-                    <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 6, marginLeft: 4 }}>
+                    <AppText style={{ fontSize: 12, color: '#6b7280', marginTop: 6, marginLeft: 4 }}>
                         {showSkeleton ? 'Loading...' : `${allProjects.length} of ${totalCount} projects`}
-                    </Text>
+                    </AppText>
                 </View>
 
                 {showSkeleton ? (
@@ -418,7 +426,7 @@ export default function ProjectsListScreen() {
                 ) : allProjects.length === 0 ? (
                     <View className="flex-1 items-center justify-center">
                         <Ionicons name="folder-open-outline" size={60} color="#d1d5db" />
-                        <Text className="text-gray-400 text-base mt-3">No projects found</Text>
+                        <AppText className="text-gray-400 text-base mt-3">No projects found</AppText>
                     </View>
                 ) : (
                     <FlatList
@@ -443,7 +451,7 @@ export default function ProjectsListScreen() {
                     onPress={() => setFilterVisible(false)}
                 >
                     <TouchableOpacity activeOpacity={1} style={{ backgroundColor: '#fff', borderRadius: 20, width: '85%', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 20, elevation: 10 }}>
-                        <Text style={{ fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 16 }}>Search Filters</Text>
+                        <AppText style={{ fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 16 }}>Search Filters</AppText>
 
                         <FilterPicker
                             label="Category"
@@ -487,7 +495,7 @@ export default function ProjectsListScreen() {
                                     borderColor: '#ef4444',
                                 }}
                             >
-                                <Text style={{ color: '#ef4444', fontWeight: '700', fontSize: 15 }}>Reset</Text>
+                                <AppText style={{ color: '#ef4444', fontWeight: '700', fontSize: 15 }}>Reset</AppText>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={handleApplyFilters}
@@ -499,7 +507,7 @@ export default function ProjectsListScreen() {
                                     backgroundColor: BLUE,
                                 }}
                             >
-                                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Search</Text>
+                                <AppText style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Search</AppText>
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>

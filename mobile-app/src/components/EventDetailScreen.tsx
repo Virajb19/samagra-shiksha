@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Share,
 } from 'react-native';
@@ -46,10 +47,10 @@ function DetailRow({ icon, label, value }: { icon: string; label: string; value:
                 <Ionicons name={icon as any} size={20} color="#fff" />
             </View>
             <View className="flex-1">
-                <Text className="text-[15px] text-[#4a4a4a] leading-5">
-                    <Text className="font-bold text-[#1a1a1a]">{label}:  </Text>
+                <AppText className="text-[15px] text-[#4a4a4a] leading-5">
+                    <AppText className="font-bold text-[#1a1a1a]">{label}:  </AppText>
                     {value}
-                </Text>
+                </AppText>
             </View>
         </View>
     );
@@ -84,7 +85,7 @@ export default function EventDetailScreen() {
         return (
             <View className="flex-1 justify-center items-center bg-white">
                 <ActivityIndicator size="large" color={BLUE} />
-                {!isLoading && !event && <Text className="mt-3 text-gray-500">Event not found</Text>}
+                {!isLoading && !event && <AppText className="mt-3 text-gray-500">Event not found</AppText>}
             </View>
         );
     }
@@ -130,12 +131,12 @@ export default function EventDetailScreen() {
 
                 {/* Content */}
                 <View className="p-5 pb-10">
-                    <Text className="text-2xl font-extrabold text-[#1a1a1a] mb-3 leading-[30px]">{event.title}</Text>
+                    <AppText className="text-2xl font-extrabold text-[#1a1a1a] mb-3 leading-[30px]">{event.title}</AppText>
                     {event.description ? (
-                        <Text className="text-[15px] text-[#4a4a4a] leading-[22px] mb-4">{event.description}</Text>
+                        <AppText className="text-[15px] text-[#4a4a4a] leading-[22px] mb-4">{event.description}</AppText>
                     ) : null}
                     <View className="h-px bg-gray-200 my-4" />
-                    <Text className="text-lg font-bold text-[#1a1a1a] mb-5">Event Details</Text>
+                    <AppText className="text-lg font-bold text-[#1a1a1a] mb-5">Event Details</AppText>
                     {event.activity_type && <DetailRow icon="megaphone-outline" label="Activity" value={event.activity_type} />}
                     <DetailRow icon="calendar-outline" label="Date" value={dateStr} />
                     {locationStr && <DetailRow icon="location-outline" label="Location" value={locationStr} />}

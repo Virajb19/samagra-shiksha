@@ -666,7 +666,10 @@ export default function ProjectDetailsPage() {
 
                         {/* Photos (read-only, set by Junior Engineer) */}
                         <td className="py-2 px-2 text-center">
-                          <ProjectPhotoCell projectId={project.id} hasPhotos={project.status !== 'Not Started'} />
+                          <ProjectPhotoCell
+                            projectId={project.id}
+                            hasPhotos={project.progress > 0 || (project.photos?.length ?? 0) > 0}
+                          />
                         </td>
 
                         {/* Progress bar + % Utilized */}

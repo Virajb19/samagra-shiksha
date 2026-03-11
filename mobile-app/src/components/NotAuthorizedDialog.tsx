@@ -7,7 +7,8 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, TouchableOpacity, Image, Modal } from 'react-native';
+import { AppText } from '@/components/AppText';
 
 const BLUE = '#1565C0';
 
@@ -30,18 +31,18 @@ export function NotAuthorizedDialog({ visible, onClose, formName, message }: Not
                         style={{ width: 200, height: 200 }}
                         resizeMode="contain"
                     />
-                    <Text className="text-xl font-bold text-[#1a1a1a] mt-4 text-center">
+                    <AppText className="text-xl font-bold text-[#1a1a1a] mt-4 text-center">
                         You're not authorized
-                    </Text>
-                    <Text className="text-sm text-gray-500 mt-2 text-center leading-5">
+                    </AppText>
+                    <AppText className="text-sm text-gray-500 mt-2 text-center leading-5">
                         {message || `You are not assigned to the ${formName} responsibility, so you cannot access this form.`}
-                    </Text>
+                    </AppText>
                     <TouchableOpacity
                         onPress={onClose}
                         className="mt-5 px-8 py-3 rounded-xl"
                         style={{ backgroundColor: BLUE }}
                     >
-                        <Text className="text-white font-bold text-sm">Go Back</Text>
+                        <AppText className="text-white font-bold text-sm">Go Back</AppText>
                     </TouchableOpacity>
                 </View>
             </View>

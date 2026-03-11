@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View, Text, TouchableOpacity, ActivityIndicator, RefreshControl,
     Image, Modal, FlatList,
@@ -65,10 +66,10 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                 <TouchableOpacity activeOpacity={1} className="bg-white rounded-[20px] py-5 px-4 w-full max-w-[360px]" style={{ elevation: 10 }}>
                     <View className="flex-row justify-between items-center mb-4 px-1">
                         <TouchableOpacity onPress={() => { if (vm === 0) { setVm(11); setVy(y => y - 1); } else setVm(m => m - 1); }} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-back" size={22} color={BLUE} /></TouchableOpacity>
-                        <Text className="text-[17px] font-bold" style={{ color: BLUE }}>{MONTHS[vm]} {vy}</Text>
+                        <AppText className="text-[17px] font-bold" style={{ color: BLUE }}>{MONTHS[vm]} {vy}</AppText>
                         <TouchableOpacity onPress={() => { if (vm === 11) { setVm(0); setVy(y => y + 1); } else setVm(m => m + 1); }} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-forward" size={22} color={BLUE} /></TouchableOpacity>
                     </View>
-                    <View className="flex-row mb-2">{WEEKDAYS.map(w => <Text key={w} className="flex-1 text-center text-xs font-semibold text-gray-400">{w}</Text>)}</View>
+                    <View className="flex-row mb-2">{WEEKDAYS.map(w => <AppText key={w} className="flex-1 text-center text-xs font-semibold text-gray-400">{w}</AppText>)}</View>
                     <View className="flex-row flex-wrap">
                         {days.map((day, i) => {
                             const isSel = day === sd && vm === sm && vy === sy;
@@ -81,7 +82,7 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                                     onPress={() => day && (() => { onSelect(`${vy}-${String(vm + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`); onClose(); })()}
                                     disabled={!day}
                                 >
-                                    {day ? <Text className={`text-sm font-medium ${isSel ? 'text-white font-bold' : isT ? 'text-[#1565C0] font-bold' : 'text-gray-700'}`}>{day}</Text> : null}
+                                    {day ? <AppText className={`text-sm font-medium ${isSel ? 'text-white font-bold' : isT ? 'text-[#1565C0] font-bold' : 'text-gray-700'}`}>{day}</AppText> : null}
                                 </TouchableOpacity>
                             );
                         })}
@@ -126,13 +127,13 @@ function SearchFilterModal({ visible, onClose, onApply, currentFilters, onReset,
         <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
             <TouchableOpacity className="flex-1 bg-black/40 justify-center items-center px-6" activeOpacity={1} onPress={onClose}>
                 <TouchableOpacity activeOpacity={1} className="bg-white rounded-2xl p-6 w-full max-w-[380px]" style={{ elevation: 10 }}>
-                    <Text className="text-[22px] font-bold text-[#1a1a1a] mb-5">Search Filters</Text>
-                    <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">Starting Date</Text>
-                    <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 mb-1" onPress={() => setShowStartCal(true)}><Text className={startDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{startDate ? fmt(startDate) : 'Select date'}</Text></TouchableOpacity>
-                    <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">Ending Date</Text>
-                    <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 mb-1" onPress={() => setShowEndCal(true)}><Text className={endDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{endDate ? fmt(endDate) : 'Select date'}</Text></TouchableOpacity>
-                    <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">District</Text>
-                    <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDP(true)}><Text className="text-[15px] text-[#1a1a1a]">{dn}</Text><Ionicons name="chevron-down" size={18} color="#666" /></TouchableOpacity>
+                    <AppText className="text-[22px] font-bold text-[#1a1a1a] mb-5">Search Filters</AppText>
+                    <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">Starting Date</AppText>
+                    <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 mb-1" onPress={() => setShowStartCal(true)}><AppText className={startDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{startDate ? fmt(startDate) : 'Select date'}</AppText></TouchableOpacity>
+                    <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">Ending Date</AppText>
+                    <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 mb-1" onPress={() => setShowEndCal(true)}><AppText className={endDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{endDate ? fmt(endDate) : 'Select date'}</AppText></TouchableOpacity>
+                    <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-3">District</AppText>
+                    <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDP(true)}><AppText className="text-[15px] text-[#1a1a1a]">{dn}</AppText><Ionicons name="chevron-down" size={18} color="#666" /></TouchableOpacity>
                     <View className="flex-row gap-3 mt-6">
                         <TouchableOpacity
                             className="flex-1 border-[1.5px] rounded-[10px] py-3.5 items-center"
@@ -145,9 +146,9 @@ function SearchFilterModal({ visible, onClose, onApply, currentFilters, onReset,
                                 onReset(cleared);
                             }}
                         >
-                            <Text className="text-[15px] font-semibold" style={{ color: BLUE }}>Reset</Text>
+                            <AppText className="text-[15px] font-semibold" style={{ color: BLUE }}>Reset</AppText>
                         </TouchableOpacity>
-                        <TouchableOpacity className="flex-1 rounded-[10px] py-3.5 items-center" style={{ backgroundColor: BLUE }} onPress={() => { onApply({ startDate, endDate, districtId }); onClose(); }}><Text className="text-[15px] font-semibold text-white">Search</Text></TouchableOpacity>
+                        <TouchableOpacity className="flex-1 rounded-[10px] py-3.5 items-center" style={{ backgroundColor: BLUE }} onPress={() => { onApply({ startDate, endDate, districtId }); onClose(); }}><AppText className="text-[15px] font-semibold text-white">Search</AppText></TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -155,8 +156,8 @@ function SearchFilterModal({ visible, onClose, onApply, currentFilters, onReset,
             <CalendarPickerModal visible={showEndCal} value={endDate} onSelect={setEndDate} onClose={() => setShowEndCal(false)} />
             <Modal visible={showDP} transparent animationType="slide" onRequestClose={() => setShowDP(false)}>
                 <View className="flex-1 bg-black/50 justify-end"><View className="bg-white rounded-t-[20px] max-h-[70%]">
-                    <View className="flex-row justify-between items-center p-4 border-b border-gray-200"><Text className="text-lg font-semibold text-gray-800">Select District</Text><TouchableOpacity onPress={() => setShowDP(false)}><Ionicons name="close" size={24} color="#374151" /></TouchableOpacity></View>
-                    {loadingDistricts ? <ActivityIndicator size="large" color={BLUE} className="p-10" /> : <FlatList data={[{ id: '', name: 'All' }, ...districts]} keyExtractor={item => item.id || '__all'} renderItem={({ item }) => (<TouchableOpacity className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${districtId === item.id ? 'bg-blue-50' : 'bg-white'}`} onPress={() => { setDistrictId(item.id); setShowDP(false); }}><Text className={`text-base ${districtId === item.id ? 'text-[#1565C0] font-semibold' : 'text-gray-700'}`}>{item.name}</Text>{districtId === item.id && <Ionicons name="checkmark" size={20} color={BLUE} />}</TouchableOpacity>)} />}
+                    <View className="flex-row justify-between items-center p-4 border-b border-gray-200"><AppText className="text-lg font-semibold text-gray-800">Select District</AppText><TouchableOpacity onPress={() => setShowDP(false)}><Ionicons name="close" size={24} color="#374151" /></TouchableOpacity></View>
+                    {loadingDistricts ? <ActivityIndicator size="large" color={BLUE} className="p-10" /> : <FlatList data={[{ id: '', name: 'All' }, ...districts]} keyExtractor={item => item.id || '__all'} renderItem={({ item }) => (<TouchableOpacity className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${districtId === item.id ? 'bg-blue-50' : 'bg-white'}`} onPress={() => { setDistrictId(item.id); setShowDP(false); }}><AppText className={`text-base ${districtId === item.id ? 'text-[#1565C0] font-semibold' : 'text-gray-700'}`}>{item.name}</AppText>{districtId === item.id && <Ionicons name="checkmark" size={20} color={BLUE} />}</TouchableOpacity>)} />}
                 </View></View>
             </Modal>
         </Modal>
@@ -174,8 +175,8 @@ function EventCard({ event, districts, onPress }: { event: any; districts: Distr
         <TouchableOpacity className="rounded-2xl overflow-hidden mb-4 h-[220px] bg-gray-300" style={{ elevation: 3 }} activeOpacity={0.85} onPress={onPress}>
             {event.flyer_url ? <Image source={{ uri: event.flyer_url }} className="w-full h-full" resizeMode="cover" /> : <View className="w-full h-full justify-center items-center" style={{ backgroundColor: bg }}><Ionicons name="calendar" size={48} color="rgba(255,255,255,0.4)" /></View>}
             <View className="absolute bottom-0 left-0 right-0 p-4 rounded-b-2xl" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
-                <Text className="text-lg font-extrabold text-white mb-1" numberOfLines={2}>{event.title}</Text>
-                <Text className="text-[13px] text-white/90 leading-[18px]" numberOfLines={2}>{loc}{loc ? ' | ' : ''}{dateLine}</Text>
+                <AppText className="text-lg font-extrabold text-white mb-1" numberOfLines={2}>{event.title}</AppText>
+                <AppText className="text-[13px] text-white/90 leading-[18px]" numberOfLines={2}>{loc}{loc ? ' | ' : ''}{dateLine}</AppText>
             </View>
         </TouchableOpacity>
     );
@@ -229,7 +230,7 @@ export default function EventsListScreen({
         return (
             <View className="flex-1 justify-center items-center bg-[#f9fafb]">
                 <ActivityIndicator size="large" color={BLUE} />
-                <Text className="mt-3 text-gray-500">Loading events...</Text>
+                <AppText className="mt-3 text-gray-500">Loading events...</AppText>
             </View>
         );
     }
@@ -242,7 +243,7 @@ export default function EventsListScreen({
                     {onBackPress ? (
                         <TouchableOpacity className="p-2" onPress={onBackPress}><Ionicons name="arrow-back" size={24} color="#ffffff" /></TouchableOpacity>
                     ) : <View className="w-10" />}
-                    <Text className="text-lg font-semibold text-white">Events</Text>
+                    <AppText className="text-lg font-semibold text-white">Events</AppText>
                     <View className="flex-row items-center gap-2">
                         <TouchableOpacity className="p-2" onPress={() => setFilterVisible(true)}><Ionicons name="search" size={22} color="#ffffff" /></TouchableOpacity>
                         {onCreatePress && (
@@ -255,11 +256,11 @@ export default function EventsListScreen({
             {/* Tab-style header (no back button) */}
             {!showHeader && (
                 <View className="flex-row justify-between items-center px-4 pt-3 pb-2">
-                    <Text className="text-[26px] font-bold text-[#1a1a1a]">Events</Text>
+                    <AppText className="text-[26px] font-bold text-[#1a1a1a]">Events</AppText>
                     <View className="flex-row items-center gap-3">
                         {onCreatePress && (
                             <TouchableOpacity className="rounded-3xl px-5 py-2.5" style={{ backgroundColor: BLUE }} onPress={onCreatePress}>
-                                <Text className="text-white text-sm font-bold">Create Event</Text>
+                                <AppText className="text-white text-sm font-bold">Create Event</AppText>
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity className="w-10 h-10 rounded-full border-[1.5px] justify-center items-center" style={{ borderColor: BLUE }} onPress={() => setFilterVisible(true)}>
@@ -284,16 +285,16 @@ export default function EventsListScreen({
                 ListFooterComponent={isFetchingNextPage ? (
                     <View className="items-center py-4">
                         <ActivityIndicator size="small" color={BLUE} />
-                        <Text className="text-sm text-gray-500 mt-2">Loading more events...</Text>
+                        <AppText className="text-sm text-gray-500 mt-2">Loading more events...</AppText>
                     </View>
                 ) : null}
                 ListEmptyComponent={
                     <View className="items-center pt-20">
                         <Ionicons name="calendar-outline" size={64} color="#d1d5db" />
-                        <Text className="text-lg font-semibold text-gray-700 mt-4">No Events</Text>
-                        <Text className="text-sm text-gray-500 text-center mt-2 px-8">
+                        <AppText className="text-lg font-semibold text-gray-700 mt-4">No Events</AppText>
+                        <AppText className="text-sm text-gray-500 text-center mt-2 px-8">
                             {onCreatePress ? 'No events scheduled yet. Tap "Create Event" to add one.' : 'No events scheduled yet.'}
-                        </Text>
+                        </AppText>
                     </View>
                 }
             />

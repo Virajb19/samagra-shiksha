@@ -13,6 +13,7 @@
  */
 
 import React, { useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -55,7 +56,7 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
             <View className="flex-1 bg-black/50 justify-end">
                 <View className="bg-white rounded-t-[20px] max-h-[70%]">
                     <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-                        <Text className="text-lg font-semibold text-gray-900">{title}</Text>
+                        <AppText className="text-lg font-semibold text-gray-900">{title}</AppText>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} color="#374151" />
                         </TouchableOpacity>
@@ -71,13 +72,13 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
                                     className={`flex-row justify-between items-center py-3.5 px-4 border-b border-gray-50 ${selectedValue === item.id ? 'bg-[#e8ecf4]' : ''}`}
                                     onPress={() => { onSelect(item.id); onClose(); }}
                                 >
-                                    <Text className={`text-base ${selectedValue === item.id ? 'text-[#2c3e6b] font-semibold' : 'text-gray-700'}`}>
+                                    <AppText className={`text-base ${selectedValue === item.id ? 'text-[#2c3e6b] font-semibold' : 'text-gray-700'}`}>
                                         {item.name}
-                                    </Text>
+                                    </AppText>
                                     {selectedValue === item.id && <Ionicons name="checkmark" size={20} color="#2c3e6b" />}
                                 </TouchableOpacity>
                             )}
-                            ListEmptyComponent={<Text className="text-center p-5 text-gray-500 text-sm">No items available</Text>}
+                            ListEmptyComponent={<AppText className="text-center p-5 text-gray-500 text-sm">No items available</AppText>}
                         />
                     )}
                 </View>
@@ -158,30 +159,30 @@ export default function JuniorEngineerCompleteProfileScreen() {
                         />
                     </View>
                     <View>
-                        <Text className="text-xl font-bold text-white">Complete Profile</Text>
-                        <Text className="text-[13px] text-white/70 mt-0.5">Junior Engineer Details</Text>
+                        <AppText className="text-xl font-bold text-white">Complete Profile</AppText>
+                        <AppText className="text-[13px] text-white/70 mt-0.5">Junior Engineer Details</AppText>
                     </View>
                 </View>
             </View>
 
             {/* White Card */}
             <ScrollView className="flex-1 bg-white rounded-t-3xl" contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-                <Text className="text-2xl font-bold text-gray-900 mb-2">Add Experience</Text>
-                <Text className="text-sm text-gray-500 mb-6">
+                <AppText className="text-2xl font-bold text-gray-900 mb-2">Add Experience</AppText>
+                <AppText className="text-sm text-gray-500 mb-6">
                     Please make sure all the required fields are properly filled.
-                </Text>
+                </AppText>
 
                 {/* Warning Banner */}
                 <View className="bg-[#fff3cd] border border-[#ffc107] rounded-lg p-3 flex-row items-start mb-5 gap-2">
                     <Ionicons name="warning" size={20} color="#856404" />
-                    <Text className="flex-1 text-[13px] text-[#856404] leading-[18px]">
+                    <AppText className="flex-1 text-[13px] text-[#856404] leading-[18px]">
                         Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* District */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-700 mb-2">District *</Text>
+                    <AppText className="text-sm font-semibold text-gray-700 mb-2">District *</AppText>
                     {loadingDistricts ? (
                         <View className="bg-white rounded-lg border border-gray-300 px-4 py-3.5 flex-row justify-between items-center">
                             <ActivityIndicator size="small" color="#2c3e6b" />
@@ -191,14 +192,14 @@ export default function JuniorEngineerCompleteProfileScreen() {
                             className="bg-white rounded-lg border border-gray-300 px-4 py-3.5 flex-row justify-between items-center"
                             onPress={() => setDistrictModalVisible(true)}
                         >
-                            <Text className={selectedDistrict ? 'text-base text-gray-900' : 'text-base text-gray-400'}>
+                            <AppText className={selectedDistrict ? 'text-base text-gray-900' : 'text-base text-gray-400'}>
                                 {selectedDistrictName || 'Select District'}
-                            </Text>
+                            </AppText>
                             <Ionicons name="chevron-down" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     )}
                     {errors.districtId && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.districtId.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.districtId.message}</AppText>
                     )}
                 </View>
 
@@ -214,7 +215,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
 
                 {/* Years of Experience */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-700 mb-2">Total Years of Experience *</Text>
+                    <AppText className="text-sm font-semibold text-gray-700 mb-2">Total Years of Experience *</AppText>
                     <Controller
                         control={control}
                         name="yearsOfExperience"
@@ -229,13 +230,13 @@ export default function JuniorEngineerCompleteProfileScreen() {
                         )}
                     />
                     {errors.yearsOfExperience && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.yearsOfExperience.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.yearsOfExperience.message}</AppText>
                     )}
                 </View>
 
                 {/* EBRC */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-700 mb-2">EBRC *</Text>
+                    <AppText className="text-sm font-semibold text-gray-700 mb-2">EBRC *</AppText>
                     <Controller
                         control={control}
                         name="ebrc"
@@ -249,7 +250,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
                         )}
                     />
                     {errors.ebrc && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.ebrc.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.ebrc.message}</AppText>
                     )}
                 </View>
 
@@ -257,31 +258,31 @@ export default function JuniorEngineerCompleteProfileScreen() {
                 <View className="h-px bg-gray-200 my-6" />
 
                 {/* Personal Details (Read-only) */}
-                <Text className="text-lg font-bold text-gray-900 mb-1">Personal Details</Text>
-                <Text className="text-xs text-gray-500 mb-5">
+                <AppText className="text-lg font-bold text-gray-900 mb-1">Personal Details</AppText>
+                <AppText className="text-xs text-gray-500 mb-5">
                     To update Personal Details, go to Settings {'>'} Edit Profile
-                </Text>
+                </AppText>
 
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-700 mb-2">Full Name</Text>
+                    <AppText className="text-sm font-semibold text-gray-700 mb-2">Full Name</AppText>
                     <View className="bg-gray-100 rounded-lg border border-gray-200 px-4 py-3">
-                        <Text className="text-base text-gray-500">{user?.name || ''}</Text>
+                        <AppText className="text-base text-gray-500">{user?.name || ''}</AppText>
                     </View>
                 </View>
 
                 <View className="flex-row">
                     <View className="flex-1 mr-2 mb-5">
-                        <Text className="text-sm font-semibold text-gray-700 mb-2">Gender</Text>
+                        <AppText className="text-sm font-semibold text-gray-700 mb-2">Gender</AppText>
                         <View className="bg-gray-100 rounded-lg border border-gray-200 px-4 py-3">
-                            <Text className="text-base text-gray-500">
+                            <AppText className="text-base text-gray-500">
                                 {user?.gender === 'MALE' ? 'Male' : user?.gender === 'FEMALE' ? 'Female' : '-'}
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                     <View className="flex-1 ml-2 mb-5">
-                        <Text className="text-sm font-semibold text-gray-700 mb-2">Phone Number</Text>
+                        <AppText className="text-sm font-semibold text-gray-700 mb-2">Phone Number</AppText>
                         <View className="bg-gray-100 rounded-lg border border-gray-200 px-4 py-3">
-                            <Text className="text-base text-gray-500">{user?.phone || ''}</Text>
+                            <AppText className="text-base text-gray-500">{user?.phone || ''}</AppText>
                         </View>
                     </View>
                 </View>
@@ -295,7 +296,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#ffffff" />
                     ) : (
-                        <Text className="text-base font-semibold text-white">Submit</Text>
+                        <AppText className="text-base font-semibold text-white">Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

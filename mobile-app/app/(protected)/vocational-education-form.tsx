@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -65,7 +66,7 @@ function YesNoField({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
             <View className="flex-row items-center gap-6">
                 <TouchableOpacity className="flex-row items-center" onPress={() => onChange('Yes')}>
                     <View
@@ -76,7 +77,7 @@ function YesNoField({
                             <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                         )}
                     </View>
-                    <Text className="text-[15px] text-[#1a1a1a]">Yes</Text>
+                    <AppText className="text-[15px] text-[#1a1a1a]">Yes</AppText>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-row items-center" onPress={() => onChange('No')}>
                     <View
@@ -87,10 +88,10 @@ function YesNoField({
                             <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
                         )}
                     </View>
-                    <Text className="text-[15px] text-[#1a1a1a]">No</Text>
+                    <AppText className="text-[15px] text-[#1a1a1a]">No</AppText>
                 </TouchableOpacity>
             </View>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -115,17 +116,17 @@ function DropdownField({
 
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</AppText>
             <TouchableOpacity
                 className="border border-gray-200 rounded-xl px-4 py-4 flex-row items-center bg-[#fafafa]"
                 onPress={() => setOpen(true)}
             >
-                <Text className={`flex-1 text-[14px] ${value ? 'text-[#1a1a1a]' : 'text-gray-400'}`}>
+                <AppText className={`flex-1 text-[14px] ${value ? 'text-[#1a1a1a]' : 'text-gray-400'}`}>
                     {value || placeholder}
-                </Text>
+                </AppText>
                 <Ionicons name="chevron-down" size={20} color="#9ca3af" />
             </TouchableOpacity>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
 
             <Modal visible={open} transparent animationType="fade">
                 <TouchableOpacity
@@ -142,7 +143,7 @@ function DropdownField({
                                     className="px-5 py-4 border-b border-gray-100"
                                     onPress={() => { onChange(item); setOpen(false); }}
                                 >
-                                    <Text className={`text-[15px] ${value === item ? 'font-bold text-blue-600' : 'text-[#1a1a1a]'}`}>{item}</Text>
+                                    <AppText className={`text-[15px] ${value === item ? 'font-bold text-blue-600' : 'text-[#1a1a1a]'}`}>{item}</AppText>
                                 </TouchableOpacity>
                             )}
                         />
@@ -179,14 +180,14 @@ function ClassAccordion({
                 className="flex-row items-center justify-between px-4 py-4"
                 onPress={() => setExpanded(!expanded)}
             >
-                <Text className="text-base font-bold text-[#1a1a1a]">{classLabel}</Text>
+                <AppText className="text-base font-bold text-[#1a1a1a]">{classLabel}</AppText>
                 <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={22} color="#6b7280" />
             </TouchableOpacity>
             {expanded && (
                 <View className="px-4 pb-4">
                     <View className="flex-row gap-4">
                         <View className="flex-1">
-                            <Text className="text-sm font-semibold text-[#1a1a1a] mb-1">Boys *</Text>
+                            <AppText className="text-sm font-semibold text-[#1a1a1a] mb-1">Boys *</AppText>
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px]"
                                 keyboardType="numeric"
@@ -194,10 +195,10 @@ function ClassAccordion({
                                 onChangeText={onBoysChange}
                                 placeholder="0"
                             />
-                            {boysError && <Text className="text-xs text-red-500 mt-1">{boysError}</Text>}
+                            {boysError && <AppText className="text-xs text-red-500 mt-1">{boysError}</AppText>}
                         </View>
                         <View className="flex-1">
-                            <Text className="text-sm font-semibold text-[#1a1a1a] mb-1">Girls *</Text>
+                            <AppText className="text-sm font-semibold text-[#1a1a1a] mb-1">Girls *</AppText>
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px]"
                                 keyboardType="numeric"
@@ -205,7 +206,7 @@ function ClassAccordion({
                                 onChangeText={onGirlsChange}
                                 placeholder="0"
                             />
-                            {girlsError && <Text className="text-xs text-red-500 mt-1">{girlsError}</Text>}
+                            {girlsError && <AppText className="text-xs text-red-500 mt-1">{girlsError}</AppText>}
                         </View>
                     </View>
                 </View>
@@ -232,8 +233,8 @@ function ImagePickerGrid({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">{label}</Text>
-            <Text className="text-xs text-gray-500 mb-2.5">{images.length}/{maxPhotos} photos uploaded</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-1">{label}</AppText>
+            <AppText className="text-xs text-gray-500 mb-2.5">{images.length}/{maxPhotos} photos uploaded</AppText>
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -260,7 +261,7 @@ function ImagePickerGrid({
                     </TouchableOpacity>
                 )}
             </ScrollView>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -281,7 +282,7 @@ function SingleImagePicker({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</AppText>
             {value ? (
                 <View style={{ position: 'relative', alignSelf: 'flex-start' }}>
                     <Image source={{ uri: value }} style={{ width: 160, height: 120, borderRadius: 12 }} />
@@ -298,10 +299,10 @@ function SingleImagePicker({
                     onPress={onPick}
                 >
                     <Ionicons name="image-outline" size={40} color="#9ca3af" />
-                    <Text className="text-sm text-gray-400 mt-2">{label}</Text>
+                    <AppText className="text-sm text-gray-400 mt-2">{label}</AppText>
                 </TouchableOpacity>
             )}
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -318,9 +319,9 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                         resizeMode="contain"
                     />
                     <View>
-                        <Text className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</Text>
-                        <Text className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</Text>
-                        <Text className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</Text>
+                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
+                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
+                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
                     </View>
                 </View>
                 <Image
@@ -329,10 +330,10 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                     resizeMode="contain"
                 />
             </View>
-            <Text className="text-white text-[28px] font-extrabold mb-1">Vocational Education</Text>
-            <Text className="text-white/80 text-xs">
+            <AppText className="text-white text-[28px] font-extrabold mb-1">Vocational Education</AppText>
+            <AppText className="text-white/80 text-xs">
                 Please make sure all the required fields are properly filled.
-            </Text>
+            </AppText>
             <TouchableOpacity
                 onPress={onBack}
                 style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
@@ -347,8 +348,8 @@ function FormHeader({ onBack }: { onBack: () => void }) {
 function DataRow({ label, value }: { label: string; value: string }) {
     return (
         <View className="flex-row py-1.5">
-            <Text className="text-xs text-gray-500 w-[45%]">{label}</Text>
-            <Text className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</Text>
+            <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
+            <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
         </View>
     );
 }
@@ -359,7 +360,7 @@ function VocationalFormDataTable({ submissions }: { submissions: VocationalEduca
 
     return (
         <View className="mt-6 mb-4">
-            <Text className="text-lg font-bold text-[#1a1a1a] mb-3">Your Vocational Education Submissions</Text>
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Vocational Education Submissions</AppText>
             {submissions.map((sub, idx) => (
                 <View
                     key={sub.id}
@@ -368,13 +369,13 @@ function VocationalFormDataTable({ submissions }: { submissions: VocationalEduca
                 >
                     <View className="flex-row items-center mb-2">
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <Text className="text-white font-bold text-sm">{idx + 1}</Text>
+                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
                         </View>
                         <View className="flex-1">
-                            <Text className="text-base font-bold text-[#1a1a1a]">{sub.trade} — {sub.school_name || 'Submission'}</Text>
-                            <Text className="text-xs text-gray-500">
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.trade} — {sub.school_name || 'Submission'}</AppText>
+                            <AppText className="text-xs text-gray-500">
                                 {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </Text>
+                            </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
@@ -400,7 +401,7 @@ function VocationalFormDataTable({ submissions }: { submissions: VocationalEduca
                             <View className="mt-2">
                                 {sub.best_practice_photos.length > 0 && (
                                     <View className="mb-2">
-                                        <Text className="text-xs font-semibold text-gray-600 mb-1">Best Practice Photos ({sub.best_practice_photos.length})</Text>
+                                        <AppText className="text-xs font-semibold text-gray-600 mb-1">Best Practice Photos ({sub.best_practice_photos.length})</AppText>
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                             {sub.best_practice_photos.map((url, i) => (
                                                 <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -410,7 +411,7 @@ function VocationalFormDataTable({ submissions }: { submissions: VocationalEduca
                                 )}
                                 {sub.success_story_photos.length > 0 && (
                                     <View>
-                                        <Text className="text-xs font-semibold text-gray-600 mb-1">Success Story Photos ({sub.success_story_photos.length})</Text>
+                                        <AppText className="text-xs font-semibold text-gray-600 mb-1">Success Story Photos ({sub.success_story_photos.length})</AppText>
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                             {sub.success_story_photos.map((url, i) => (
                                                 <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -606,10 +607,10 @@ export default function VocationalEducationFormScreen() {
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
                     <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
                         <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-                        <Text className="text-lg font-bold text-green-700 mt-2">Form Submitted!</Text>
-                        <Text className="text-sm text-green-600 mt-1 text-center">
+                        <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
+                        <AppText className="text-sm text-green-600 mt-1 text-center">
                             Your Vocational Education form has been submitted successfully.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <VocationalFormDataTable submissions={submissions} />
@@ -619,14 +620,14 @@ export default function VocationalEducationFormScreen() {
                         style={{ backgroundColor: BLUE }}
                         onPress={handleNewSubmission}
                     >
-                        <Text className="text-base font-bold text-white">Submit Another Entry</Text>
+                        <AppText className="text-base font-bold text-white">Submit Another Entry</AppText>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         className="rounded-xl py-4 items-center mt-3 border border-gray-300"
                         onPress={() => router.back()}
                     >
-                        <Text className="text-base font-bold text-gray-700">Back to Activity Forms</Text>
+                        <AppText className="text-base font-bold text-gray-700">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -737,7 +738,7 @@ export default function VocationalEducationFormScreen() {
             )}
             {isLabSetup === 'No' && (
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Lab Wasn't Setup *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Lab Wasn't Setup *</AppText>
                     <Controller
                         control={control}
                         name="labNotSetupReason"
@@ -753,7 +754,7 @@ export default function VocationalEducationFormScreen() {
                         )}
                     />
                     {errors.labNotSetupReason?.message && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.labNotSetupReason.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.labNotSetupReason.message}</AppText>
                     )}
                 </View>
             )}
@@ -782,7 +783,7 @@ export default function VocationalEducationFormScreen() {
             )}
             {isGuestLectureDone === 'No' && (
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Guest Lecture Not Conducted *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Guest Lecture Not Conducted *</AppText>
                     <Controller
                         control={control}
                         name="guestLectureNotDoneReason"
@@ -798,7 +799,7 @@ export default function VocationalEducationFormScreen() {
                         )}
                     />
                     {errors.guestLectureNotDoneReason?.message && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.guestLectureNotDoneReason.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.guestLectureNotDoneReason.message}</AppText>
                     )}
                 </View>
             )}
@@ -827,7 +828,7 @@ export default function VocationalEducationFormScreen() {
             )}
             {isIndustrialVisitDone === 'No' && (
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Industrial Visit Not Conducted *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Industrial Visit Not Conducted *</AppText>
                     <Controller
                         control={control}
                         name="industrialVisitNotDoneReason"
@@ -843,7 +844,7 @@ export default function VocationalEducationFormScreen() {
                         )}
                     />
                     {errors.industrialVisitNotDoneReason?.message && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.industrialVisitNotDoneReason.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.industrialVisitNotDoneReason.message}</AppText>
                     )}
                 </View>
             )}
@@ -863,7 +864,7 @@ export default function VocationalEducationFormScreen() {
             />
             {isInternshipDone === 'Yes' && (
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Internship Report *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Internship Report *</AppText>
                     <Controller
                         control={control}
                         name="internshipReport"
@@ -879,13 +880,13 @@ export default function VocationalEducationFormScreen() {
                         )}
                     />
                     {errors.internshipReport?.message && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.internshipReport.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.internshipReport.message}</AppText>
                     )}
                 </View>
             )}
             {isInternshipDone === 'No' && (
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Internship Not Conducted *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Reason Why Internship Not Conducted *</AppText>
                     <Controller
                         control={control}
                         name="internshipNotDoneReason"
@@ -901,14 +902,14 @@ export default function VocationalEducationFormScreen() {
                         )}
                     />
                     {errors.internshipNotDoneReason?.message && (
-                        <Text className="text-xs text-red-500 mt-1">{errors.internshipNotDoneReason.message}</Text>
+                        <AppText className="text-xs text-red-500 mt-1">{errors.internshipNotDoneReason.message}</AppText>
                     )}
                 </View>
             )}
 
             {/* Best Practices */}
             <View className="mb-5">
-                <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Best Practices *</Text>
+                <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Best Practices *</AppText>
                 <Controller
                     control={control}
                     name="bestPractices"
@@ -924,7 +925,7 @@ export default function VocationalEducationFormScreen() {
                     )}
                 />
                 {errors.bestPractices?.message && (
-                    <Text className="text-xs text-red-500 mt-1">{errors.bestPractices.message}</Text>
+                    <AppText className="text-xs text-red-500 mt-1">{errors.bestPractices.message}</AppText>
                 )}
             </View>
 
@@ -938,7 +939,7 @@ export default function VocationalEducationFormScreen() {
 
             {/* Success Stories */}
             <View className="mb-5">
-                <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Success Stories *</Text>
+                <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Success Stories *</AppText>
                 <Controller
                     control={control}
                     name="successStories"
@@ -954,7 +955,7 @@ export default function VocationalEducationFormScreen() {
                     )}
                 />
                 {errors.successStories?.message && (
-                    <Text className="text-xs text-red-500 mt-1">{errors.successStories.message}</Text>
+                    <AppText className="text-xs text-red-500 mt-1">{errors.successStories.message}</AppText>
                 )}
             </View>
 
@@ -976,10 +977,10 @@ export default function VocationalEducationFormScreen() {
                 {submitMutation.isPending ? (
                     <View className="flex-row items-center gap-2">
                         <ActivityIndicator size="small" color="white" />
-                        <Text className="text-base font-bold text-white">Submitting...</Text>
+                        <AppText className="text-base font-bold text-white">Submitting...</AppText>
                     </View>
                 ) : (
-                    <Text className="text-base font-bold text-white">Submit</Text>
+                    <AppText className="text-base font-bold text-white">Submit</AppText>
                 )}
             </TouchableOpacity>
         </View>

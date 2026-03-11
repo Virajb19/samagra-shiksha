@@ -3,12 +3,13 @@
  * 3-state profile flow with AccessBlockedModal + Visit Type Picker.
  */
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert, Modal, Animated } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, Alert, Modal, Animated } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
 import { useQuery } from '@tanstack/react-query';
 import { getProfileStatus } from '../../../../src/services/firebase/users.firestore';
 import { Ionicons } from '@expo/vector-icons';
+import { AppText } from '@/components/AppText';
 
 const BLUE = '#1565C0';
 
@@ -18,7 +19,7 @@ function ActionCard({ title, iconName, onPress, disabled = false }: { title: str
             <View className="w-16 h-16 rounded-full bg-[#e8f4fd] justify-center items-center mb-2">
                 <Ionicons name={iconName} size={34} color={disabled ? '#9ca3af' : BLUE} />
             </View>
-            <Text className={`text-[11px] font-bold text-center leading-[14px] ${disabled ? 'text-gray-400' : 'text-gray-800'}`} numberOfLines={2}>{title}</Text>
+            <AppText className={`text-[11px] font-bold text-center leading-[14px] ${disabled ? 'text-gray-400' : 'text-gray-800'}`} numberOfLines={2}>{title}</AppText>
         </TouchableOpacity>
     );
 }
@@ -51,14 +52,14 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: { visible: b
                 <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} activeOpacity={1} onPress={onClose} />
                 <Animated.View style={{ transform: [{ translateY }], backgroundColor: '#fff', borderRadius: 24, width: '100%', paddingHorizontal: 28, paddingTop: 32, paddingBottom: 28, alignItems: 'center' }}>
                     <Image source={{ uri: isVerification ? 'https://cdn-icons-png.flaticon.com/512/6195/6195699.png' : 'https://cdn-icons-png.flaticon.com/512/3596/3596165.png' }} style={{ width: 140, height: 140, marginBottom: 20 }} resizeMode="contain" />
-                    <Text style={{ fontSize: 22, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 8 }}>{isVerification ? 'Account under verification' : 'Complete your profile'}</Text>
-                    <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>{isVerification ? 'Your account is currently under verification by the admin. You will be able to access this once approved.' : 'Kindly complete your profile by filling up relevant experience details.'}</Text>
+                    <AppText style={{ fontSize: 22, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 8 }}>{isVerification ? 'Account under verification' : 'Complete your profile'}</AppText>
+                    <AppText style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>{isVerification ? 'Your account is currently under verification by the admin. You will be able to access this once approved.' : 'Kindly complete your profile by filling up relevant experience details.'}</AppText>
                     {isVerification ? (
-                        <TouchableOpacity style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center' }} onPress={onClose}><Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>OK, Got it</Text></TouchableOpacity>
+                        <TouchableOpacity style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center' }} onPress={onClose}><AppText style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>OK, Got it</AppText></TouchableOpacity>
                     ) : (
                         <>
-                            <TouchableOpacity style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center', marginBottom: 12 }} onPress={onComplete}><Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Complete Profile</Text></TouchableOpacity>
-                            <TouchableOpacity onPress={onClose} style={{ paddingVertical: 8 }}><Text style={{ color: '#9ca3af', fontSize: 14 }}>Maybe later</Text></TouchableOpacity>
+                            <TouchableOpacity style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center', marginBottom: 12 }} onPress={onComplete}><AppText style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Complete Profile</AppText></TouchableOpacity>
+                            <TouchableOpacity onPress={onClose} style={{ paddingVertical: 8 }}><AppText style={{ color: '#9ca3af', fontSize: 14 }}>Maybe later</AppText></TouchableOpacity>
                         </>
                     )}
                 </Animated.View>
@@ -93,7 +94,7 @@ function VisitTypePickerModal({ visible, onClose, onSelectSchool, onSelectHome }
             <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, opacity }}>
                 <TouchableOpacity style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} activeOpacity={1} onPress={onClose} />
                 <Animated.View style={{ transform: [{ translateY }], backgroundColor: '#fff', borderRadius: 24, width: '100%', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 24 }}>
-                    <Text style={{ fontSize: 20, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 24 }}>Select Visit Type</Text>
+                    <AppText style={{ fontSize: 20, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 24 }}>Select Visit Type</AppText>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
                         <TouchableOpacity
                             style={{ alignItems: 'center', width: '40%' }}
@@ -103,7 +104,7 @@ function VisitTypePickerModal({ visible, onClose, onSelectSchool, onSelectHome }
                             <View style={{ width: 100, height: 100, borderRadius: 20, backgroundColor: '#e8f4fd', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
                                 <Ionicons name="school-outline" size={48} color={BLUE} />
                             </View>
-                            <Text style={{ fontSize: 16, fontWeight: '600', color: '#1a1a2e' }}>School Visit</Text>
+                            <AppText style={{ fontSize: 16, fontWeight: '600', color: '#1a1a2e' }}>School Visit</AppText>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{ alignItems: 'center', width: '40%' }}
@@ -113,7 +114,7 @@ function VisitTypePickerModal({ visible, onClose, onSelectSchool, onSelectHome }
                             <View style={{ width: 100, height: 100, borderRadius: 20, backgroundColor: '#e8f4fd', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
                                 <Ionicons name="home-outline" size={48} color={BLUE} />
                             </View>
-                            <Text style={{ fontSize: 16, fontWeight: '600', color: '#1a1a2e' }}>Home Visit</Text>
+                            <AppText style={{ fontSize: 16, fontWeight: '600', color: '#1a1a2e' }}>Home Visit</AppText>
                         </TouchableOpacity>
                     </View>
                 </Animated.View>
@@ -157,13 +158,13 @@ export default function IEResourcePersonHomeTabScreen() {
                         )}
                     </View>
                     <View className="flex-1">
-                        <Text className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user?.name || 'User'}</Text>
+                        <AppText className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user?.name || 'User'}</AppText>
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.8)" />
-                            <Text className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user?.email || 'No email'}</Text>
+                            <AppText className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user?.email || 'No email'}</AppText>
                         </View>
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' }}>
-                            <Text className="text-white text-xs font-semibold">IE Resource Person</Text>
+                            <AppText className="text-white text-xs font-semibold">IE Resource Person</AppText>
                         </View>
                     </View>
                 </View>
@@ -182,12 +183,12 @@ export default function IEResourcePersonHomeTabScreen() {
 
             {!loadingProfile && !hasCompletedProfile && (
                 <TouchableOpacity className="mx-4 mt-2 rounded-xl py-4 items-center" style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }} onPress={() => router.push('/(protected)/ie-resource-person/complete-profile')} activeOpacity={0.8}>
-                    <Text style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Kindly complete your profile</Text>
+                    <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Kindly complete your profile</AppText>
                 </TouchableOpacity>
             )}
             {!loadingProfile && hasCompletedProfile && !isActive && (
                 <View className="mx-4 mt-2 rounded-xl py-4 items-center" style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}>
-                    <Text style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Your account is under verification</Text>
+                    <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Your account is under verification</AppText>
                 </View>
             )}
 

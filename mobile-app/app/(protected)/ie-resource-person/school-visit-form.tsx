@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -49,7 +50,7 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
             <View className="flex-1 bg-black/50 justify-end">
                 <View className="bg-white rounded-t-[20px] max-h-[70%]">
                     <View className="flex-row justify-between items-center p-4 border-b border-[#e5e7eb]">
-                        <Text className="text-lg font-semibold text-[#1f2937]">{title}</Text>
+                        <AppText className="text-lg font-semibold text-[#1f2937]">{title}</AppText>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} color="#374151" />
                         </TouchableOpacity>
@@ -68,16 +69,16 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
                                         onClose();
                                     }}
                                 >
-                                    <Text className={`text-base text-[#374151] ${selectedValue === item.id ? 'font-semibold' : ''}`} style={selectedValue === item.id ? { color: BLUE } : undefined}>
+                                    <AppText className={`text-base text-[#374151] ${selectedValue === item.id ? 'font-semibold' : ''}`} style={selectedValue === item.id ? { color: BLUE } : undefined}>
                                         {item.name}
-                                    </Text>
+                                    </AppText>
                                     {selectedValue === item.id && (
                                         <Ionicons name="checkmark" size={20} color={BLUE} />
                                     )}
                                 </TouchableOpacity>
                             )}
                             ListEmptyComponent={
-                                <Text className="text-center p-5 text-[#6b7280] text-sm">No items available</Text>
+                                <AppText className="text-center p-5 text-[#6b7280] text-sm">No items available</AppText>
                             }
                         />
                     )}
@@ -90,18 +91,18 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
 function GenderRadio({ value, onChange, error }: { value?: string; onChange: (v: 'MALE' | 'FEMALE') => void; error?: string }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">Gender *</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">Gender *</AppText>
             <View className="flex-row items-center gap-6">
                 {(['MALE', 'FEMALE'] as const).map((g) => (
                     <TouchableOpacity key={g} className="flex-row items-center" onPress={() => onChange(g)}>
                         <View className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2" style={{ borderColor: value === g ? BLUE : '#d1d5db' }}>
                             {value === g && <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />}
                         </View>
-                        <Text className="text-[15px] text-[#1a1a1a]">{g === 'MALE' ? 'Male' : 'Female'}</Text>
+                        <AppText className="text-[15px] text-[#1a1a1a]">{g === 'MALE' ? 'Male' : 'Female'}</AppText>
                     </TouchableOpacity>
                 ))}
             </View>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -109,18 +110,18 @@ function GenderRadio({ value, onChange, error }: { value?: string; onChange: (v:
 function YesNoField({ label, value, onChange, error }: { label: string; value?: string; onChange: (v: 'Yes' | 'No') => void; error?: string }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
             <View className="flex-row items-center gap-6">
                 {(['Yes', 'No'] as const).map((opt) => (
                     <TouchableOpacity key={opt} className="flex-row items-center" onPress={() => onChange(opt)}>
                         <View className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2" style={{ borderColor: value === opt ? BLUE : '#d1d5db' }}>
                             {value === opt && <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />}
                         </View>
-                        <Text className="text-[15px] text-[#1a1a1a]">{opt}</Text>
+                        <AppText className="text-[15px] text-[#1a1a1a]">{opt}</AppText>
                     </TouchableOpacity>
                 ))}
             </View>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -214,35 +215,35 @@ export default function IESchoolVisitFormScreen() {
     return (
         <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <ScrollView className="flex-1 bg-white" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 }}>
-                <Text className="text-2xl font-bold text-[#1a1a1a] mb-1">IE School Visit</Text>
-                <Text className="text-sm text-gray-500 mb-6">Please make sure all the required fields are properly filled.</Text>
+                <AppText className="text-2xl font-bold text-[#1a1a1a] mb-1">IE School Visit</AppText>
+                <AppText className="text-sm text-gray-500 mb-6">Please make sure all the required fields are properly filled.</AppText>
 
                 {/* Name of CwSN */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Name of CwSN *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Name of CwSN *</AppText>
                     <Controller control={control} name="nameOfCwSN" render={({ field: { onChange, value } }) => (
                         <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter full name" value={value} onChangeText={onChange} />
                     )} />
-                    {errors.nameOfCwSN && <Text className="text-xs text-red-500 mt-1">{errors.nameOfCwSN.message}</Text>}
+                    {errors.nameOfCwSN && <AppText className="text-xs text-red-500 mt-1">{errors.nameOfCwSN.message}</AppText>}
                 </View>
 
                 {/* Type of Disability */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Type of Disability *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Type of Disability *</AppText>
                     <Controller control={control} name="typeOfDisability" render={({ field: { onChange, value } }) => (
                         <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter type of disability" value={value} onChangeText={onChange} />
                     )} />
-                    {errors.typeOfDisability && <Text className="text-xs text-red-500 mt-1">{errors.typeOfDisability.message}</Text>}
+                    {errors.typeOfDisability && <AppText className="text-xs text-red-500 mt-1">{errors.typeOfDisability.message}</AppText>}
                 </View>
 
                 {/* District */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">District *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">District *</AppText>
                     <TouchableOpacity className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDistrictModal(true)}>
-                        <Text className={selectedDistrict ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedDistrict?.name || 'Select district'}</Text>
+                        <AppText className={selectedDistrict ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedDistrict?.name || 'Select district'}</AppText>
                         <Ionicons name="chevron-down" size={20} color="#9ca3af" />
                     </TouchableOpacity>
-                    {errors.districtId && <Text className="text-xs text-red-500 mt-1">{errors.districtId.message}</Text>}
+                    {errors.districtId && <AppText className="text-xs text-red-500 mt-1">{errors.districtId.message}</AppText>}
                 </View>
 
                 {/* District Select Modal */}
@@ -260,24 +261,24 @@ export default function IESchoolVisitFormScreen() {
 
                 {/* School */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">School *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">School *</AppText>
                     {!selectedDistrictId ? (
                         <View className="border border-gray-200 rounded-xl px-4 py-3.5 flex-row justify-between items-center bg-gray-100" style={{ opacity: 0.6 }}>
-                            <Text className="text-[15px] text-gray-400">Select district first</Text>
+                            <AppText className="text-[15px] text-gray-400">Select district first</AppText>
                             <Ionicons name="chevron-down" size={20} color="#d1d5db" />
                         </View>
                     ) : isLoadingSchools ? (
                         <View className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center">
-                            <Text className="text-[15px] text-gray-400">Fetching schools...</Text>
+                            <AppText className="text-[15px] text-gray-400">Fetching schools...</AppText>
                             <ActivityIndicator size="small" color={BLUE} />
                         </View>
                     ) : (
                         <TouchableOpacity className="border border-gray-300 rounded-xl px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowSchoolModal(true)}>
-                            <Text className={selectedSchool ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedSchool?.name || `Select School in ${selectedDistrict?.name || ''}`}</Text>
+                            <AppText className={selectedSchool ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{selectedSchool?.name || `Select School in ${selectedDistrict?.name || ''}`}</AppText>
                             <Ionicons name="chevron-down" size={20} color="#9ca3af" />
                         </TouchableOpacity>
                     )}
-                    {errors.schoolId && <Text className="text-xs text-red-500 mt-1">{errors.schoolId.message}</Text>}
+                    {errors.schoolId && <AppText className="text-xs text-red-500 mt-1">{errors.schoolId.message}</AppText>}
                 </View>
 
                 {/* School Select Modal */}
@@ -300,27 +301,27 @@ export default function IESchoolVisitFormScreen() {
                             <GenderRadio value={value} onChange={onChange} error={errors.gender?.message} />
                         </View>
                         <View className="flex-1 ml-4">
-                            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Age *</Text>
+                            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Age *</AppText>
                             <Controller control={control} name="age" render={({ field: { onChange: onChangeAge, value: ageVal } }) => (
                                 <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter age" value={ageVal} onChangeText={onChangeAge} keyboardType="numeric" />
                             )} />
-                            {errors.age && <Text className="text-xs text-red-500 mt-1">{errors.age.message}</Text>}
+                            {errors.age && <AppText className="text-xs text-red-500 mt-1">{errors.age.message}</AppText>}
                         </View>
                     </View>
                 )} />
 
                 {/* Activities / Topics covered */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Activities / Topics covered *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Activities / Topics covered *</AppText>
                     <Controller control={control} name="activitiesTopics" render={({ field: { onChange, value } }) => (
                         <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter activities" value={value} onChangeText={onChange} multiline numberOfLines={3} textAlignVertical="top" style={{ minHeight: 80 }} />
                     )} />
-                    {errors.activitiesTopics && <Text className="text-xs text-red-500 mt-1">{errors.activitiesTopics.message}</Text>}
+                    {errors.activitiesTopics && <AppText className="text-xs text-red-500 mt-1">{errors.activitiesTopics.message}</AppText>}
                 </View>
 
                 {/* Type of Therapy */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Type of Therapy (If any therapy is given)</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Type of Therapy (If any therapy is given)</AppText>
                     <Controller control={control} name="therapyType" render={({ field: { onChange, value } }) => (
                         <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter type of therapy" value={value} onChangeText={onChange} />
                     )} />
@@ -328,20 +329,20 @@ export default function IESchoolVisitFormScreen() {
 
                 {/* Explain Activities / Therapy */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Explain Activities / Therapy (in brief) *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Explain Activities / Therapy (in brief) *</AppText>
                     <Controller control={control} name="therapyBrief" render={({ field: { onChange, value } }) => (
                         <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter activities / therapy" value={value} onChangeText={onChange} multiline numberOfLines={3} textAlignVertical="top" style={{ minHeight: 80 }} />
                     )} />
-                    {errors.therapyBrief && <Text className="text-xs text-red-500 mt-1">{errors.therapyBrief.message}</Text>}
+                    {errors.therapyBrief && <AppText className="text-xs text-red-500 mt-1">{errors.therapyBrief.message}</AppText>}
                 </View>
 
                 {/* Expected Outcome */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">Expected Outcome (for the child) *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Expected Outcome (for the child) *</AppText>
                     <Controller control={control} name="expectedOutcome" render={({ field: { onChange, value } }) => (
                         <TextInput className="border border-gray-300 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a]" placeholder="Enter expected outcome" value={value} onChangeText={onChange} multiline numberOfLines={3} textAlignVertical="top" style={{ minHeight: 80 }} />
                     )} />
-                    {errors.expectedOutcome && <Text className="text-xs text-red-500 mt-1">{errors.expectedOutcome.message}</Text>}
+                    {errors.expectedOutcome && <AppText className="text-xs text-red-500 mt-1">{errors.expectedOutcome.message}</AppText>}
                 </View>
 
                 {/* Was the desired goal achieved? */}
@@ -351,7 +352,7 @@ export default function IESchoolVisitFormScreen() {
 
                 {/* Geo-tagged Photos */}
                 <View className="mb-5">
-                    <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">Geo-tagged Photos (atleast 1 Image) *</Text>
+                    <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">Geo-tagged Photos (atleast 1 Image) *</AppText>
                     <View className="flex-row flex-wrap gap-3">
                         {photos.map((uri, idx) => (
                             <View key={idx} style={{ width: 80, height: 80, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#e5e7eb' }}>
@@ -367,7 +368,7 @@ export default function IESchoolVisitFormScreen() {
                             </TouchableOpacity>
                         )}
                     </View>
-                    {errors.geoTaggedPhotos && <Text className="text-xs text-red-500 mt-1">{errors.geoTaggedPhotos.message}</Text>}
+                    {errors.geoTaggedPhotos && <AppText className="text-xs text-red-500 mt-1">{errors.geoTaggedPhotos.message}</AppText>}
                 </View>
 
                 {/* Submit Button */}
@@ -381,7 +382,7 @@ export default function IESchoolVisitFormScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
-                        <Text className="text-white text-lg font-bold">Submit</Text>
+                        <AppText className="text-white text-lg font-bold">Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

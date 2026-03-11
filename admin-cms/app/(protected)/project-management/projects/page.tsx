@@ -84,6 +84,7 @@ export default function ProjectsPage() {
   const [activityFilter, setActivityFilter] = useState<string>('all');
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
   const [schoolSearch, setSchoolSearch] = useState('');
+  const [isSchoolSelectOpen, setIsSchoolSelectOpen] = useState(false);
 
   // Fetch all project schools for the UDISE dropdown
   const { data: projectSchools = [] } = useGetAllProjectSchools();
@@ -215,14 +216,26 @@ export default function ProjectsPage() {
                     <FormLabel className="text-slate-700 dark:text-slate-300">
                       School / Hostel <span className="text-red-500">*</span>
                     </FormLabel>
-                    <Select onValueChange={(val) => { field.onChange(val); setSchoolSearch(''); }} value={field.value}>
+                    <Select
+                      open={isSchoolSelectOpen}
+                      onOpenChange={(open) => {
+                        setIsSchoolSelectOpen(open);
+                        if (!open) setSchoolSearch('');
+                      }}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        setSchoolSearch('');
+                        setIsSchoolSelectOpen(false);
+                      }}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="px-4 py-3 h-12 bg-blue-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white">
                           <SelectValue placeholder="Select School / Hostel" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <div className="px-2 pb-2 pt-1 sticky top-0 bg-white dark:bg-slate-900">
+                        <div className="sticky top-0 z-20 px-2 pb-2 pt-1 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                           <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <input
@@ -231,19 +244,25 @@ export default function ProjectsPage() {
                               value={schoolSearch}
                               onChange={(e) => setSchoolSearch(e.target.value)}
                               className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                              onPointerDown={(e) => e.stopPropagation()}
                               onKeyDown={(e) => e.stopPropagation()}
+                              onKeyUp={(e) => e.stopPropagation()}
                             />
                           </div>
                         </div>
-                        {filteredSchools.length > 0 ? (
-                          filteredSchools.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.name} ({s.udise_code})
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <div className="py-4 text-center text-sm text-slate-400">No schools found</div>
-                        )}
+                        <div className="max-h-64 overflow-y-auto">
+                          {filteredSchools.length > 0 ? (
+                            filteredSchools.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.name} ({s.udise_code})
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="py-4 text-center text-sm text-slate-400">No schools found</div>
+                          )}
+                        </div>
                       </SelectContent>
                     </Select>
                     <FormMessage />

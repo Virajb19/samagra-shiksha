@@ -6,6 +6,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -46,10 +47,10 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
             <View className="p-4">
                 <View className="flex-row justify-between items-center">
                     <View className="flex-1">
-                        <Text className="text-base font-bold text-gray-800">
+                        <AppText className="text-base font-bold text-gray-800">
                             {update.completion_status === 100 ? 'Completed' : `${update.completion_status}%`}
-                        </Text>
-                        <Text className="text-xs text-gray-500 mt-0.5">{formatDate(update.created_at)}</Text>
+                        </AppText>
+                        <AppText className="text-xs text-gray-500 mt-0.5">{formatDate(update.created_at)}</AppText>
                     </View>
                     <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={22} color="#6b7280" />
                 </View>
@@ -71,25 +72,25 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
                         )}
 
                         {/* Uploaded By */}
-                        <Text className="text-sm text-gray-600">
-                            <Text className="font-semibold">Uploaded By: </Text>
+                        <AppText className="text-sm text-gray-600">
+                            <AppText className="font-semibold">Uploaded By: </AppText>
                             {update.user_name}
-                        </Text>
+                        </AppText>
 
                         {/* Location */}
                         {update.location_address && (
-                            <Text className="text-sm text-gray-600 mt-1">
-                                <Text className="font-semibold">Location: </Text>
+                            <AppText className="text-sm text-gray-600 mt-1">
+                                <AppText className="font-semibold">Location: </AppText>
                                 {update.location_address}
-                            </Text>
+                            </AppText>
                         )}
 
                         {/* Comment */}
                         {update.comment && (
-                            <Text className="text-sm text-gray-600 mt-1">
-                                <Text className="font-semibold">Comment: </Text>
+                            <AppText className="text-sm text-gray-600 mt-1">
+                                <AppText className="font-semibold">Comment: </AppText>
                                 {update.comment}
-                            </Text>
+                            </AppText>
                         )}
                     </View>
                 )}
@@ -102,7 +103,7 @@ export default function ProjectDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
 
     // Fetch single project by ID directly
-    const { data: project, isLoading: projectLoading } = useQuery<Project | null>({
+    const { data: project, isLoading: projectLoading, refetch: refetchProject } = useQuery<Project | null>({
         queryKey: ['project', id],
         queryFn: () => getProjectById(id!),
         enabled: !!id,
@@ -117,11 +118,15 @@ export default function ProjectDetailScreen() {
 
     useFocusEffect(
         useCallback(() => {
+            const fetchData = async () => {
             if (id) {
-                refetchUpdates();
+                await Promise.all([refetchProject(), refetchUpdates()]);
             }
-        }, [id, refetchUpdates])
-    );
+            };
+
+            fetchData();
+        }, [id, refetchProject, refetchUpdates])
+     );
 
     if (projectLoading) {
         return (
@@ -135,12 +140,19 @@ export default function ProjectDetailScreen() {
         return (
             <View className="flex-1 items-center justify-center bg-[#f0f4f8]">
                 <Ionicons name="alert-circle-outline" size={48} color="#9ca3af" />
-                <Text className="text-gray-400 mt-2">Project not found</Text>
+                <AppText className="text-gray-400 mt-2">Project not found</AppText>
             </View>
         );
     }
 
-    const progressLabel = project.progress === 0 ? 'N/A' : project.status === 'Completed' ? 'Completed' : `${project.progress}%`;
+    const progressLabel =
+        project.progress === 0
+            ? 'N/A'
+            : project.status === 'Completed'
+                ? 'Completed'
+                : project.progress >= 100
+                    ? '100% (Pending close)'
+                    : `${project.progress}%`;
     const isCompleted = project.status === 'Completed';
 
     return (
@@ -149,23 +161,23 @@ export default function ProjectDetailScreen() {
                 <View style={{ backgroundColor: BLUE, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 24, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
                     <View className="flex-row justify-between items-start">
                         <View className="flex-1 mr-3">
-                            <Text className="text-white/80 text-xs font-semibold">{project.activity}</Text>
-                            <Text className="text-white text-xl font-bold mt-1" numberOfLines={2}>{project.school_name}</Text>
-                            <Text className="text-white/70 text-xs mt-1">Project ID:  #{project.udise_code}</Text>
-                            <Text className="text-white/70 text-xs">Category:  {project.category}</Text>
+                            <AppText className="text-white/80 text-xs font-semibold">{project.activity}</AppText>
+                            <AppText className="text-white text-xl font-bold mt-1" numberOfLines={2}>{project.school_name}</AppText>
+                            <AppText className="text-white/70 text-xs mt-1">Project ID:  #{project.udise_code}</AppText>
+                            <AppText className="text-white/70 text-xs">Category:  {project.category}</AppText>
                             <View className="flex-row items-center mt-1">
                                 <Ionicons name="location-outline" size={12} color="rgba(255,255,255,0.7)" />
-                                <Text className="text-white/70 text-xs ml-1">{project.district_name}</Text>
+                                <AppText className="text-white/70 text-xs ml-1">{project.district_name}</AppText>
                             </View>
                         </View>
                         <View className="rounded-lg px-3 py-1.5" style={{ backgroundColor: isCompleted ? '#22c55e' : 'rgba(255,255,255,0.2)' }}>
-                            <Text className="text-white text-xs font-bold">{progressLabel}</Text>
+                            <AppText className="text-white text-xs font-bold">{progressLabel}</AppText>
                         </View>
                     </View>
                 </View>
 
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
-                    <Text className="text-base font-bold text-gray-800 mb-3">Project Details</Text>
+                    <AppText className="text-base font-bold text-gray-800 mb-3">Project Details</AppText>
 
                     {updatesLoading ? (
                         <ActivityIndicator size="small" color={BLUE} style={{ marginVertical: 32 }} />
@@ -176,7 +188,7 @@ export default function ProjectDetailScreen() {
                                 style={{ width: 100, height: 100, opacity: 0.5 }}
                                 resizeMode="contain"
                             />
-                            <Text className="text-gray-400 text-lg font-bold mt-4 tracking-widest">NO UPDATES</Text>
+                            <AppText className="text-gray-400 text-lg font-bold mt-4 tracking-widest">NO UPDATES</AppText>
                         </View>
                     ) : (
                         updates.map((update) => (
@@ -193,7 +205,7 @@ export default function ProjectDetailScreen() {
                         style={{ backgroundColor: BLUE, elevation: 4 }}
                         activeOpacity={0.85}
                     >
-                        <Text className="text-white text-base font-bold">Update Project Status</Text>
+                        <AppText className="text-white text-base font-bold">Update Project Status</AppText>
                     </TouchableOpacity>
                 </View>
         </View>

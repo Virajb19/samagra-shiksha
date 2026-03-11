@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -70,11 +71,11 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                 <TouchableOpacity activeOpacity={1} className="bg-white rounded-[20px] py-5 px-4 w-full max-w-[360px]" style={{ elevation: 10 }}>
                     <View className="flex-row justify-between items-center mb-4 px-1">
                         <TouchableOpacity onPress={prev} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-back" size={22} color={BLUE} /></TouchableOpacity>
-                        <Text className="text-[17px] font-bold" style={{ color: BLUE }}>{MONTHS[vM]} {vY}</Text>
+                        <AppText className="text-[17px] font-bold" style={{ color: BLUE }}>{MONTHS[vM]} {vY}</AppText>
                         <TouchableOpacity onPress={next} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-forward" size={22} color={BLUE} /></TouchableOpacity>
                     </View>
                     <View className="flex-row mb-2">
-                        {WEEKDAYS.map(w => <Text key={w} className="flex-1 text-center text-xs font-semibold text-gray-400">{w}</Text>)}
+                        {WEEKDAYS.map(w => <AppText key={w} className="flex-1 text-center text-xs font-semibold text-gray-400">{w}</AppText>)}
                     </View>
                     <View className="flex-row flex-wrap">
                         {days.map((day, i) => (
@@ -85,7 +86,7 @@ function CalendarPickerModal({ visible, value, onSelect, onClose }: {
                                 onPress={() => day && pick(day)}
                                 disabled={!day}
                             >
-                                {day ? <Text className={`text-sm font-medium ${isSel(day) ? 'text-white font-bold' : isT(day) ? 'text-[#1E88E5] font-bold' : 'text-gray-700'}`}>{day}</Text> : null}
+                                {day ? <AppText className={`text-sm font-medium ${isSel(day) ? 'text-white font-bold' : isT(day) ? 'text-[#1E88E5] font-bold' : 'text-gray-700'}`}>{day}</AppText> : null}
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -104,7 +105,7 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
             <View className="flex-1 bg-black/50 justify-end">
                 <View className="bg-white rounded-t-[20px] max-h-[70%]">
                     <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-                        <Text className="text-lg font-semibold text-gray-800">{title}</Text>
+                        <AppText className="text-lg font-semibold text-gray-800">{title}</AppText>
                         <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></TouchableOpacity>
                     </View>
                     {loading ? (
@@ -118,11 +119,11 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
                                     className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${selectedValue === item.id ? 'bg-blue-50' : 'bg-white'}`}
                                     onPress={() => { onSelect(item.id); onClose(); }}
                                 >
-                                    <Text className={`text-base ${selectedValue === item.id ? 'text-[#1E88E5] font-semibold' : 'text-gray-700'}`}>{item.name}</Text>
+                                    <AppText className={`text-base ${selectedValue === item.id ? 'text-[#1E88E5] font-semibold' : 'text-gray-700'}`}>{item.name}</AppText>
                                     {selectedValue === item.id && <Ionicons name="checkmark" size={20} color={BLUE} />}
                                 </TouchableOpacity>
                             )}
-                            ListEmptyComponent={<Text className="text-center p-5 text-gray-500">No items</Text>}
+                            ListEmptyComponent={<AppText className="text-center p-5 text-gray-500">No items</AppText>}
                         />
                     )}
                 </View>
@@ -246,13 +247,13 @@ export default function CreateEventScreen() {
                 <TouchableOpacity onPress={() => router.back()} className="p-1">
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Text className="text-lg font-bold text-white">Create Event</Text>
+                <AppText className="text-lg font-bold text-white">Create Event</AppText>
                 <View className="w-8" />
             </View>
 
             <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-                <Text className="text-2xl font-extrabold text-[#1a1a1a] mb-1.5">Create Event</Text>
-                <Text className="text-sm text-gray-500 mb-6">Please make sure all the required fields are properly filled.</Text>
+                <AppText className="text-2xl font-extrabold text-[#1a1a1a] mb-1.5">Create Event</AppText>
+                <AppText className="text-sm text-gray-500 mb-6">Please make sure all the required fields are properly filled.</AppText>
 
                 {/* Image Upload */}
                 <TouchableOpacity className="w-full h-[150px] rounded-xl border-[1.5px] border-gray-200 justify-center items-center mb-5 overflow-hidden bg-[#fafafa]" onPress={showImageOptions}>
@@ -261,88 +262,88 @@ export default function CreateEventScreen() {
                     ) : (
                         <View className="items-center">
                             <Ionicons name="image-outline" size={48} color="#c0c0c0" />
-                            <Text className="text-gray-400 text-[13px] mt-1">IMG</Text>
+                            <AppText className="text-gray-400 text-[13px] mt-1">IMG</AppText>
                         </View>
                     )}
                 </TouchableOpacity>
                 {photo && (
                     <TouchableOpacity className="self-center mt-1.5 mb-2.5" onPress={() => setPhoto(null)}>
-                        <Text className="text-red-500 text-[13px]">Remove photo</Text>
+                        <AppText className="text-red-500 text-[13px]">Remove photo</AppText>
                     </TouchableOpacity>
                 )}
 
                 {/* Event Name */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Event Name *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Event Name *</AppText>
                 <Controller control={control} name="eventName" render={({ field: { onChange, value } }) => (
                     <TextInput className="border border-gray-200 rounded-[10px] px-4 py-3.5 text-[15px] text-[#1a1a1a]" value={value} onChangeText={onChange} placeholder="Enter Event Name" placeholderTextColor="#b0b0b0" />
                 )} />
-                {errors.eventName && <Text className="text-xs text-red-500 mt-1">{errors.eventName.message}</Text>}
+                {errors.eventName && <AppText className="text-xs text-red-500 mt-1">{errors.eventName.message}</AppText>}
 
                 {/* Description */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Description *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Description *</AppText>
                 <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
                     <TextInput className="border border-gray-200 rounded-[10px] px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px]" style={{ textAlignVertical: 'top' }} value={value} onChangeText={onChange} placeholder="Enter Event Description" placeholderTextColor="#b0b0b0" multiline numberOfLines={4} />
                 )} />
-                {errors.description && <Text className="text-xs text-red-500 mt-1">{errors.description.message}</Text>}
+                {errors.description && <AppText className="text-xs text-red-500 mt-1">{errors.description.message}</AppText>}
 
                 {/* Starting Date */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Starting Date of Program *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Starting Date of Program *</AppText>
                 <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowStartCal(true)}>
-                    <Text className={startDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{formatDisplay(startDate)}</Text>
+                    <AppText className={startDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{formatDisplay(startDate)}</AppText>
                     <Ionicons name="calendar-outline" size={20} color="#666" />
                 </TouchableOpacity>
-                {errors.startDate && <Text className="text-xs text-red-500 mt-1">{errors.startDate.message}</Text>}
+                {errors.startDate && <AppText className="text-xs text-red-500 mt-1">{errors.startDate.message}</AppText>}
 
                 {/* Ending Date */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Ending Date of Program *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Ending Date of Program *</AppText>
                 <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowEndCal(true)}>
-                    <Text className={endDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{formatDisplay(endDate)}</Text>
+                    <AppText className={endDate ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{formatDisplay(endDate)}</AppText>
                     <Ionicons name="calendar-outline" size={20} color="#666" />
                 </TouchableOpacity>
-                {errors.endDate && <Text className="text-xs text-red-500 mt-1">{errors.endDate.message}</Text>}
+                {errors.endDate && <AppText className="text-xs text-red-500 mt-1">{errors.endDate.message}</AppText>}
 
                 {/* Activities */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Activities *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Activities *</AppText>
                 <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowActivityModal(true)}>
-                    <Text className={activity ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{activity || 'Select option'}</Text>
+                    <AppText className={activity ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{activity || 'Select option'}</AppText>
                     <Ionicons name="chevron-down" size={20} color="#666" />
                 </TouchableOpacity>
-                {errors.activity && <Text className="text-xs text-red-500 mt-1">{errors.activity.message}</Text>}
+                {errors.activity && <AppText className="text-xs text-red-500 mt-1">{errors.activity.message}</AppText>}
 
                 {/* Venue */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Venue / Place *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Venue / Place *</AppText>
                 <Controller control={control} name="venue" render={({ field: { onChange, value } }) => (
                     <TextInput className="border border-gray-200 rounded-[10px] px-4 py-3.5 text-[15px] text-[#1a1a1a]" value={value} onChangeText={onChange} placeholder="Enter Venue / Place" placeholderTextColor="#b0b0b0" />
                 )} />
-                {errors.venue && <Text className="text-xs text-red-500 mt-1">{errors.venue.message}</Text>}
+                {errors.venue && <AppText className="text-xs text-red-500 mt-1">{errors.venue.message}</AppText>}
 
                 {/* District */}
-                <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">District *</Text>
+                <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">District *</AppText>
                 {loadingDistricts ? (
                     <View className="border border-gray-200 rounded-[10px] px-4 py-3.5"><ActivityIndicator size="small" color={BLUE} /></View>
                 ) : (
                     <TouchableOpacity className="border border-gray-200 rounded-[10px] px-4 py-3.5 flex-row justify-between items-center" onPress={() => setShowDistrictModal(true)}>
-                        <Text className={districtId ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{districtName || 'Select option'}</Text>
+                        <AppText className={districtId ? 'text-[15px] text-[#1a1a1a]' : 'text-[15px] text-gray-400'}>{districtName || 'Select option'}</AppText>
                         <Ionicons name="chevron-down" size={20} color="#666" />
                     </TouchableOpacity>
                 )}
-                {errors.districtId && <Text className="text-xs text-red-500 mt-1">{errors.districtId.message}</Text>}
+                {errors.districtId && <AppText className="text-xs text-red-500 mt-1">{errors.districtId.message}</AppText>}
 
                 {/* Participants */}
                 <View className="flex-row gap-4">
                     <View className="flex-1">
-                        <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Male Participants *</Text>
+                        <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Male Participants *</AppText>
                         <Controller control={control} name="maleParticipants" render={({ field: { onChange, value } }) => (
                             <TextInput className="border border-gray-200 rounded-[10px] px-4 py-3.5 text-[15px] text-[#1a1a1a]" value={value} onChangeText={onChange} keyboardType="numeric" placeholder="0" placeholderTextColor="#b0b0b0" />
                         )} />
-                        {errors.maleParticipants && <Text className="text-xs text-red-500 mt-1">{errors.maleParticipants.message}</Text>}
+                        {errors.maleParticipants && <AppText className="text-xs text-red-500 mt-1">{errors.maleParticipants.message}</AppText>}
                     </View>
                     <View className="flex-1">
-                        <Text className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Female Participants *</Text>
+                        <AppText className="text-sm font-bold text-[#1a1a1a] mb-2 mt-4">Female Participants *</AppText>
                         <Controller control={control} name="femaleParticipants" render={({ field: { onChange, value } }) => (
                             <TextInput className="border border-gray-200 rounded-[10px] px-4 py-3.5 text-[15px] text-[#1a1a1a]" value={value} onChangeText={onChange} keyboardType="numeric" placeholder="0" placeholderTextColor="#b0b0b0" />
                         )} />
-                        {errors.femaleParticipants && <Text className="text-xs text-red-500 mt-1">{errors.femaleParticipants.message}</Text>}
+                        {errors.femaleParticipants && <AppText className="text-xs text-red-500 mt-1">{errors.femaleParticipants.message}</AppText>}
                     </View>
                 </View>
 
@@ -356,7 +357,7 @@ export default function CreateEventScreen() {
                     {submitMutation.isPending ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
-                        <Text className="text-base font-bold text-white">Submit</Text>
+                        <AppText className="text-base font-bold text-white">Submit</AppText>
                     )}
                 </TouchableOpacity>
             </ScrollView>

@@ -11,6 +11,7 @@
  */
 
 import React, { useCallback } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -65,8 +66,8 @@ function ImagePickerGrid({
 }) {
     return (
         <View className="mb-5">
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-1">{label}</Text>
-            <Text className="text-xs text-gray-500 mb-2.5">{images.length}/{MAX_PHOTOS} photos uploaded</Text>
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-1">{label}</AppText>
+            <AppText className="text-xs text-gray-500 mb-2.5">{images.length}/{MAX_PHOTOS} photos uploaded</AppText>
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -101,7 +102,7 @@ function ImagePickerGrid({
                     </TouchableOpacity>
                 )}
             </ScrollView>
-            {error && <Text className="text-xs text-red-500 mt-1">{error}</Text>}
+            {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
     );
 }
@@ -119,9 +120,9 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                         resizeMode="contain"
                     />
                     <View>
-                        <Text className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</Text>
-                        <Text className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</Text>
-                        <Text className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</Text>
+                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
+                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
+                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
                     </View>
                 </View>
                 <Image
@@ -130,10 +131,10 @@ function FormHeader({ onBack }: { onBack: () => void }) {
                     resizeMode="contain"
                 />
             </View>
-            <Text className="text-white text-[28px] font-extrabold mb-1">Science Lab</Text>
-            <Text className="text-white/80 text-xs">
+            <AppText className="text-white text-[28px] font-extrabold mb-1">Science Lab</AppText>
+            <AppText className="text-white/80 text-xs">
                 Please make sure all the required fields are properly filled.
-            </Text>
+            </AppText>
             <TouchableOpacity
                 onPress={onBack}
                 style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
@@ -151,7 +152,7 @@ function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormS
 
     return (
         <View className="mt-6 mb-4">
-            <Text className="text-lg font-bold text-[#1a1a1a] mb-3">Your Science Lab Submissions</Text>
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Science Lab Submissions</AppText>
             {submissions.map((sub, idx) => (
                 <View
                     key={sub.id}
@@ -160,13 +161,13 @@ function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormS
                 >
                     <View className="flex-row items-center mb-2">
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <Text className="text-white font-bold text-sm">{idx + 1}</Text>
+                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
                         </View>
                         <View className="flex-1">
-                            <Text className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Science Lab Submission'}</Text>
-                            <Text className="text-xs text-gray-500">
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Science Lab Submission'}</AppText>
+                            <AppText className="text-xs text-gray-500">
                                 {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </Text>
+                            </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
@@ -175,7 +176,7 @@ function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormS
                         <DataRow label="Experiments/Week" value={sub.experiments_per_week} />
                         {sub.student_photos.length > 0 && (
                             <View className="mt-2">
-                                <Text className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({sub.student_photos.length})</Text>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({sub.student_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     {sub.student_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -185,7 +186,7 @@ function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormS
                         )}
                         {sub.logbook_photos.length > 0 && (
                             <View className="mt-2">
-                                <Text className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({sub.logbook_photos.length})</Text>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({sub.logbook_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                     {sub.logbook_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
@@ -203,8 +204,8 @@ function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormS
 function DataRow({ label, value }: { label: string; value: string }) {
     return (
         <View className="flex-row py-1.5">
-            <Text className="text-xs text-gray-500 w-[45%]">{label}</Text>
-            <Text className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</Text>
+            <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
+            <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
         </View>
     );
 }
@@ -315,9 +316,9 @@ export default function ScienceLabFormScreen() {
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
                     <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
                         <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                        <Text className="text-green-700 font-semibold text-sm ml-3 flex-1">
+                        <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
                             Your Science Lab form has been submitted successfully.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <ScienceLabFormDataTable submissions={submissions} />
@@ -327,7 +328,7 @@ export default function ScienceLabFormScreen() {
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
-                        <Text className="text-base font-bold text-white">Back to Activity Forms</Text>
+                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -338,9 +339,9 @@ export default function ScienceLabFormScreen() {
     const renderFormContent = () => (
         <View>
             {/* Kit Teacher Name */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Name of Science & Maths Kit Teacher In-charge *
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="kitTeacherName"
@@ -354,13 +355,13 @@ export default function ScienceLabFormScreen() {
                     />
                 )}
             />
-            {errors.kitTeacherName && <Text className="text-xs text-red-500 mb-4">{errors.kitTeacherName.message}</Text>}
+            {errors.kitTeacherName && <AppText className="text-xs text-red-500 mb-4">{errors.kitTeacherName.message}</AppText>}
             {!errors.kitTeacherName && <View className="mb-5" />}
 
             {/* Experiments Per Week */}
-            <Text className="text-[15px] font-bold text-[#1a1a1a] mb-2">
+            <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">
                 Number of experiments conducted in a week using the kits *
-            </Text>
+            </AppText>
             <Controller
                 control={control}
                 name="experimentsPerWeek"
@@ -375,7 +376,7 @@ export default function ScienceLabFormScreen() {
                     />
                 )}
             />
-            {errors.experimentsPerWeek && <Text className="text-xs text-red-500 mb-4">{errors.experimentsPerWeek.message}</Text>}
+            {errors.experimentsPerWeek && <AppText className="text-xs text-red-500 mb-4">{errors.experimentsPerWeek.message}</AppText>}
             {!errors.experimentsPerWeek && <View className="mb-5" />}
 
             {/* Student Photos */}
@@ -406,7 +407,7 @@ export default function ScienceLabFormScreen() {
                 {submitMutation.isPending ? (
                     <ActivityIndicator color="#fff" />
                 ) : (
-                    <Text className="text-base font-bold text-white">Submit</Text>
+                    <AppText className="text-base font-bold text-white">Submit</AppText>
                 )}
             </TouchableOpacity>
         </View>

@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -32,11 +33,11 @@ function InfoRow({ icon, label, value, loading = false }: { icon: keyof typeof I
         <View className="flex-row items-start gap-3">
             <Ionicons name={icon} size={20} color="#6b7280" />
             <View className="flex-1">
-                <Text className="text-xs text-gray-400 mb-0.5">{label}</Text>
+                <AppText className="text-xs text-gray-400 mb-0.5">{label}</AppText>
                 {loading ? (
                     <ActivityIndicator size="small" color={BLUE} />
                 ) : (
-                    <Text className="text-[15px] font-medium text-gray-900">{value}</Text>
+                    <AppText className="text-[15px] font-medium text-gray-900">{value}</AppText>
                 )}
             </View>
         </View>
@@ -79,9 +80,9 @@ export default function IEViewProfileScreen() {
         return (
             <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                <Text className="text-base text-gray-500 mt-3 mb-4">Not authenticated</Text>
+                <AppText className="text-base text-gray-500 mt-3 mb-4">Not authenticated</AppText>
                 <TouchableOpacity className="px-6 py-3 rounded-xl" style={{ backgroundColor: BLUE }} onPress={() => router.back()}>
-                    <Text className="text-white text-sm font-semibold">Go Back</Text>
+                    <AppText className="text-white text-sm font-semibold">Go Back</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -91,13 +92,13 @@ export default function IEViewProfileScreen() {
         return (
             <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="person-circle-outline" size={64} color="#9ca3af" />
-                <Text className="text-base text-gray-500 mt-3 mb-4">Profile not completed yet</Text>
+                <AppText className="text-base text-gray-500 mt-3 mb-4">Profile not completed yet</AppText>
                 <TouchableOpacity
                     className="px-6 py-3 rounded-xl"
                     style={{ backgroundColor: BLUE }}
                     onPress={() => router.replace('/(protected)/ie-resource-person/complete-profile')}
                 >
-                    <Text className="text-white text-sm font-semibold">Complete Profile</Text>
+                    <AppText className="text-white text-sm font-semibold">Complete Profile</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -133,13 +134,13 @@ export default function IEViewProfileScreen() {
                         )}
                     </View>
                     <View className="flex-1">
-                        <Text className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user.name || 'User'}</Text>
+                        <AppText className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user.name || 'User'}</AppText>
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.8)" />
-                            <Text className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user.email || 'No email'}</Text>
+                            <AppText className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user.email || 'No email'}</AppText>
                         </View>
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' }}>
-                            <Text className="text-white text-xs font-semibold">IE Resource Person</Text>
+                            <AppText className="text-white text-xs font-semibold">IE Resource Person</AppText>
                         </View>
                     </View>
                 </View>
@@ -148,7 +149,7 @@ export default function IEViewProfileScreen() {
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
                 {/* Personal Details */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Personal Details</Text>
+                    <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Personal Details</AppText>
                     <View className="bg-white rounded-2xl p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }}>
                         <InfoRow icon="call-outline" label="Phone Number" value={user.phone || '-'} />
                         <Divider />
@@ -162,7 +163,7 @@ export default function IEViewProfileScreen() {
 
                 {/* Professional Details */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Professional Details</Text>
+                    <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Professional Details</AppText>
                     <View className="bg-white rounded-2xl p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }}>
                         <InfoRow icon="location-outline" label="District" value={districtName} loading={loadingDistricts} />
                         <Divider />
@@ -180,7 +181,7 @@ export default function IEViewProfileScreen() {
 
                 {/* Identity */}
                 <View className="mb-5">
-                    <Text className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Identity</Text>
+                    <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Identity</AppText>
                     <View className="bg-white rounded-2xl p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }}>
                         <InfoRow icon="finger-print-outline" label="Aadhaar Number" value={formatAadhaar(user.aadhaar_number)} />
                     </View>

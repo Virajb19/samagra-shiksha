@@ -8,11 +8,12 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, Platform, StatusBar, Image } from 'react-native';
+import { View, TouchableOpacity, Platform, StatusBar, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../lib/store';
+import { AppText } from '@/components/AppText';
 
 const BLUE = '#1565C0';
 
@@ -83,12 +84,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     resizeMode="contain"
                 />
                 <View className="items-center flex-1">
-                    <Text className="text-white text-[13px] font-bold tracking-wide">
+                    <AppText className="text-white text-[13px] font-bold tracking-wide">
                         समग्र शिक्षा
-                    </Text>
-                    <Text className="text-white/85 text-[10px] font-medium tracking-wider">
+                    </AppText>
+                    <AppText className="text-white/85 text-[10px] font-medium tracking-wider">
                         SAMAGRA SHIKSHA NAGALAND
-                    </Text>
+                    </AppText>
                 </View>
                 <Image
                     source={require('../../assets/nbse-logo.png')}
@@ -98,7 +99,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </View>
 
             {/* ── Content Area ── */}
-            <View className="flex-1 mx-1">
+            <View className="flex-1">
                 {children}
             </View>
 
@@ -121,11 +122,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                 size={24}
                                 color={isActive ? BLUE : '#9ca3af'}
                             />
-                            <Text
+                            <AppText
                                 className={`text-xs font-medium mt-1 ${isActive ? 'text-[#1565C0]' : 'text-gray-400'}`}
                             >
                                 {tab.label}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     );
                 })}

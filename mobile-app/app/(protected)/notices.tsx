@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -235,7 +236,7 @@ export default function NoticesScreen() {
         return (
             <View style={styles.centeredContainer}>
                 <ActivityIndicator size="large" color={NAVY} />
-                <Text style={styles.loadingText}>Loading notices...</Text>
+                <AppText style={styles.loadingText}>Loading notices...</AppText>
             </View>
         );
     }
@@ -244,9 +245,9 @@ export default function NoticesScreen() {
         return (
             <View style={styles.centeredContainer}>
                 <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                <Text style={styles.errorText}>Failed to load notices</Text>
+                <AppText style={styles.errorText}>Failed to load notices</AppText>
                 <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-                    <Text style={styles.retryButtonText}>Retry</Text>
+                    <AppText style={styles.retryButtonText}>Retry</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -266,28 +267,28 @@ export default function NoticesScreen() {
                 <View style={styles.noticeHeader}>
                     <View style={[styles.typeBadge, { backgroundColor: typeStyle.bg, borderColor: typeStyle.border }]}>
                         <Ionicons name={typeStyle.icon} size={14} color={typeStyle.text} />
-                        <Text style={[styles.typeText, { color: typeStyle.text }]}>{notice.type?.replace('_', ' ')}</Text>
+                        <AppText style={[styles.typeText, { color: typeStyle.text }]}>{notice.type?.replace('_', ' ')}</AppText>
                     </View>
-                    <Text style={styles.dateText}>{formatDate(notice.created_at)}</Text>
+                    <AppText style={styles.dateText}>{formatDate(notice.created_at)}</AppText>
                 </View>
 
-                <Text style={styles.noticeTitle}>{notice.title}</Text>
-                <Text style={styles.noticeContent} numberOfLines={3}>{notice.content}</Text>
+                <AppText style={styles.noticeTitle}>{notice.title}</AppText>
+                <AppText style={styles.noticeContent} numberOfLines={3}>{notice.content}</AppText>
 
                 {/* Invitation-specific info */}
                 {isInvitation && notice.venue && (
                     <View style={styles.infoRow}>
                         <Ionicons name="location" size={14} color="#6b7280" />
-                        <Text style={styles.infoText}>{notice.venue}</Text>
+                        <AppText style={styles.infoText}>{notice.venue}</AppText>
                     </View>
                 )}
                 {isInvitation && notice.event_date && (
                     <View style={[styles.infoRow, { marginTop: 4 }]}>
                         <Ionicons name="calendar" size={14} color="#6b7280" />
-                        <Text style={styles.infoText}>
+                        <AppText style={styles.infoText}>
                             {formatDate(notice.event_date)}
                             {notice.event_time ? ` at ${notice.event_time}` : ''}
-                        </Text>
+                        </AppText>
                     </View>
                 )}
 
@@ -301,32 +302,32 @@ export default function NoticesScreen() {
                                     disabled={acceptMutation.isPending}
                                     onPress={() => { setAcceptTarget(notice); setAcceptModalVisible(true); }}
                                 >
-                                    <Text style={styles.buttonText}>
+                                    <AppText style={styles.buttonText}>
                                         {acceptMutation.isPending ? 'Accepting...' : 'Accept'}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.rejectButton}
                                     onPress={() => { setRejectTarget(notice); setRejectReason(''); setRejectModalVisible(true); }}
                                 >
-                                    <Text style={styles.buttonText}>Reject</Text>
+                                    <AppText style={styles.buttonText}>Reject</AppText>
                                 </TouchableOpacity>
                             </View>
                         )}
                         {status === 'ACCEPTED' && (
                             <View style={styles.statusRow}>
                                 <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
-                                <Text style={[styles.statusText, { color: '#16a34a' }]}>Accepted</Text>
+                                <AppText style={[styles.statusText, { color: '#16a34a' }]}>Accepted</AppText>
                             </View>
                         )}
                         {status === 'REJECTED' && (
                             <View style={{ marginTop: 4 }}>
                                 <View style={styles.statusRow}>
                                     <Ionicons name="close-circle" size={16} color="#dc2626" />
-                                    <Text style={[styles.statusText, { color: '#dc2626' }]}>Rejected</Text>
+                                    <AppText style={[styles.statusText, { color: '#dc2626' }]}>Rejected</AppText>
                                 </View>
                                 {notice.reject_reason && (
-                                    <Text style={styles.rejectionReason}>Reason: {notice.reject_reason}</Text>
+                                    <AppText style={styles.rejectionReason}>Reason: {notice.reject_reason}</AppText>
                                 )}
                             </View>
                         )}
@@ -347,7 +348,7 @@ export default function NoticesScreen() {
                         }}
                     >
                         <Ionicons name="document-attach" size={18} color={NAVY} />
-                        <Text style={styles.fileText}>{getAttachmentLabel(notice.type)}</Text>
+                        <AppText style={styles.fileText}>{getAttachmentLabel(notice.type)}</AppText>
                         <Ionicons name="open-outline" size={16} color={NAVY} />
                     </TouchableOpacity>
                 )}
@@ -358,15 +359,15 @@ export default function NoticesScreen() {
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
             <Image source={require('../../assets/Empty.gif')} style={styles.emptyGif} resizeMode="contain" />
-            <Text style={styles.emptyTitle}>No Notices</Text>
-            <Text style={styles.emptyText}>
+            <AppText style={styles.emptyTitle}>No Notices</AppText>
+            <AppText style={styles.emptyText}>
                 {hasActiveFilters
                     ? 'No notices match your search or filter.'
                     : 'There are no important notices at this time. Check back later for updates.'}
-            </Text>
+            </AppText>
             {hasActiveFilters && (
                 <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearAllFilters}>
-                    <Text style={styles.clearFiltersBtnText}>Clear Filters</Text>
+                    <AppText style={styles.clearFiltersBtnText}>Clear Filters</AppText>
                 </TouchableOpacity>
             )}
         </View>
@@ -377,7 +378,7 @@ export default function NoticesScreen() {
         return (
             <View style={{ paddingVertical: 16, alignItems: 'center' }}>
                 <ActivityIndicator size="small" color={NAVY} />
-                <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Loading more...</Text>
+                <AppText style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Loading more...</AppText>
             </View>
         );
     };
@@ -389,13 +390,13 @@ export default function NoticesScreen() {
                 <View style={styles.headerTop}>
                     <View style={{ flex: 1 }}>
                         <View style={styles.greetingRow}>
-                            <Text style={styles.greetingText}>Hey {getUserFirstName()} </Text>
+                            <AppText style={styles.greetingText}>Hey {getUserFirstName()} </AppText>
                             <Image
                                 source={require('../../assets/waving_hand_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png')}
                                 style={styles.wavingHand}
                             />
                         </View>
-                        <Text style={styles.screenTitle}>View Notices</Text>
+                        <AppText style={styles.screenTitle}>View Notices</AppText>
                     </View>
                     {user?.profile_image_url ? (
                         <Image source={{ uri: user.profile_image_url }} style={styles.profilePhoto} />
@@ -438,7 +439,7 @@ export default function NoticesScreen() {
                 <View style={styles.chipRow}>
                     {appliedSearch ? (
                         <View style={styles.chip}>
-                            <Text style={styles.chipText}>Title: "{appliedSearch}"</Text>
+                            <AppText style={styles.chipText}>Title: "{appliedSearch}"</AppText>
                             <TouchableOpacity onPress={() => { setSearchQuery(''); setAppliedSearch(''); }}>
                                 <Ionicons name="close" size={14} color={NAVY} />
                             </TouchableOpacity>
@@ -446,7 +447,7 @@ export default function NoticesScreen() {
                     ) : null}
                     {typeFilter ? (
                         <View style={styles.chip}>
-                            <Text style={styles.chipText}>{typeFilter.replace('_', ' ')}</Text>
+                            <AppText style={styles.chipText}>{typeFilter.replace('_', ' ')}</AppText>
                             <TouchableOpacity onPress={() => setTypeFilter(null)}>
                                 <Ionicons name="close" size={14} color={NAVY} />
                             </TouchableOpacity>
@@ -454,7 +455,7 @@ export default function NoticesScreen() {
                     ) : null}
                     {dateFrom ? (
                         <View style={styles.chip}>
-                            <Text style={styles.chipText}>From: {formatDate(dateFrom)}</Text>
+                            <AppText style={styles.chipText}>From: {formatDate(dateFrom)}</AppText>
                             <TouchableOpacity onPress={() => { setDateFrom(null); setTempDateFrom(null); }}>
                                 <Ionicons name="close" size={14} color={NAVY} />
                             </TouchableOpacity>
@@ -462,7 +463,7 @@ export default function NoticesScreen() {
                     ) : null}
                     {dateTo ? (
                         <View style={styles.chip}>
-                            <Text style={styles.chipText}>To: {formatDate(dateTo)}</Text>
+                            <AppText style={styles.chipText}>To: {formatDate(dateTo)}</AppText>
                             <TouchableOpacity onPress={() => { setDateTo(null); setTempDateTo(null); }}>
                                 <Ionicons name="close" size={14} color={NAVY} />
                             </TouchableOpacity>
@@ -490,9 +491,9 @@ export default function NoticesScreen() {
             <Modal visible={filterDialogVisible} transparent animationType="fade">
                 <Pressable style={styles.modalOverlay} onPress={() => setFilterDialogVisible(false)}>
                     <Pressable style={styles.filterDialog} onPress={() => {}}>
-                        <Text style={styles.filterDialogTitle}>Filter Notices</Text>
+                        <AppText style={styles.filterDialogTitle}>Filter Notices</AppText>
 
-                        <Text style={styles.filterLabel}>Notice Type</Text>
+                        <AppText style={styles.filterLabel}>Notice Type</AppText>
                         {NOTICE_TYPE_OPTIONS.map((opt) => (
                             <TouchableOpacity
                                 key={opt.label}
@@ -507,26 +508,26 @@ export default function NoticesScreen() {
                                     size={20}
                                     color={tempTypeFilter === opt.value ? NAVY : '#9ca3af'}
                                 />
-                                <Text style={[
+                                <AppText style={[
                                     styles.filterOptionText,
                                     tempTypeFilter === opt.value && { color: NAVY, fontWeight: '600' },
                                 ]}>
                                     {opt.label}
-                                </Text>
+                                </AppText>
                             </TouchableOpacity>
                         ))}
 
                         {/* Date Range Filter */}
-                        <Text style={[styles.filterLabel, { marginTop: 16 }]}>Date Range</Text>
+                        <AppText style={[styles.filterLabel, { marginTop: 16 }]}>Date Range</AppText>
 
                         <TouchableOpacity
                             style={styles.datePickerRow}
                             onPress={() => { setShowFromPicker(true); setShowToPicker(false); }}
                         >
                             <Ionicons name="calendar-outline" size={18} color="#6b7280" />
-                            <Text style={styles.datePickerText}>
+                            <AppText style={styles.datePickerText}>
                                 {tempDateFrom ? formatDate(tempDateFrom) : 'From date'}
-                            </Text>
+                            </AppText>
                             {tempDateFrom && (
                                 <TouchableOpacity onPress={() => { setTempDateFrom(null); setShowFromPicker(false); }}>
                                     <Ionicons name="close-circle" size={18} color="#9ca3af" />
@@ -551,9 +552,9 @@ export default function NoticesScreen() {
                             onPress={() => { setShowToPicker(true); setShowFromPicker(false); }}
                         >
                             <Ionicons name="calendar-outline" size={18} color="#6b7280" />
-                            <Text style={styles.datePickerText}>
+                            <AppText style={styles.datePickerText}>
                                 {tempDateTo ? formatDate(tempDateTo) : 'To date'}
-                            </Text>
+                            </AppText>
                             {tempDateTo && (
                                 <TouchableOpacity onPress={() => { setTempDateTo(null); setShowToPicker(false); }}>
                                     <Ionicons name="close-circle" size={18} color="#9ca3af" />
@@ -579,10 +580,10 @@ export default function NoticesScreen() {
                                 style={styles.filterCancelBtn}
                                 onPress={() => setFilterDialogVisible(false)}
                             >
-                                <Text style={styles.filterCancelText}>Cancel</Text>
+                                <AppText style={styles.filterCancelText}>Cancel</AppText>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.filterApplyBtn} onPress={applyFilters}>
-                                <Text style={styles.filterApplyText}>Apply</Text>
+                                <AppText style={styles.filterApplyText}>Apply</AppText>
                             </TouchableOpacity>
                         </View>
                     </Pressable>
@@ -598,14 +599,14 @@ export default function NoticesScreen() {
                                 <View style={[styles.dialogIconCircle, { backgroundColor: '#d1fae5' }]}>
                                     <Ionicons name="checkmark-circle-outline" size={32} color="#10b981" />
                                 </View>
-                                <Text style={styles.dialogTitle}>Accept Invitation</Text>
-                                <Text style={styles.dialogSubtitle}>
+                                <AppText style={styles.dialogTitle}>Accept Invitation</AppText>
+                                <AppText style={styles.dialogSubtitle}>
                                     Are you sure you want to accept this invitation?
-                                </Text>
+                                </AppText>
                             </View>
                             {acceptTarget && (
                                 <View style={styles.dialogNoticePreview}>
-                                    <Text style={styles.dialogNoticeTitle} numberOfLines={2}>{acceptTarget.title}</Text>
+                                    <AppText style={styles.dialogNoticeTitle} numberOfLines={2}>{acceptTarget.title}</AppText>
                                 </View>
                             )}
                             <View style={styles.dialogActions}>
@@ -613,7 +614,7 @@ export default function NoticesScreen() {
                                     style={styles.dialogCancelBtn}
                                     onPress={() => { setAcceptModalVisible(false); setAcceptTarget(null); }}
                                 >
-                                    <Text style={styles.dialogCancelText}>Cancel</Text>
+                                    <AppText style={styles.dialogCancelText}>Cancel</AppText>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.dialogAcceptBtn, acceptMutation.isPending && { opacity: 0.5 }]}
@@ -624,9 +625,9 @@ export default function NoticesScreen() {
                                         }
                                     }}
                                 >
-                                    <Text style={styles.dialogAcceptText}>
+                                    <AppText style={styles.dialogAcceptText}>
                                         {acceptMutation.isPending ? 'Accepting...' : 'Accept'}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -643,10 +644,10 @@ export default function NoticesScreen() {
                                 <View style={[styles.dialogIconCircle, { backgroundColor: '#fee2e2' }]}>
                                     <Ionicons name="close-circle-outline" size={32} color="#ef4444" />
                                 </View>
-                                <Text style={styles.dialogTitle}>Reject Invitation</Text>
-                                <Text style={styles.dialogSubtitle}>
+                                <AppText style={styles.dialogTitle}>Reject Invitation</AppText>
+                                <AppText style={styles.dialogSubtitle}>
                                     Please provide a reason for rejecting this invitation.
-                                </Text>
+                                </AppText>
                             </View>
                             <TextInput
                                 style={styles.rejectReasonInput}
@@ -657,15 +658,15 @@ export default function NoticesScreen() {
                                 multiline
                                 maxLength={REJECT_REASON_MAX}
                             />
-                            <Text style={styles.charCount}>
+                            <AppText style={styles.charCount}>
                                 {rejectReason.length}/{REJECT_REASON_MAX}
-                            </Text>
+                            </AppText>
                             <View style={styles.dialogActions}>
                                 <TouchableOpacity
                                     style={styles.dialogCancelBtn}
                                     onPress={() => { setRejectModalVisible(false); setRejectTarget(null); setRejectReason(''); }}
                                 >
-                                    <Text style={styles.dialogCancelText}>Cancel</Text>
+                                    <AppText style={styles.dialogCancelText}>Cancel</AppText>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[
@@ -679,9 +680,9 @@ export default function NoticesScreen() {
                                         }
                                     }}
                                 >
-                                    <Text style={styles.dialogRejectText}>
+                                    <AppText style={styles.dialogRejectText}>
                                         {rejectMutation.isPending ? 'Rejecting...' : 'Reject'}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                             </View>
                         </View>

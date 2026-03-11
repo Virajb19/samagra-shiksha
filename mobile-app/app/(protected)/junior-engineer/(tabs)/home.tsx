@@ -10,7 +10,8 @@
  * Projects section: Shows 2 recent projects with View All button
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -22,7 +23,7 @@ import {
     Animated,
     ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../../../src/lib/store';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
@@ -49,12 +50,12 @@ function ActionCard({ title, iconName, onPress, disabled = false }: ActionCardPr
             <View className="w-16 h-16 rounded-full bg-[#e8f4fd] justify-center items-center mb-2">
                 <Ionicons name={iconName} size={34} color={disabled ? '#9ca3af' : BLUE} />
             </View>
-            <Text
+            <AppText
                 className={`text-[11px] font-bold text-center leading-[14px] ${disabled ? 'text-gray-400' : 'text-gray-800'}`}
                 numberOfLines={2}
             >
                 {title}
-            </Text>
+            </AppText>
         </TouchableOpacity>
     );
 }
@@ -108,20 +109,20 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
                         style={{ width: 140, height: 140, marginBottom: 20 }}
                         resizeMode="contain"
                     />
-                    <Text style={{ fontSize: 22, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 8 }}>
+                    <AppText style={{ fontSize: 22, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 8 }}>
                         {isVerification ? 'Account under verification' : 'Complete your profile'}
-                    </Text>
-                    <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                    </AppText>
+                    <AppText style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
                         {isVerification
                             ? 'Your account is currently under verification by the admin. You will be able to access this once approved.'
                             : 'Kindly complete your profile by filling up relevant experience details.'}
-                    </Text>
+                    </AppText>
                     {isVerification ? (
                         <TouchableOpacity
                             style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center', marginBottom: 12 }}
                             onPress={onClose}
                         >
-                            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>OK, Got it</Text>
+                            <AppText style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>OK, Got it</AppText>
                         </TouchableOpacity>
                     ) : (
                         <>
@@ -129,10 +130,10 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
                                 style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center', marginBottom: 12 }}
                                 onPress={onComplete}
                             >
-                                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Complete Profile</Text>
+                                <AppText style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Complete Profile</AppText>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={onClose} style={{ paddingVertical: 8 }}>
-                                <Text style={{ color: '#9ca3af', fontSize: 14 }}>Maybe later</Text>
+                                <AppText style={{ color: '#9ca3af', fontSize: 14 }}>Maybe later</AppText>
                             </TouchableOpacity>
                         </>
                     )}
@@ -146,7 +147,14 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
 function ProjectCard({ project, onPress }: { project: Project; onPress: () => void }) {
     const progressWidth = `${Math.min(project.progress, 100)}%` as import('react-native').DimensionValue;
     const isCompleted = project.status === 'Completed';
-    const progressLabel = project.progress === 0 ? 'N/A' : isCompleted ? 'Completed' : `${project.progress}%`;
+    const progressLabel =
+        project.progress === 0
+            ? 'N/A'
+            : isCompleted
+                ? 'Completed'
+                : project.progress >= 100
+                    ? '100% (Pending close)'
+                    : `${project.progress}%`;
     const progressColor = isCompleted ? '#22c55e' : project.progress > 0 ? BLUE : '#9ca3af';
 
     return (
@@ -159,11 +167,11 @@ function ProjectCard({ project, onPress }: { project: Project; onPress: () => vo
             <View style={{ backgroundColor: BLUE, padding: 16 }}>
                 <View className="flex-row justify-between items-start">
                     <View className="flex-1 mr-3">
-                        <Text className="text-white/80 text-xs font-semibold mb-1">{project.activity}</Text>
-                        <Text className="text-white text-lg font-bold" numberOfLines={1}>{project.school_name}</Text>
+                        <AppText className="text-white/80 text-xs font-semibold mb-1">{project.activity}</AppText>
+                        <AppText className="text-white text-lg font-bold" numberOfLines={1}>{project.school_name}</AppText>
                     </View>
                     <View className="rounded-lg px-3 py-1" style={{ backgroundColor: isCompleted ? '#22c55e' : 'rgba(255,255,255,0.2)' }}>
-                        <Text className="text-white text-xs font-bold">{progressLabel}</Text>
+                        <AppText className="text-white text-xs font-bold">{progressLabel}</AppText>
                     </View>
                 </View>
                 <View className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden">
@@ -171,7 +179,7 @@ function ProjectCard({ project, onPress }: { project: Project; onPress: () => vo
                 </View>
                 <View className="flex-row items-center mt-2">
                     <Ionicons name="location-outline" size={13} color="rgba(255,255,255,0.7)" />
-                    <Text className="text-white/70 text-xs ml-1">{project.district_name}</Text>
+                    <AppText className="text-white/70 text-xs ml-1">{project.district_name}</AppText>
                 </View>
             </View>
         </TouchableOpacity>
@@ -188,11 +196,23 @@ export default function JuniorEngineerHomeTabScreen() {
     const isActive = user?.is_active ?? false;
 
     // Recent projects (2) for home screen — across all districts
-    const { data: recentProjects = [], isLoading: loadingProjects } = useQuery<Project[]>({
+    const {
+        data: recentProjects = [],
+        isLoading: loadingProjects,
+        refetch: refetchRecentProjects,
+    } = useQuery<Project[]>({
         queryKey: ['recent-projects-all'],
         queryFn: () => getAllRecentProjects(),
         enabled: hasCompletedProfile && isActive,
     });
+
+    useFocusEffect(
+        useCallback(() => {
+            if (hasCompletedProfile && isActive) {
+                refetchRecentProjects();
+            }
+        }, [hasCompletedProfile, isActive, refetchRecentProjects]),
+    );
 
     const handleLockedAction = () => {
         if (!hasCompletedProfile) {
@@ -224,13 +244,13 @@ export default function JuniorEngineerHomeTabScreen() {
                         )}
                     </View>
                     <View className="flex-1">
-                        <Text className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user?.name || 'User'}</Text>
+                        <AppText className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user?.name || 'User'}</AppText>
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.8)" />
-                            <Text className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user?.email || 'No email'}</Text>
+                            <AppText className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user?.email || 'No email'}</AppText>
                         </View>
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' }}>
-                            <Text className="text-white text-xs font-semibold">Junior Engineer</Text>
+                            <AppText className="text-white text-xs font-semibold">Junior Engineer</AppText>
                         </View>
                     </View>
                 </View>
@@ -274,13 +294,13 @@ export default function JuniorEngineerHomeTabScreen() {
             {/* Projects Section */}
             {hasCompletedProfile && isActive && (
                 <View className="px-4 mt-4">
-                    <Text className="text-xl font-bold text-gray-800 mb-3">Projects</Text>
+                    <AppText weight='bold' className="text-xl text-gray-800 mb-3">Projects</AppText>
                     {loadingProjects ? (
                         <ActivityIndicator size="small" color={BLUE} style={{ marginVertical: 24 }} />
                     ) : recentProjects.length === 0 ? (
                         <View className="bg-white rounded-xl py-8 items-center" style={{ elevation: 1 }}>
                             <Ionicons name="folder-open-outline" size={40} color="#9ca3af" />
-                            <Text className="text-gray-400 mt-2 text-sm">No projects assigned yet</Text>
+                            <AppText className="text-gray-400 mt-2 text-sm">No projects assigned yet</AppText>
                         </View>
                     ) : (
                         <>
@@ -295,7 +315,7 @@ export default function JuniorEngineerHomeTabScreen() {
                                 onPress={() => router.push('/(protected)/junior-engineer/projects')}
                                 className="items-center py-3"
                             >
-                                <Text style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>View All</Text>
+                                <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>View All</AppText>
                             </TouchableOpacity>
                         </>
                     )}
@@ -310,7 +330,7 @@ export default function JuniorEngineerHomeTabScreen() {
                     onPress={() => router.push('/(protected)/junior-engineer/complete-profile')}
                     activeOpacity={0.8}
                 >
-                    <Text style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Kindly complete your profile</Text>
+                    <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Kindly complete your profile</AppText>
                 </TouchableOpacity>
             )}
 
@@ -319,7 +339,7 @@ export default function JuniorEngineerHomeTabScreen() {
                     className="mx-4 mt-2 rounded-xl py-4 items-center"
                     style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
                 >
-                    <Text style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Your account is under verification</Text>
+                    <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Your account is under verification</AppText>
                 </View>
             )}
 

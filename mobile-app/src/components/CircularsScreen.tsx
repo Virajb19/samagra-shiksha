@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     FlatList,
     TouchableOpacity,
     TextInput,
@@ -23,8 +23,17 @@ const CIRCULARS_PAGE_SIZE = 10;
 export interface CircularItem {
     id: string;
     title?: string;
+    description?: string;
+    content?: string;
     circular_no?: string;
     file_url?: string;
+    issued_by?: string;
+    issuer_name?: string;
+    created_by_name?: string;
+    creator_name?: string;
+    issue_date?: string | Date | { toDate?: () => Date };
+    issued_at?: string | Date | { toDate?: () => Date };
+    created_at?: string | Date | { toDate?: () => Date };
     target_roles?: string[];
     roles?: string[];
     [key: string]: unknown;
@@ -113,9 +122,9 @@ export default function CircularsScreen({
                     style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
                 >
                     <Ionicons name={!hasCompletedProfile ? 'person-circle-outline' : 'time-outline'} size={48} color={BLUE} />
-                    <Text style={{ color: BLUE, fontSize: 16, fontWeight: '600', marginTop: 12, textAlign: 'center' }}>
+                    <AppText style={{ color: BLUE, fontSize: 16, fontWeight: '600', marginTop: 12, textAlign: 'center' }}>
                         {!hasCompletedProfile ? 'Kindly complete your profile' : 'Your account is under verification'}
-                    </Text>
+                    </AppText>
                 </View>
             </View>
         );
@@ -128,6 +137,14 @@ export default function CircularsScreen({
             const matchesRole = roleFilter ? roleFilter(c, role) : true;
             return matchesSearch && matchesRole;
         }) ?? [];
+
+    const formatIssuedDate = (value: CircularItem['issue_date']) => {
+        if (!value) return 'N/A';
+        const raw = value as any;
+        const date = raw?.toDate ? raw.toDate() : raw instanceof Date ? raw : new Date(raw);
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'N/A';
+        return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
 
     const handleEndReached = useCallback(() => {
         if (hasNextPage && !isFetchingNextPage) {
@@ -153,10 +170,10 @@ export default function CircularsScreen({
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.35}
             ListHeaderComponent={
-                <View className="flex-row items-center bg-white rounded-xl px-3 mb-4" style={{ elevation: 1 }}>
+                <View className="flex-row items-center bg-white rounded-xl px-3 mb-4 font-lato" style={{ elevation: 1 }}>
                     <Ionicons name="search" size={20} color="#9ca3af" />
                     <TextInput
-                        className="flex-1 py-3 px-2 text-[15px] text-gray-900"
+                        className="flex-1 py-3 px-2 text-[15px] text-gray-900 font-lato"
                         placeholder={searchPlaceholder}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -166,13 +183,46 @@ export default function CircularsScreen({
             renderItem={({ item: c }) => (
                 <View className="bg-white rounded-xl p-4 mb-3" style={{ elevation: 1 }}>
                     <View className="bg-blue-100 px-2 py-0.5 rounded self-start">
-                        <Text className="text-xs font-semibold text-blue-700">{typeof c.circular_no === 'string' ? c.circular_no : ''}</Text>
+                        <AppText weight='bold' className="text-xs text-blue-700">{typeof c.circular_no === 'string' ? c.circular_no : ''}</AppText>
                     </View>
-                    <Text className="text-base font-semibold text-gray-900 mt-1">{typeof c.title === 'string' ? c.title : ''}</Text>
+                    <AppText weight='bold' className="text-base text-gray-900 mt-1">{typeof c.title === 'string' ? c.title : ''}</AppText>
+                    {!!(c.description || c.content) && (
+                        <AppText className="text-sm text-gray-600 mt-1 leading-5">
+                            {typeof c.description === 'string' && c.description.trim()
+                                ? c.description
+                                : typeof c.content === 'string'
+                                    ? c.content
+                                    : ''}
+                        </AppText>
+                    )}
+                    <View className="mt-2">
+                        <AppText className="text-xs text-gray-500">
+                            Issued by:{' '}
+                            <AppText weight="bold" className="text-xs text-gray-700">
+                                {typeof c.issued_by === 'string' && c.issued_by.trim()
+                                    ? c.issued_by
+                                    : typeof c.issuer_name === 'string' && c.issuer_name.trim()
+                                        ? c.issuer_name
+                                        : typeof c.created_by_name === 'string' && c.created_by_name.trim()
+                                            ? c.created_by_name
+                                            : typeof c.creator_name === 'string' && c.creator_name.trim()
+                                                ? c.creator_name
+                                                : 'N/A'}
+                            </AppText>
+                        </AppText>
+                        <AppText className="text-xs text-gray-500 mt-1">
+                            Issued date:{' '}
+                            <AppText weight="bold" className="text-xs text-gray-700">
+                                {formatIssuedDate(c.issue_date ?? c.issued_at ?? c.created_at)}
+                            </AppText>
+                        </AppText>
+                    </View>
                     {typeof c.file_url === 'string' && c.file_url ? (
                         <TouchableOpacity className="flex-row items-center mt-2" onPress={() => openFile(c.file_url!, c)}>
                             <Ionicons name="download-outline" size={16} color={BLUE} />
-                            <Text style={{ color: BLUE, fontSize: 13, marginLeft: 4, fontWeight: '500' }}>Download</Text>
+                            <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
+                                Download
+                            </AppText>
                         </TouchableOpacity>
                     ) : null}
                 </View>
@@ -183,7 +233,7 @@ export default function CircularsScreen({
                 ) : (
                     <View className="items-center mt-10">
                         <Ionicons name="document-text-outline" size={48} color="#d1d5db" />
-                        <Text className="text-gray-400 mt-3">{emptyText}</Text>
+                        <AppText weight='bold' className="text-gray-400 mt-3">{emptyText}</AppText>
                     </View>
                 )
             }
@@ -191,7 +241,7 @@ export default function CircularsScreen({
                 isFetchingNextPage ? (
                     <View className="items-center py-4">
                         <ActivityIndicator size="small" color={BLUE} />
-                        <Text className="text-sm text-gray-500 mt-2">Loading more circulars...</Text>
+                        <AppText className="text-sm text-gray-500 mt-2 font-lato">Loading more circulars...</AppText>
                     </View>
                 ) : null
             }

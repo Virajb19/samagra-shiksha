@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Inter } from 'next/font/google';        
+import { Inter, Lato } from 'next/font/google';        
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "Secure Track - Admin CMS",
+  title: "NITI Technologies",
   description: "Government-grade secure tracking system for question paper delivery",
 };
 
@@ -12,6 +12,13 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+});
+
+const lato = Lato({
+  subsets: ["latin"],
+  variable: "--font-lato",
+  display: "swap",
+  weight: ["400", "700", "300"],
 });
 
 export default function RootLayout({

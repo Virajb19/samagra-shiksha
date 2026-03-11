@@ -13,6 +13,7 @@
  */
 
 import { useState } from 'react';
+import { AppText } from '@/components/AppText';
 import {
     View,
     Text,
@@ -99,8 +100,8 @@ export default function LoginScreen() {
                         />
                     </View>
                     <View className="justify-center">
-                        <Text className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">NBSE</Text>
-                        <Text className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">CONNECT</Text>
+                        <AppText className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">NBSE</AppText>
+                        <AppText className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">CONNECT</AppText>
                     </View>
                 </View>
             </View>
@@ -116,7 +117,7 @@ export default function LoginScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     <View className="flex-1 bg-white rounded-t-[30px] px-7 pt-9 pb-10 min-h-full">
-                        <Text className="text-[28px] font-bold text-[#1a1a2e] mb-9">Login</Text>
+                        <AppText className="text-[28px] font-bold text-[#1a1a2e] mb-9">Login</AppText>
 
                         {/* Email ID Field */}
                         <View className="mb-6">
@@ -141,7 +142,7 @@ export default function LoginScreen() {
                             />
                             <View className={`h-px ${errors.email ? 'bg-[#ef4444]' : 'bg-[#d1d5db]'}`} />
                             {errors.email && (
-                                <Text className="text-xs text-[#ef4444] mt-1">{errors.email.message}</Text>
+                                <AppText className="text-xs text-[#ef4444] mt-1">{errors.email.message}</AppText>
                             )}
                         </View>
 
@@ -174,26 +175,26 @@ export default function LoginScreen() {
                                     onPress={() => setShowPassword(!showPassword)}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 >
-                                    <Text className="text-xl opacity-50">
+                                    <AppText className="text-xl opacity-50">
                                         {showPassword ? '👁' : '👁‍🗨'}
-                                    </Text>
+                                    </AppText>
                                 </TouchableOpacity>
                             </View>
                             <View className={`h-px ${errors.password ? 'bg-[#ef4444]' : 'bg-[#d1d5db]'}`} />
                             {errors.password && (
-                                <Text className="text-xs text-[#ef4444] mt-1">{errors.password.message}</Text>
+                                <AppText className="text-xs text-[#ef4444] mt-1">{errors.password.message}</AppText>
                             )}
                         </View>
 
                         {/* Forgot Password */}
                         <TouchableOpacity className="self-end mb-6 -mt-2" onPress={showDeviceInfo}>
-                            <Text className="text-sm font-semibold text-[#1a1a2e]">Forgot Password?</Text>
+                            <AppText className="text-sm font-semibold text-[#1a1a2e]">Forgot Password?</AppText>
                         </TouchableOpacity>
 
                         {/* Server Error Message */}
                         {error && (
                             <View className="bg-red-500/[0.08] rounded-[10px] p-3 mb-5 border border-red-500/25">
-                                <Text className="text-[#dc2626] text-sm text-center">{error}</Text>
+                                <AppText className="text-[#dc2626] text-sm text-center">{error}</AppText>
                             </View>
                         )}
 
@@ -203,7 +204,7 @@ export default function LoginScreen() {
                                 className="flex-1 border-[1.5px] border-[#2c3e6b] rounded-[10px] py-3.5 items-center justify-center min-h-[50px]"
                                 onPress={() => router.push({ pathname: '/(auth)/register' as any })}
                             >
-                                <Text className="text-[#2c3e6b] text-base font-semibold">Register</Text>
+                                <AppText className="text-[#2c3e6b] text-base font-semibold">Register</AppText>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -214,7 +215,7 @@ export default function LoginScreen() {
                                 {isSubmitting ? (
                                     <ActivityIndicator color="#ffffff" />
                                 ) : (
-                                    <Text className="text-white text-base font-semibold">Log In</Text>
+                                    <AppText className="text-white text-base font-semibold">Log In</AppText>
                                 )}
                             </TouchableOpacity>
                         </View>
