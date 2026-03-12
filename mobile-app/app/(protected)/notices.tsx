@@ -392,7 +392,7 @@ export default function NoticesScreen() {
                         <View style={styles.greetingRow}>
                             <AppText style={styles.greetingText}>Hey {getUserFirstName()} </AppText>
                             <Image
-                                source={require('../../assets/waving_hand_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png')}
+                                source={require('../../assets/material-icons/waving_hand_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png')}
                                 style={styles.wavingHand}
                             />
                         </View>
@@ -721,6 +721,7 @@ const styles = StyleSheet.create({
     wavingHand: {
         width: 20,
         height: 20,
+        tintColor: '#000000',
     },
     screenTitle: {
         fontSize: 22,

@@ -16,10 +16,10 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getEventsPaginated, type EventFilterParams } from '../services/firebase/content.firestore';
 import { getDistricts } from '../services/firebase/master-data.firestore';
 import { District } from '../types';
+import CalendarPickerModal from './CalendarPickerModal';
 
 const BLUE = '#1565C0';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function toJsDate(d: any): Date {
     if (!d) return new Date();
@@ -38,59 +38,6 @@ function formatEventDate(start: any, end?: any): string {
     const eDay = e.getDate();
     const es = eDay === 1 || eDay === 21 || eDay === 31 ? 'st' : eDay === 2 || eDay === 22 ? 'nd' : eDay === 3 || eDay === 23 ? 'rd' : 'th';
     return `${startStr}\nto ${eDay}${es} ${MONTHS[e.getMonth()]}, ${e.getFullYear()}`;
-}
-
-/* ── Calendar Picker Modal ── */
-function CalendarPickerModal({ visible, value, onSelect, onClose }: {
-    visible: boolean; value: string; onSelect: (dateStr: string) => void; onClose: () => void;
-}) {
-    const today = new Date();
-    const init = value ? new Date(value) : today;
-    const [vy, setVy] = useState(init.getFullYear());
-    const [vm, setVm] = useState(init.getMonth());
-    const sd = value ? new Date(value).getDate() : -1;
-    const sm = value ? new Date(value).getMonth() : -1;
-    const sy = value ? new Date(value).getFullYear() : -1;
-    const days = useMemo(() => {
-        const f = new Date(vy, vm, 1).getDay();
-        const dim = new Date(vy, vm + 1, 0).getDate();
-        const c: (number | null)[] = [];
-        for (let i = 0; i < f; i++) c.push(null);
-        for (let d = 1; d <= dim; d++) c.push(d);
-        return c;
-    }, [vy, vm]);
-    if (!visible) return null;
-    return (
-        <Modal visible transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-            <TouchableOpacity className="flex-1 bg-black/45 justify-center items-center px-7" activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} className="bg-white rounded-[20px] py-5 px-4 w-full max-w-[360px]" style={{ elevation: 10 }}>
-                    <View className="flex-row justify-between items-center mb-4 px-1">
-                        <TouchableOpacity onPress={() => { if (vm === 0) { setVm(11); setVy(y => y - 1); } else setVm(m => m - 1); }} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-back" size={22} color={BLUE} /></TouchableOpacity>
-                        <AppText className="text-[17px] font-bold" style={{ color: BLUE }}>{MONTHS[vm]} {vy}</AppText>
-                        <TouchableOpacity onPress={() => { if (vm === 11) { setVm(0); setVy(y => y + 1); } else setVm(m => m + 1); }} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-forward" size={22} color={BLUE} /></TouchableOpacity>
-                    </View>
-                    <View className="flex-row mb-2">{WEEKDAYS.map(w => <AppText key={w} className="flex-1 text-center text-xs font-semibold text-gray-400">{w}</AppText>)}</View>
-                    <View className="flex-row flex-wrap">
-                        {days.map((day, i) => {
-                            const isSel = day === sd && vm === sm && vy === sy;
-                            const isT = day === today.getDate() && vm === today.getMonth() && vy === today.getFullYear();
-                            return (
-                                <TouchableOpacity
-                                    key={i}
-                                    className={`justify-center items-center rounded-xl ${day && isSel ? 'bg-[#1565C0]' : ''} ${day && isT && !isSel ? 'bg-blue-100' : ''}`}
-                                    style={{ width: '14.28%', aspectRatio: 1 }}
-                                    onPress={() => day && (() => { onSelect(`${vy}-${String(vm + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`); onClose(); })()}
-                                    disabled={!day}
-                                >
-                                    {day ? <AppText className={`text-sm font-medium ${isSel ? 'text-white font-bold' : isT ? 'text-[#1565C0] font-bold' : 'text-gray-700'}`}>{day}</AppText> : null}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </TouchableOpacity>
-            </TouchableOpacity>
-        </Modal>
-    );
 }
 
 /* ── Search Filter Modal ── */
@@ -172,7 +119,7 @@ function EventCard({ event, districts, onPress }: { event: any; districts: Distr
     const colors = ['#1565C0', '#0277BD', '#00838F', '#00695C', '#2E7D32'];
     const bg = colors[(event.id || '').split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % colors.length];
     return (
-        <TouchableOpacity className="rounded-2xl overflow-hidden mb-4 h-[220px] bg-gray-300" style={{ elevation: 3 }} activeOpacity={0.85} onPress={onPress}>
+        <TouchableOpacity className="rounded-2xl overflow-hidden mb-4 h-[200px] bg-gray-300" style={{ elevation: 3 }} activeOpacity={0.85} onPress={onPress}>
             {event.flyer_url ? <Image source={{ uri: event.flyer_url }} className="w-full h-full" resizeMode="cover" /> : <View className="w-full h-full justify-center items-center" style={{ backgroundColor: bg }}><Ionicons name="calendar" size={48} color="rgba(255,255,255,0.4)" /></View>}
             <View className="absolute bottom-0 left-0 right-0 p-4 rounded-b-2xl" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
                 <AppText className="text-lg font-extrabold text-white mb-1" numberOfLines={2}>{event.title}</AppText>
@@ -219,6 +166,7 @@ export default function EventsListScreen({
     const { data: districts = [], isLoading: loadingDistricts } = useQuery<District[]>({ queryKey: ['districts'], queryFn: getDistricts });
     useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
     const allEvents = useMemo(() => data?.pages?.flatMap(p => p.events) || [], [data]);
+    const hasActiveFilters = useMemo(() => !!(filters.startDate || filters.endDate || filters.districtId), [filters]);
 
     const handleEndReached = useCallback(() => {
         if (hasNextPage && !isFetchingNextPage) {
@@ -229,50 +177,33 @@ export default function EventsListScreen({
     if (isLoading) {
         return (
             <View className="flex-1 justify-center items-center bg-[#f9fafb]">
-                <ActivityIndicator size="large" color={BLUE} />
-                <AppText className="mt-3 text-gray-500">Loading events...</AppText>
+                <ActivityIndicator size="large" color={BLUE} style={{ transform: [{ scale: 1.6 }] }} />
+                <AppText className="mt-4 text-lg font-semibold text-gray-600">Loading events...</AppText>
             </View>
         );
     }
 
     return (
-        <View className="flex-1 bg-[#f9fafb]">
-            {/* Optional standalone header */}
-            {showHeader && (
-                <View className="flex-row items-center justify-between px-4 py-4" style={{ backgroundColor: headerBgColor }}>
-                    {onBackPress ? (
-                        <TouchableOpacity className="p-2" onPress={onBackPress}><Ionicons name="arrow-back" size={24} color="#ffffff" /></TouchableOpacity>
-                    ) : <View className="w-10" />}
-                    <AppText className="text-lg font-semibold text-white">Events</AppText>
-                    <View className="flex-row items-center gap-2">
-                        <TouchableOpacity className="p-2" onPress={() => setFilterVisible(true)}><Ionicons name="search" size={22} color="#ffffff" /></TouchableOpacity>
-                        {onCreatePress && (
-                            <TouchableOpacity className="p-2" onPress={onCreatePress}><Ionicons name="add" size={24} color="#ffffff" /></TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-            )}
+        <View className="flex-1 bg-white">
 
             {/* Tab-style header (no back button) */}
-            {!showHeader && (
-                <View className="flex-row justify-between items-center px-4 pt-3 pb-2">
-                    <AppText className="text-[26px] font-bold text-[#1a1a1a]">Events</AppText>
-                    <View className="flex-row items-center gap-3">
-                        {onCreatePress && (
-                            <TouchableOpacity className="rounded-3xl px-5 py-2.5" style={{ backgroundColor: BLUE }} onPress={onCreatePress}>
-                                <AppText className="text-white text-sm font-bold">Create Event</AppText>
-                            </TouchableOpacity>
-                        )}
-                        <TouchableOpacity className="w-10 h-10 rounded-full border-[1.5px] justify-center items-center" style={{ borderColor: BLUE }} onPress={() => setFilterVisible(true)}>
-                            <Ionicons name="search" size={22} color={BLUE} />
+            <View className="flex-row justify-between items-center px-4 pt-3 pb-2">
+                <AppText className="text-[26px] font-bold text-[#1a1a1a]">Events</AppText>
+                <View className="flex-row items-center gap-3">
+                    {onCreatePress && (
+                        <TouchableOpacity className="rounded-3xl px-5 py-2.5" style={{ backgroundColor: BLUE }} onPress={onCreatePress}>
+                            <AppText className="text-white text-base font-bold">Create Event</AppText>
                         </TouchableOpacity>
-                    </View>
+                    )}
+                    <TouchableOpacity className="w-10 h-10 rounded-full border-[1.5px] justify-center items-center" style={{ borderColor: BLUE }} onPress={() => setFilterVisible(true)}>
+                        <Ionicons name="search" size={22} color={BLUE} />
+                    </TouchableOpacity>
                 </View>
-            )}
+            </View>
 
             {/* Events List */}
             <FlatList
-                className="flex-1"
+                className="flex-1 px-1"
                 data={allEvents}
                 keyExtractor={(item: any) => item.id}
                 renderItem={({ item }) => (
@@ -284,17 +215,29 @@ export default function EventsListScreen({
                 onEndReachedThreshold={0.35}
                 ListFooterComponent={isFetchingNextPage ? (
                     <View className="items-center py-4">
-                        <ActivityIndicator size="small" color={BLUE} />
-                        <AppText className="text-sm text-gray-500 mt-2">Loading more events...</AppText>
+                        <ActivityIndicator size="large" color={BLUE} style={{ transform: [{ scale: 1.2 }] }} />
+                        <AppText className="text-base font-semibold text-gray-600 mt-3">Loading more events...</AppText>
                     </View>
                 ) : null}
                 ListEmptyComponent={
-                    <View className="items-center pt-20">
-                        <Ionicons name="calendar-outline" size={64} color="#d1d5db" />
-                        <AppText className="text-lg font-semibold text-gray-700 mt-4">No Events</AppText>
-                        <AppText className="text-sm text-gray-500 text-center mt-2 px-8">
-                            {onCreatePress ? 'No events scheduled yet. Tap "Create Event" to add one.' : 'No events scheduled yet.'}
-                        </AppText>
+                    <View className="items-center pt-1">
+                        {hasActiveFilters ? (
+                            <>
+                                <Image source={require('../../assets/Empty.gif')} className='w-full' resizeMode="contain" />
+                                <AppText className="text-lg font-semibold text-gray-700">No Events</AppText>
+                                <AppText className="text-sm text-gray-500 text-center px-8">
+                                    No events found for the selected filters.
+                                </AppText>
+                            </>
+                        ) : (
+                            <>
+                                <Ionicons name="calendar-outline" size={64} color="#d1d5db" />
+                                <AppText className="text-lg font-semibold text-gray-700 mt-4">No Events</AppText>
+                                <AppText className="text-sm text-gray-500 text-center mt-2 px-8">
+                                    {onCreatePress ? 'No events scheduled yet. Tap "Create Event" to add one.' : 'No events scheduled yet.'}
+                                </AppText>
+                            </>
+                        )}
                     </View>
                 }
             />

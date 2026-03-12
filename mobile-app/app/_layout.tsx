@@ -115,13 +115,14 @@ export default function RootLayout() {
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
                 <StatusBar style="light" />
                 <QueryClientProvider client={queryClient}>
-                    <Stack
-                        screenOptions={{
-                            headerShown: false,
-                            contentStyle: { backgroundColor: '#0f0f1a' },
-                            animation: 'slide_from_right',
-                        }}
-                    />
+                   <View style={{ flex: 1, backgroundColor: 'white' }}>
+                      <Stack
+                            screenOptions={{
+                                headerShown: false,
+                                animation: 'slide_from_right',
+                            }}
+                      />
+                   </View>
                 </QueryClientProvider>
                 <Toast config={toastConfig} position="bottom" bottomOffset={90} />
         </SafeAreaProvider>

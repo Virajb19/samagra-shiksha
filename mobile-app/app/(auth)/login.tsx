@@ -27,7 +27,6 @@ import {
     StatusBar,
     Image,
 } from 'react-native';
-import Toast from 'react-native-toast-message';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../src/lib/store';
 import { useForm, Controller } from 'react-hook-form';
@@ -222,7 +221,6 @@ export default function LoginScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-            <Toast />
         </View>
     );
 }

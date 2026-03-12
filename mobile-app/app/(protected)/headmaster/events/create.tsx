@@ -33,68 +33,13 @@ import { uploadProfileImage } from '../../../../src/services/storage.service';
 import { useAuthStore } from '../../../../src/lib/store';
 import { getDistricts } from '../../../../src/services/firebase/master-data.firestore';
 import { District } from '../../../../src/types';
+import CalendarPickerModal from '../../../../src/components/CalendarPickerModal';
 import Toast from 'react-native-toast-message';
 
 const BLUE = '#1E88E5';
 
-/* ── Calendar Picker Modal ── */
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-function CalendarPickerModal({ visible, value, onSelect, onClose }: {
-    visible: boolean; value: string; onSelect: (d: string) => void; onClose: () => void;
-}) {
-    const today = new Date();
-    const init = value ? new Date(value) : today;
-    const [vY, setVY] = useState(init.getFullYear());
-    const [vM, setVM] = useState(init.getMonth());
-    const selD = value ? new Date(value).getDate() : -1;
-    const selM = value ? new Date(value).getMonth() : -1;
-    const selY = value ? new Date(value).getFullYear() : -1;
-    const days = useMemo(() => {
-        const first = new Date(vY, vM, 1).getDay();
-        const count = new Date(vY, vM + 1, 0).getDate();
-        const c: (number | null)[] = [];
-        for (let i = 0; i < first; i++) c.push(null);
-        for (let d = 1; d <= count; d++) c.push(d);
-        return c;
-    }, [vY, vM]);
-    const prev = () => { if (vM === 0) { setVM(11); setVY(y => y - 1); } else setVM(m => m - 1); };
-    const next = () => { if (vM === 11) { setVM(0); setVY(y => y + 1); } else setVM(m => m + 1); };
-    const pick = (day: number) => { const m = String(vM + 1).padStart(2, '0'); const d = String(day).padStart(2, '0'); onSelect(`${vY}-${m}-${d}`); onClose(); };
-    const isSel = (d: number) => d === selD && vM === selM && vY === selY;
-    const isT = (d: number) => d === today.getDate() && vM === today.getMonth() && vY === today.getFullYear();
-    if (!visible) return null;
-    return (
-        <Modal visible transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-            <TouchableOpacity className="flex-1 bg-black/45 justify-center items-center px-7" activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} className="bg-white rounded-[20px] py-5 px-4 w-full max-w-[360px]" style={{ elevation: 10 }}>
-                    <View className="flex-row justify-between items-center mb-4 px-1">
-                        <TouchableOpacity onPress={prev} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-back" size={22} color={BLUE} /></TouchableOpacity>
-                        <AppText className="text-[17px] font-bold" style={{ color: BLUE }}>{MONTHS[vM]} {vY}</AppText>
-                        <TouchableOpacity onPress={next} className="p-1.5 rounded-lg bg-[#f0f4f8]"><Ionicons name="chevron-forward" size={22} color={BLUE} /></TouchableOpacity>
-                    </View>
-                    <View className="flex-row mb-2">
-                        {WEEKDAYS.map(w => <AppText key={w} className="flex-1 text-center text-xs font-semibold text-gray-400">{w}</AppText>)}
-                    </View>
-                    <View className="flex-row flex-wrap">
-                        {days.map((day, i) => (
-                            <TouchableOpacity
-                                key={i}
-                                className={`justify-center items-center rounded-xl ${day !== null && isSel(day) ? 'bg-[#1E88E5]' : ''} ${day !== null && isT(day) && !isSel(day) ? 'bg-blue-100' : ''}`}
-                                style={{ width: '14.28%', aspectRatio: 1 }}
-                                onPress={() => day && pick(day)}
-                                disabled={!day}
-                            >
-                                {day ? <AppText className={`text-sm font-medium ${isSel(day) ? 'text-white font-bold' : isT(day) ? 'text-[#1E88E5] font-bold' : 'text-gray-700'}`}>{day}</AppText> : null}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </TouchableOpacity>
-            </TouchableOpacity>
-        </Modal>
-    );
-}
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 /* ── Select Modal ── */
 function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: {

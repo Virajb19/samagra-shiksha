@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     RefreshControl,
     Linking,
+    Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -172,6 +173,24 @@ export default function CircularsScreen({
         await Linking.openURL(url);
     };
 
+    const shareCircular = async (item: CircularItem) => {
+        const title = typeof item.title === 'string' ? item.title : 'Circular';
+        const body =
+            typeof item.description === 'string' && item.description.trim()
+                ? item.description
+                : typeof item.content === 'string' && item.content.trim()
+                    ? item.content
+                    : '';
+        const fileUrl = typeof item.file_url === 'string' ? item.file_url : '';
+
+        const message = [title, body, fileUrl].filter(Boolean).join('\n\n');
+        await Share.share({
+            title,
+            message,
+            url: fileUrl || undefined,
+        });
+    };
+
     return (
         <FlatList
             className="flex-1 bg-[#f0f4f8]"
@@ -182,14 +201,17 @@ export default function CircularsScreen({
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.35}
             ListHeaderComponent={
-                <View className="flex-row items-center bg-white rounded-xl px-3 mb-4 font-lato" style={{ elevation: 1 }}>
-                    <Ionicons name="search" size={20} color="#9ca3af" />
-                    <TextInput
-                        className="flex-1 py-3 px-2 text-[15px] text-gray-900 font-lato"
-                        placeholder={searchPlaceholder}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
+                <View>
+                    <AppText weight='bold' className="text-2xl text-gray-900 mb-3">Circulars</AppText>
+                    <View className="flex-row items-center bg-white rounded-xl px-3 mb-4 font-lato" style={{ elevation: 1 }}>
+                        <Ionicons name="search" size={20} color="#9ca3af" />
+                        <TextInput
+                            className="flex-1 py-3 px-2 text-[15px] text-gray-900 font-lato"
+                            placeholder={searchPlaceholder}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                    </View>
                 </View>
             }
             renderItem={({ item: c }) => (
@@ -229,14 +251,22 @@ export default function CircularsScreen({
                             </AppText>
                         </AppText>
                     </View>
-                    {typeof c.file_url === 'string' && c.file_url ? (
-                        <TouchableOpacity className="flex-row items-center mt-2" onPress={() => openFile(c.file_url!, c)}>
-                            <Ionicons name="download-outline" size={16} color={BLUE} />
+                    <View className="flex-row items-center mt-2">
+                        {typeof c.file_url === 'string' && c.file_url ? (
+                            <TouchableOpacity className="flex-row items-center mr-4" onPress={() => openFile(c.file_url!, c)}>
+                                <Ionicons name="download-outline" size={16} color={BLUE} />
+                                <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
+                                    Download
+                                </AppText>
+                            </TouchableOpacity>
+                        ) : null}
+                        <TouchableOpacity className="flex-row items-center" onPress={() => shareCircular(c)}>
+                            <Ionicons name="share-social-outline" size={16} color={BLUE} />
                             <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
-                                Download
+                                Share
                             </AppText>
                         </TouchableOpacity>
-                    ) : null}
+                    </View>
                 </View>
             )}
             ListEmptyComponent={

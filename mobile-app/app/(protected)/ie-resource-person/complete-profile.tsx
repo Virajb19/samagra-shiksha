@@ -41,6 +41,7 @@ import { completeIEResourcePersonProfile } from '../../../src/services/firebase/
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IEResourcePersonProfileSchema, IEResourcePersonProfileFormData } from '../../../src/lib/zod';
+import CalendarPickerModal from '../../../src/components/CalendarPickerModal';
 import Toast from 'react-native-toast-message';
 
 interface SelectModalProps {
@@ -97,119 +98,6 @@ function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, l
     );
 }
 
-/* ── Calendar Picker Modal ── */
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
-function CalendarPickerModal({ visible, value, onSelect, onClose }: {
-    visible: boolean;
-    value: string;
-    onSelect: (dateStr: string) => void;
-    onClose: () => void;
-}) {
-    const today = new Date();
-    const initialDate = value ? new Date(value) : today;
-    const [viewYear, setViewYear] = useState(initialDate.getFullYear());
-    const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
-    const selectedDay = value ? new Date(value).getDate() : -1;
-    const selectedMonth = value ? new Date(value).getMonth() : -1;
-    const selectedYear = value ? new Date(value).getFullYear() : -1;
-
-    const days = useMemo(() => {
-        const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-        const cells: (number | null)[] = [];
-        for (let i = 0; i < firstDay; i++) cells.push(null);
-        for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-        return cells;
-    }, [viewYear, viewMonth]);
-
-    const prevMonth = () => {
-        if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
-        else setViewMonth(m => m - 1);
-    };
-    const nextMonth = () => {
-        if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
-        else setViewMonth(m => m + 1);
-    };
-
-    const handleSelect = (day: number) => {
-        const m = String(viewMonth + 1).padStart(2, '0');
-        const d = String(day).padStart(2, '0');
-        onSelect(`${viewYear}-${m}-${d}`);
-        onClose();
-    };
-
-    const isToday = (day: number) => day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
-    const isSelected = (day: number) => day === selectedDay && viewMonth === selectedMonth && viewYear === selectedYear;
-
-    if (!visible) return null;
-
-    return (
-        <Modal visible transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-            <TouchableOpacity style={calStyles.overlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={calStyles.card}>
-                    <View style={calStyles.header}>
-                        <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn}>
-                            <Ionicons name="chevron-back" size={22} color="#2c3e6b" />
-                        </TouchableOpacity>
-                        <AppText style={calStyles.monthText}>{MONTHS[viewMonth]} {viewYear}</AppText>
-                        <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn}>
-                            <Ionicons name="chevron-forward" size={22} color="#2c3e6b" />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={calStyles.weekRow}>
-                        {WEEKDAYS.map(w => <AppText key={w} style={calStyles.weekLabel}>{w}</AppText>)}
-                    </View>
-                    <View style={calStyles.grid}>
-                        {days.map((day, i) => (
-                            <TouchableOpacity
-                                key={i}
-                                style={[
-                                    calStyles.dayCell,
-                                    day !== null && isSelected(day) ? calStyles.dayCellSelected : null,
-                                    day !== null && isToday(day) && !isSelected(day) ? calStyles.dayCellToday : null,
-                                ]}
-                                onPress={() => day && handleSelect(day)}
-                                disabled={!day}
-                            >
-                                {day ? (
-                                    <AppText style={[
-                                        calStyles.dayText,
-                                        isSelected(day) && calStyles.dayTextSelected,
-                                        isToday(day) && !isSelected(day) && calStyles.dayTextToday,
-                                    ]}>{day}</AppText>
-                                ) : null}
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                    <TouchableOpacity style={calStyles.todayBtn} onPress={() => handleSelect(today.getDate())}>
-                        <AppText style={calStyles.todayBtnText}>Today</AppText>
-                    </TouchableOpacity>
-                </TouchableOpacity>
-            </TouchableOpacity>
-        </Modal>
-    );
-}
-
-const calStyles = StyleSheet.create({
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 28 },
-    card: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 20, paddingHorizontal: 16, width: '100%', maxWidth: 360, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 20 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingHorizontal: 4 },
-    navBtn: { padding: 6, borderRadius: 8, backgroundColor: '#f0f4f8' },
-    monthText: { fontSize: 17, fontWeight: '700', color: '#2c3e6b' },
-    weekRow: { flexDirection: 'row', marginBottom: 8 },
-    weekLabel: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '600', color: '#9ca3af' },
-    grid: { flexDirection: 'row', flexWrap: 'wrap' },
-    dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
-    dayCellSelected: { backgroundColor: '#2c3e6b' },
-    dayCellToday: { backgroundColor: '#e8ecf4' },
-    dayText: { fontSize: 14, fontWeight: '500', color: '#374151' },
-    dayTextSelected: { color: '#ffffff', fontWeight: '700' },
-    dayTextToday: { color: '#2c3e6b', fontWeight: '700' },
-    todayBtn: { alignSelf: 'center', marginTop: 12, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, backgroundColor: '#e8ecf4' },
-    todayBtnText: { fontSize: 13, fontWeight: '600', color: '#2c3e6b' },
-});
 
 export default function IECompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();
