@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, use } from 'react';
 import { useAuthStore } from '@/lib/store';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDebounceValue } from 'usehooks-ts';
+import { useDebounceValue, useLocalStorage } from 'usehooks-ts';
 import { useGetUsers, usersApi } from '@/services/user.service';
 import { masterDataFirestore } from '@/services/firebase/master-data.firestore';
 import { clearUsersCursorCache } from '@/services/firebase/users.firestore';
@@ -121,11 +121,11 @@ export default function UsersPage() {
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useDebounceValue('', 500);
-  const [roleFilter, setRoleFilter] = useState(UserRole.HEADMASTER);
-  const [districtFilter, setDistrictFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useLocalStorage<UserRole>('roleFilter', UserRole.HEADMASTER);
+  const [districtFilter, setDistrictFilter] = useLocalStorage('districtFilter', 'all');
   const [schoolFilter, setSchoolFilter] = useState('all');
   const [schoolSearchQuery, setSchoolSearchQuery] = useState('');
-  const [showOnlyInactive, setShowOnlyInactive] = useState(false);
+  const [showOnlyInactive, setShowOnlyInactive] = useLocalStorage('showOnlyInactive', false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 

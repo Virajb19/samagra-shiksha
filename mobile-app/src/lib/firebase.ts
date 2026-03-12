@@ -10,8 +10,9 @@
  */
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, initializeAuth, connectAuthEmulator, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, Auth, initializeAuth, connectAuthEmulator } from 'firebase/auth';
+import * as FirebaseAuth from 'firebase/auth';
+import { getFirestore, Firestore, connectFirestoreEmulator, initializeFirestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -29,7 +30,9 @@ export const firebaseConfig = {
 
 // ── Emulator config ──
 // Set to true to connect to local Firebase emulators (must match firebase.json ports)
-const USE_EMULATOR = __DEV__;
+// IMPORTANT: keep this opt-in. In Expo dev on a physical device, always-on emulator mode
+// often causes "Could not reach Cloud Firestore backend" when your machine is not reachable.
+const USE_EMULATOR = __DEV__ && process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
 
 /**
  * Resolve the emulator host IP.
@@ -72,8 +75,12 @@ export function getFirebaseAuth(): Auth {
   if (!auth) {
     const firebaseApp = getFirebaseApp();
     try {
+      const reactNativePersistence = (FirebaseAuth as unknown as {
+        getReactNativePersistence?: (storage: typeof AsyncStorage) => unknown;
+      }).getReactNativePersistence;
+
       auth = initializeAuth(firebaseApp, {
-        persistence: getReactNativePersistence(AsyncStorage),
+        persistence: reactNativePersistence?.(AsyncStorage) as never,
       });
     } catch {
       auth = getAuth(firebaseApp);
@@ -93,7 +100,19 @@ export function getFirebaseAuth(): Auth {
  */
 export function getFirebaseDb(): Firestore {
   if (!db) {
-    db = getFirestore(getFirebaseApp());
+    const firebaseApp = getFirebaseApp();
+
+    // Expo/React Native networking can be flaky with WebChannel. Auto long-polling
+    // improves reliability on unstable/mobile networks.
+    try {
+      db = initializeFirestore(firebaseApp, {
+        experimentalAutoDetectLongPolling: true,
+        ignoreUndefinedProperties: true,
+      });
+    } catch {
+      // If Firestore was already initialized elsewhere, fall back to the singleton.
+      db = getFirestore(firebaseApp);
+    }
 
     if (USE_EMULATOR && !firestoreEmulatorConnected) {
       connectFirestoreEmulator(db, getEmulatorHost(), 8080);
