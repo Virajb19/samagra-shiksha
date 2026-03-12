@@ -32,7 +32,14 @@ export const firebaseConfig = {
 // Set to true to connect to local Firebase emulators (must match firebase.json ports)
 // IMPORTANT: keep this opt-in. In Expo dev on a physical device, always-on emulator mode
 // often causes "Could not reach Cloud Firestore backend" when your machine is not reachable.
-const USE_EMULATOR = __DEV__ && process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
+//
+// Supports both:
+// - EXPO_PUBLIC_USE_FIREBASE_EMULATOR (preferred)
+// - EXPO_PUBLIC_USE_FIRESTORE_EMULATOR (legacy compatibility)
+const USE_EMULATOR =
+  __DEV__ &&
+  (process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true' ||
+    process.env.EXPO_PUBLIC_USE_FIRESTORE_EMULATOR === 'true');
 
 /**
  * Resolve the emulator host IP.
@@ -61,6 +68,7 @@ export function getFirebaseApp(): FirebaseApp {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     console.log('[Firebase] Initialized Firebase app');
+    console.log(`[Firebase] Emulator mode: ${USE_EMULATOR ? 'ON' : 'OFF'}`);
   } else {
     app = getApps()[0];
   }

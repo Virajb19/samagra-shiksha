@@ -119,6 +119,13 @@ export async function login(credentials: LoginCredentials): Promise<LoginResult>
         if (code === 'auth/too-many-requests') {
             return { success: false, error: 'Too many login attempts. Please try again later.' };
         }
+        if (code === 'auth/configuration-not-found') {
+            return {
+                success: false,
+                error:
+                    'Firebase Auth configuration not found. If using local emulators, verify EXPO_PUBLIC_USE_FIREBASE_EMULATOR=true and that the Auth emulator is running on port 9099.',
+            };
+        }
         if (code === 'auth/user-disabled') {
             return { success: false, error: 'This account has been disabled.', isInactive: true };
         }
