@@ -67,6 +67,7 @@ export const useSidebarStore = create<SidebarState>((set) => ({
 //   userProfilePic → localStorage (Appwrite URL from backend)
 // ========================================
 interface AuthState {
+  userId: string | null;
   role: UserRole | null;
   userName: string | null;
   userEmail: string | null;
@@ -85,6 +86,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
+  userId: null,
   role: null,
   userName: null,
   userEmail: null,
@@ -99,6 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (typeof window === 'undefined') return;
 
     const role = localStorage.getItem('userRole') as UserRole | null;
+    const userId = localStorage.getItem('userId');
     const userName = localStorage.getItem('userName');
     const userEmail = localStorage.getItem('userEmail');
     const rawPic = localStorage.getItem('userProfilePic');
@@ -107,6 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!userProfilePic && rawPic) localStorage.removeItem('userProfilePic');
 
     set({
+      userId,
       role,
       userName,
       userEmail,
@@ -135,6 +139,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const me = await authFirestore.getMe();
       const freshRole = (me.role as UserRole) || null;
+      const freshUserId = me.id || null;
       const freshName = me.name || null;
       const freshEmail = me.email || null;
       const freshPic = (typeof me.profile_image_url === 'string' && me.profile_image_url.length > 0)
@@ -143,6 +148,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Sync fresh data to localStorage so other tabs / future refreshes pick it up
       if (freshRole) localStorage.setItem('userRole', freshRole);
+      if (freshUserId) localStorage.setItem('userId', freshUserId);
       if (freshName) localStorage.setItem('userName', freshName);
       if (freshEmail) localStorage.setItem('userEmail', freshEmail);
       if (freshPic) localStorage.setItem('userProfilePic', freshPic);
@@ -152,6 +158,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const isAuth = isHydrated && isCmsRole(freshRole);
 
       set({
+        userId: freshUserId,
         role: freshRole,
         userName: freshName,
         userEmail: freshEmail,
@@ -162,7 +169,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch {
       // Keep cached profile pic on transient auth errors
       const cachedPic = typeof window !== 'undefined' ? localStorage.getItem('userProfilePic') : null;
-      set({ role: null, userName: null, userEmail: null, userProfilePic: cachedPic, isAuthenticated: false, loading: false });
+      set({ userId: null, role: null, userName: null, userEmail: null, userProfilePic: cachedPic, isAuthenticated: false, loading: false });
     } finally {
       set({ loading: false });
     }
@@ -173,6 +180,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const res = await authFirestore.login(email, password, phone ?? '');
 
     const userRole = res.user.role;
+    const userId = res.user.id || null;
     const name = res.user.name || 'Administrator';
     const userEmail = res.user.email || email;
     // profile_image_url can be null/undefined/object — only store valid URL strings
@@ -180,6 +188,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const profilePic = (typeof rawPic === 'string' && rawPic.length > 0) ? rawPic : null;
 
     localStorage.setItem('userRole', userRole);
+    if (userId) localStorage.setItem('userId', userId);
     localStorage.setItem('userName', name);
     localStorage.setItem('userEmail', userEmail);
     if (profilePic) localStorage.setItem('userProfilePic', profilePic);
@@ -204,6 +213,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     set({
+      userId,
       role: userRole,
       userName: name,
       userEmail,
@@ -227,6 +237,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userProfilePic');
@@ -240,6 +251,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     set({
+      userId: null,
       role: null,
       userName: null,
       userEmail: null,

@@ -128,6 +128,8 @@ export interface AuthState {
 // CIRCULAR TYPES
 // ========================================
 
+export type CircularVisibilityLevel = 'GLOBAL' | 'DISTRICT' | 'SCHOOL';
+
 export interface Circular {
     id: string;
     circular_no: string;
@@ -138,8 +140,12 @@ export interface Circular {
     issued_date: string;
     effective_date?: string;
     is_active: boolean;
+    visibility_level: CircularVisibilityLevel;
     district_id?: string;
     school_id?: string;
+    school_ids?: string[];
+    target_roles?: string[];
+    target_subject?: string;
     created_by?: string;
     created_at: string;
     updated_at: string;

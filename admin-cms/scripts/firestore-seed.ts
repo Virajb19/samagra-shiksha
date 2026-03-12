@@ -306,7 +306,6 @@ const ids = {
   userIdToName: new Map<string, string>(),
   // Circular tracking
   circularIds: [] as string[],
-  circularMeta: [] as { id: string; isMultiSchool: boolean; districtId: string }[],
 };
 
 const addUser = (role: string, userId: string) => {
@@ -332,7 +331,7 @@ const ALL_COLLECTIONS = [
   'districts', 'schools', 'users', 'faculties', 'subjects',
   'events',
   'notices', 'notice_recipients',
-  'circulars', 'circular_schools',
+  'circulars',
   'helpdesk_tickets', 'notification_logs',
   'user_stars',
   'audit_logs',
@@ -605,21 +604,75 @@ function seedFaculty(): void {
     count++;
   }
 
-  // Teacher faculties (round-robin across schools)
-  for (let i = 0; i < ids.teacherIds.length; i++) {
-    const schoolId = ids.schoolIds[i % ids.schoolIds.length];
+  // Teacher faculties (logical + diverse distribution across schools)
+  const totalTeachers = ids.teacherIds.length;
+  const totalSchools = ids.schoolIds.length;
+  const minTeachersPerSchool = totalSchools > 0
+    ? Math.min(3, Math.floor(totalTeachers / totalSchools))
+    : 0;
+
+  const shuffledTeacherIds = [...ids.teacherIds].sort(() => 0.5 - Math.random());
+  const schoolTeacherCount = new Map<string, number>(ids.schoolIds.map((sid) => [sid, 0]));
+  const teacherAssignments: string[] = [];
+
+  // Baseline assignment so every school gets minimum staff (as much as teacher pool allows)
+  let teacherCursor = 0;
+  for (const schoolId of ids.schoolIds) {
+    for (let j = 0; j < minTeachersPerSchool && teacherCursor < totalTeachers; j++) {
+      teacherAssignments[teacherCursor++] = schoolId;
+      schoolTeacherCount.set(schoolId, (schoolTeacherCount.get(schoolId) ?? 0) + 1);
+    }
+  }
+
+  // Capacity profile per school: creates realistic variation (small / medium / large schools)
+  const schoolCapacityFactor = new Map<string, number>();
+  for (const schoolId of ids.schoolIds) {
+    const roll = Math.random();
+    let factor: number;
+    if (roll < 0.5) factor = randomInt(8, 12) / 10;        // small/average schools
+    else if (roll < 0.85) factor = randomInt(13, 18) / 10; // medium schools
+    else factor = randomInt(19, 28) / 10;                  // large schools
+    schoolCapacityFactor.set(schoolId, factor);
+  }
+
+  // Distribute remaining teachers using weighted randomness by district demand + school capacity
+  while (teacherCursor < totalTeachers) {
+    const candidateSchools = ids.schoolIds.filter((sid) => (schoolTeacherCount.get(sid) ?? 0) < 25);
+    const pool = candidateSchools.length > 0 ? candidateSchools : ids.schoolIds;
+
+    const weights = pool.map((schoolId) => {
+      const districtId = ids.schoolDistrictMap.get(schoolId)!;
+      const districtWeight = ids.districtWeightById.get(districtId) ?? 1;
+      const capacity = schoolCapacityFactor.get(schoolId) ?? 1;
+      const current = schoolTeacherCount.get(schoolId) ?? 0;
+      const growthBias = current < 6 ? 1.4 : current < 10 ? 1.1 : current < 15 ? 0.8 : 0.55;
+      return districtWeight * capacity * growthBias;
+    });
+
+    const schoolId = weightedRandom(pool, weights);
+    teacherAssignments[teacherCursor++] = schoolId;
+    schoolTeacherCount.set(schoolId, (schoolTeacherCount.get(schoolId) ?? 0) + 1);
+  }
+
+  for (let i = 0; i < shuffledTeacherIds.length; i++) {
+    const userId = shuffledTeacherIds[i];
+    const schoolId = teacherAssignments[i] ?? randomElement(ids.schoolIds);
     const districtId = ids.schoolDistrictMap.get(schoolId)!;
     const fId = newId('faculties');
     writer.set(db.collection('faculties').doc(fId), {
-      id: fId, user_id: ids.teacherIds[i], school_id: schoolId,
+      id: fId,
+      user_id: userId,
+      school_id: schoolId,
       faculty_type: 'TEACHING',
       designation: randomElement(designations.filter(d => d !== 'Principal')),
+      subject: randomElement(allSubjects),
       years_of_experience: randomInt(1, 30),
       is_profile_locked: randomBool(0.7),
-      created_at: TS(), updated_at: TS(),
+      created_at: TS(),
+      updated_at: TS(),
     });
     // Denormalize school_id + district_id onto the user doc
-    writer.merge(db.collection('users').doc(ids.teacherIds[i]), {
+    writer.merge(db.collection('users').doc(userId), {
       school_id: schoolId,
       district_id: districtId,
     });
@@ -818,10 +871,39 @@ function seedNoticeRecipients(): void {
 function seedCirculars(): void {
   console.log(`📄 Creating ${SCALE.circulars} circulars...`);
   for (let i = 0; i < SCALE.circulars; i++) {
-    const isDistrictLevel = randomBool(0.3);
-    const isMultiSchool = !isDistrictLevel && randomBool(0.4);
-    const districtId = getWeightedDistrictId();
     const id = newId('circulars');
+    const districtId = getWeightedDistrictId();
+
+    // Decide visibility: ~20% GLOBAL, ~30% DISTRICT, ~50% SCHOOL
+    const roll = Math.random();
+    let visibilityLevel: 'GLOBAL' | 'DISTRICT' | 'SCHOOL';
+    let circDistrictId: string | null = null;
+    let schoolIds: string[] = [];
+    let targetRoles: string[] = [];
+    let singleSchoolId: string | null = null;
+
+    if (roll < 0.2) {
+      // GLOBAL — no district, no schools
+      visibilityLevel = 'GLOBAL';
+    } else if (roll < 0.5) {
+      // DISTRICT — district set, no schools
+      visibilityLevel = 'DISTRICT';
+      circDistrictId = districtId;
+    } else {
+      // SCHOOL — district + selected schools + target roles
+      visibilityLevel = 'SCHOOL';
+      circDistrictId = districtId;
+      const districtSchools = ids.schoolIds.filter(sid => ids.schoolDistrictMap.get(sid) === districtId);
+      const n = Math.min(randomInt(1, 8), districtSchools.length);
+      const shuffled = [...districtSchools].sort(() => 0.5 - Math.random());
+      schoolIds = shuffled.slice(0, n);
+      singleSchoolId = schoolIds.length === 1 ? schoolIds[0] : null;
+      // Random target role combination
+      const roleRoll = Math.random();
+      if (roleRoll < 0.3) targetRoles = ['TEACHER'];
+      else if (roleRoll < 0.5) targetRoles = ['HEADMASTER'];
+      else targetRoles = ['TEACHER', 'HEADMASTER'];
+    }
 
     writer.set(db.collection('circulars').doc(id), {
       id,
@@ -833,37 +915,21 @@ function seedCirculars(): void {
       issued_date: admin.firestore.Timestamp.fromDate(generateDate(2024, 2025)),
       effective_date: admin.firestore.Timestamp.fromDate(generateFutureDate(30)),
       is_active: randomBool(0.95),
-      district_id: isDistrictLevel ? districtId : null,
-      school_id: (!isDistrictLevel && !isMultiSchool && randomBool(0.5)) ? randomElement(ids.schoolIds) : null,
+      visibility_level: visibilityLevel,
+      district_id: circDistrictId,
+      school_id: singleSchoolId,
+      school_ids: schoolIds,
+      target_roles: targetRoles,
+      target_subject: (targetRoles.includes('TEACHER') && randomBool(0.3)) ? randomElement(allSubjects) : null,
       created_by: randomElement(ids.adminIds),
+      creator_name: null, // resolved at read time
+      district_name: null,
+      school_name: null,
       created_at: TS(), updated_at: TS(),
     });
     ids.circularIds.push(id);
-    ids.circularMeta.push({ id, isMultiSchool, districtId });
   }
   console.log(`✅ ${ids.circularIds.length} circulars`);
-}
-
-// ────────────────────── 19. CIRCULAR SCHOOLS (M2M) ──────────────────────
-
-function seedCircularSchools(): void {
-  console.log('🔗 Creating CircularSchool M2M entries...');
-  let count = 0;
-  for (const meta of ids.circularMeta) {
-    if (!meta.isMultiSchool) continue;
-    // Find schools in this district
-    const districtSchools = ids.schoolIds.filter(sid => ids.schoolDistrictMap.get(sid) === meta.districtId);
-    const n = Math.min(randomInt(3, 8), districtSchools.length);
-    const shuffled = [...districtSchools].sort(() => 0.5 - Math.random());
-    for (let j = 0; j < n; j++) {
-      const docId = newId('circular_schools');
-      writer.set(db.collection('circular_schools').doc(docId), {
-        circular_id: meta.id, school_id: shuffled[j], created_at: TS(),
-      });
-      count++;
-    }
-  }
-  console.log(`✅ ${count} circular-school M2M entries`);
 }
 
 // ────────────────────── 20. HELPDESK TICKETS ──────────────────────
@@ -2314,7 +2380,6 @@ async function main(): Promise<void> {
   seedNoticeRecipients();
 
   seedCirculars();
-  seedCircularSchools();
 
   seedHelpdeskTickets();
   seedNotificationLogs();
@@ -2361,7 +2426,6 @@ async function main(): Promise<void> {
   console.log(`ðŸ“¢ Notices:                  ${ids.noticeIds.length}`);
   console.log(`ðŸ“¬ Notice Recipients:        (see above)`);
   console.log(`ðŸ“„ Circulars:                ${ids.circularIds.length}`);
-  console.log(`ðŸ”— Circular Schools:         (see above)`);
   console.log(`ðŸŽ« Helpdesk Tickets:         ${SCALE.helpdeskTickets}`);
   console.log(`ðŸ”” Notification Logs:        ${SCALE.notificationLogs}`);
   console.log(`â­ User Stars:               ${SCALE.userStars}`);

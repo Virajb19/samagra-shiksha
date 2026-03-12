@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { circularFirestore } from '@/services/firebase/circular.firestore';
+import { useAuthStore } from '@/lib/store';
 import { toast } from 'sonner';
 import { showErrorToast, showSuccessToast } from './ui/custom-toast';
 
@@ -31,10 +32,11 @@ export function DeleteCircularButton({
   const [open, setOpen] = useState(false);
 
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.userId);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await circularFirestore.delete('admin', circularId)
+      await circularFirestore.delete(userId || 'unknown', circularId)
     },
     onSuccess: () => {
       showSuccessToast('Circular deleted successfully', 4000);

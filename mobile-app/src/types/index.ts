@@ -100,6 +100,7 @@ export interface User {
 
     // Role-specific fields (stored on Firestore user doc)
     district_id?: string;                // KGBV, NSCBAV, JE (also used by HM/Teacher via faculty)
+    school_id?: string;                  // HM, TEACHER (denormalized from faculty record)
     responsibilities?: string[];         // HM, TEACHER, JE
     kgbv_type?: KGBVType;               // KGBV_WARDEN
     residential_location?: string;       // KGBV_WARDEN, NSCBAV_WARDEN

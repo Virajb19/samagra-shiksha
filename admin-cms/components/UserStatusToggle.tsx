@@ -18,7 +18,7 @@ export function UserStatusToggle({
   const toggleStatusMutation = useToggleUserStatus();
   const role = useAuthStore((s) => s.role);
 
-  // Only ADMIN and SUPER_ADMIN can toggle user status
+  // Only ADMIN and SUPER_ADMIN (HEADMASTER FROM MOBILE) can toggle user status
   // Firestore security rules also enforce this server-side
   const canToggle = role === 'ADMIN' || role === 'SUPER_ADMIN';
 

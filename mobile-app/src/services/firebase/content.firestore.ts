@@ -366,30 +366,110 @@ export interface PaginatedCircularsResult {
     hasMore: boolean;
 }
 
-/** Fetch circulars with cursor-based pagination (ordered by created_at desc). */
+/**
+ * Fetch circulars visible to a specific user based on visibility rules:
+ *
+ * 1. GLOBAL circulars → visible to all users
+ * 2. DISTRICT circulars → visible to all users in that district
+ * 3. SCHOOL circulars → visible to TEACHER/HEADMASTER of those schools
+ *    (further filtered by target_roles if set)
+ *
+ * Runs parallel Firestore queries and merges results, sorted by created_at desc.
+ */
 export async function getCircularsPaginated(
+    userRole: string,
+    userDistrictId: string | null,
+    userSchoolId: string | null,
     pageSize: number = CIRCULARS_PAGE_SIZE,
     cursor?: string | null,
 ): Promise<PaginatedCircularsResult> {
     await devDelay('read', 'content.getCircularsPaginated');
 
     const circularsRef = collection(db, 'circulars');
-    const constraints: QueryConstraint[] = [orderBy('created_at', 'desc')];
 
-    if (cursor) {
-        const cursorSnap = await getDoc(doc(db, 'circulars', cursor));
-        if (cursorSnap.exists()) {
-            constraints.push(startAfter(cursorSnap));
+    // Build parallel queries based on user's role and location
+    const queryPromises: Promise<any[]>[] = [];
+
+    // 1. GLOBAL circulars — everyone sees these
+    queryPromises.push(
+        getDocs(query(
+            circularsRef,
+            where('is_active', '==', true),
+            where('visibility_level', '==', 'GLOBAL'),
+            orderBy('created_at', 'desc'),
+            limit(100),
+        )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    );
+
+    // 2. DISTRICT circulars — if user has a district
+    if (userDistrictId) {
+        queryPromises.push(
+            getDocs(query(
+                circularsRef,
+                where('is_active', '==', true),
+                where('visibility_level', '==', 'DISTRICT'),
+                where('district_id', '==', userDistrictId),
+                orderBy('created_at', 'desc'),
+                limit(100),
+            )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        );
+    }
+
+    // 3. SCHOOL circulars — only for TEACHER/HEADMASTER with a school
+    const upperRole = userRole.toUpperCase().replace(/-/g, '_');
+    if (userSchoolId && (upperRole === 'TEACHER' || upperRole === 'HEADMASTER')) {
+        queryPromises.push(
+            getDocs(query(
+                circularsRef,
+                where('is_active', '==', true),
+                where('school_ids', 'array-contains', userSchoolId),
+                orderBy('created_at', 'desc'),
+                limit(100),
+            )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
+        );
+    }
+
+    // Run all queries in parallel
+    const results = await Promise.all(queryPromises);
+
+    // Merge & deduplicate
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    for (const docs of results) {
+        for (const doc of docs) {
+            if (seen.has(doc.id)) continue;
+            seen.add(doc.id);
+
+            // Client-side target_roles filter for SCHOOL-level circulars
+            if (doc.visibility_level === 'SCHOOL') {
+                const roles: string[] = doc.target_roles ?? [];
+                if (roles.length > 0 && !roles.includes(upperRole)) continue;
+            }
+
+            merged.push(doc);
         }
     }
 
-    constraints.push(limit(pageSize + 1));
+    // Sort by created_at desc
+    merged.sort((a, b) => {
+        const aTime = a.created_at?.toDate?.() ?? (a.created_at?.seconds ? new Date(a.created_at.seconds * 1000) : new Date(a.created_at));
+        const bTime = b.created_at?.toDate?.() ?? (b.created_at?.seconds ? new Date(b.created_at.seconds * 1000) : new Date(b.created_at));
+        return bTime.getTime() - aTime.getTime();
+    });
 
-    const snap = await getDocs(query(circularsRef, ...constraints));
-    const hasMore = snap.docs.length > pageSize;
-    const docs = hasMore ? snap.docs.slice(0, pageSize) : snap.docs;
-    const circulars = docs.map((d) => ({ id: d.id, ...d.data() }));
-    const nextCursor = docs.length > 0 ? docs[docs.length - 1].id : null;
+    // Apply cursor-based pagination (cursor = last circular ID)
+    let startIndex = 0;
+    if (cursor) {
+        const cursorIndex = merged.findIndex(d => d.id === cursor);
+        if (cursorIndex >= 0) {
+            startIndex = cursorIndex + 1;
+        }
+    }
+
+    const paged = merged.slice(startIndex);
+    const hasMore = paged.length > pageSize;
+    const circulars = paged.slice(0, pageSize);
+    const nextCursor = circulars.length > 0 ? circulars[circulars.length - 1].id : null;
 
     return {
         circulars,
@@ -398,10 +478,17 @@ export async function getCircularsPaginated(
     };
 }
 
-/** Fetch circulars, ordered by most recent. */
-export async function getCirculars(): Promise<any[]> {
-    const snap = await getDocs(query(collection(db, 'circulars'), orderBy('created_at', 'desc')));
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+/**
+ * Fetch circulars visible to a user based on their role and location.
+ * Non-paginated version.
+ */
+export async function getCirculars(
+    userRole: string,
+    userDistrictId: string | null,
+    userSchoolId: string | null,
+): Promise<any[]> {
+    const result = await getCircularsPaginated(userRole, userDistrictId, userSchoolId, 200);
+    return result.circulars;
 }
 
 // ── User-targeted Invitation Notices ──

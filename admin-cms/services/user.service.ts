@@ -62,10 +62,12 @@ export const useToggleUserStatus = () => {
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       await usersApi.toggleStatus(userId, isActive);
       // Await invalidation so isPending stays true until fresh data arrives
-      await Promise.all([
+      // await Promise.all([
+      //   queryClient.invalidateQueries({ queryKey: ["users"], exact: false }),
+      //   queryClient.invalidateQueries({ queryKey: ["coordinators"], exact: false }),
+      // ]);
         queryClient.invalidateQueries({ queryKey: ["users"], exact: false }),
-        queryClient.invalidateQueries({ queryKey: ["coordinators"], exact: false }),
-      ]);
+        queryClient.invalidateQueries({ queryKey: ["coordinators"], exact: false })
     },
   });
 }

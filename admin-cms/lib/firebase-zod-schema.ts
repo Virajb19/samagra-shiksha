@@ -203,6 +203,8 @@ export const NoticeRecipientDocSchema = z.object({
   file_name: z.string().nullable().optional(),
 });
 
+export const CircularVisibilityLevelSchema = z.enum(['GLOBAL', 'DISTRICT', 'SCHOOL']);
+
 export const CircularDocSchema = z.object({
   id: uuid,
   circular_no: z.string().min(1),
@@ -213,11 +215,14 @@ export const CircularDocSchema = z.object({
   issued_date: dateTimeLike,
   effective_date: dateTimeLike.nullable().optional(),
   is_active: bool.default(true),
+  // ── Visibility fields ──
+  visibility_level: CircularVisibilityLevelSchema.default('GLOBAL'),
   district_id: uuid.nullable().optional(),
   school_id: uuid.nullable().optional(),
-  created_by: uuid.nullable().optional(),
+  school_ids: z.array(uuid).default([]),
+  target_roles: z.array(z.string()).default([]),
   target_subject: z.string().nullable().optional(),
-  target_role: z.string().nullable().optional(),
+  created_by: uuid.nullable().optional(),
   created_at: dateTimeLike,
   updated_at: dateTimeLike,
 });

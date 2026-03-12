@@ -1,12 +1,12 @@
 /**
  * Circulars — Firestore Data Access Layer (Client-Side)
  *
- * Provides all CRUD operations for the `circulars` and `circular_schools`
- * Firestore collections. Handles file upload to Firebase Storage,
+ * Provides all CRUD operations for the `circulars`
+ * Firestore collection. Handles file upload to Firebase Storage,
  * circular number generation, and multi-school targeting.
  *
  * Collection: `circulars`
- * M2M Collection: `circular_schools` (circular_id ↔ school_id)
+ * School targeting: `school_ids` array on circular docs
  *
  * @see Backend Reference: backend/src/circulars/circulars.service.ts
  */
@@ -28,7 +28,6 @@ import {
     where,
     DocumentData,
     Timestamp,
-    writeBatch,
     QueryConstraint,
     startAfter,
 } from "firebase/firestore";
@@ -81,8 +80,12 @@ function toCircular(docId: string, data: DocumentData): Circular {
         issued_date: toIso(data.issued_date),
         effective_date: data.effective_date ? toIso(data.effective_date) : undefined,
         is_active: data.is_active ?? true,
+        visibility_level: data.visibility_level ?? "GLOBAL",
         district_id: data.district_id ?? undefined,
         school_id: data.school_id ?? undefined,
+        school_ids: data.school_ids ?? [],
+        target_roles: data.target_roles ?? [],
+        target_subject: data.target_subject ?? undefined,
         created_by: data.created_by ?? undefined,
         created_at: toIso(data.created_at),
         updated_at: toIso(data.updated_at),
@@ -269,7 +272,7 @@ export const circularFirestore = {
 
     /**
      * Create a new circular, optionally uploading a file to Firebase Storage.
-     * Supports multiple school targeting via circular_schools M2M collection.
+        * Supports multiple school targeting via `school_ids` array.
      */
     async create(
         userId: string,
@@ -295,14 +298,39 @@ export const circularFirestore = {
         const schoolIds: string[] = dto.school_ids ?? [];
         const singleSchoolId = schoolIds.length === 1 ? schoolIds[0] : null;
 
-        // 4. Resolve names for denormalization
+        // 4. Compute visibility level and target roles
+        let visibilityLevel: 'GLOBAL' | 'DISTRICT' | 'SCHOOL';
+        let targetRoles: string[];
+
+        if (!dto.district_id) {
+            // No district → GLOBAL (all users, all roles)
+            visibilityLevel = 'GLOBAL';
+            targetRoles = [];
+        } else if (schoolIds.length === 0) {
+            // District selected but no schools → DISTRICT (all users in that district)
+            visibilityLevel = 'DISTRICT';
+            targetRoles = [];
+        } else {
+            // District + schools → SCHOOL level
+            visibilityLevel = 'SCHOOL';
+            if (dto.recipient_type === 'TEACHER') {
+                targetRoles = ['TEACHER'];
+            } else if (dto.recipient_type === 'HEADMASTER') {
+                targetRoles = ['HEADMASTER'];
+            } else {
+                // ALL → both teachers and headmasters of selected schools
+                targetRoles = ['TEACHER', 'HEADMASTER'];
+            }
+        }
+
+        // 5. Resolve names for denormalization (step renumbered after visibility computation)
         const [districtName, schoolName, creatorName] = await Promise.all([
             dto.district_id ? getDistrictName(dto.district_id) : null,
             singleSchoolId ? getSchoolName(singleSchoolId) : null,
             getUserName(userId),
         ]);
 
-        // 5. Build circular document
+        // 6. Build circular document
         const circularData: Record<string, unknown> = {
             circular_no: circularNo,
             title: dto.title,
@@ -314,14 +342,13 @@ export const circularFirestore = {
                 ? Timestamp.fromDate(new Date(dto.effective_date))
                 : null,
             is_active: true,
+            visibility_level: visibilityLevel,
             district_id: dto.district_id || null,
             school_id: singleSchoolId,
-            created_by: userId,
+            school_ids: schoolIds,
+            target_roles: targetRoles,
             target_subject: dto.target_subject || null,
-            target_role:
-                dto.recipient_type && dto.recipient_type !== "ALL"
-                    ? (dto.recipient_type === "TEACHER" ? "TEACHER" : "HEADMASTER")
-                    : null,
+            created_by: userId,
             // Denormalized names for display
             district_name: districtName,
             school_name: schoolName,
@@ -331,22 +358,6 @@ export const circularFirestore = {
         };
 
         const docRef = await addDoc(collection(db, "circulars"), circularData);
-
-        // 6. Create circular_schools M2M entries for multi-school targeting
-        if (schoolIds.length > 1) {
-            const batch = writeBatch(db);
-            for (const schoolId of schoolIds) {
-                const csRef = doc(collection(db, "circular_schools"));
-                batch.set(csRef, {
-                    circular_id: docRef.id,
-                    school_id: schoolId,
-                });
-            }
-            await batch.commit();
-            console.log(
-                `[circularFirestore] Created ${schoolIds.length} circular_schools entries`
-            );
-        }
 
         // 7. Log audit entry
         await auditLogsFirestore.create({
@@ -366,8 +377,12 @@ export const circularFirestore = {
             issued_date: dto.issued_date,
             effective_date: dto.effective_date,
             is_active: true,
+            visibility_level: visibilityLevel,
             district_id: dto.district_id,
             school_id: singleSchoolId ?? undefined,
+            school_ids: schoolIds,
+            target_roles: targetRoles,
+            target_subject: dto.target_subject,
             created_by: userId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

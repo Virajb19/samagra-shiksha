@@ -15,7 +15,7 @@ import { useFocusEffect } from 'expo-router';
 import { User } from '../types';
 import { useAuthStore } from '../lib/store';
 import { getProfileStatus } from '../services/firebase/users.firestore';
-import { getCircularsPaginated, type PaginatedCircularsResult } from '../services/firebase/content.firestore';
+import { getCircularsPaginated as defaultGetCircularsPaginated, type PaginatedCircularsResult } from '../services/firebase/content.firestore';
 
 const BLUE = '#1565C0';
 const CIRCULARS_PAGE_SIZE = 10;
@@ -51,7 +51,7 @@ export interface CircularsScreenProps {
     queryKey?: readonly unknown[];
     searchPlaceholder?: string;
     emptyText?: string;
-    getCircularsPaginatedFn?: (pageSize?: number, cursor?: string | null) => Promise<PaginatedCircularsResult>;
+    getCircularsPaginatedFn?: (userRole: string, userDistrictId: string | null, userSchoolId: string | null, pageSize?: number, cursor?: string | null) => Promise<PaginatedCircularsResult>;
     roleFilter?: (item: CircularItem, role: string) => boolean;
     canAccessOverride?: (args: AccessOverrideArgs) => boolean;
     onDownloadPress?: (url: string, item: CircularItem, role: string) => void | Promise<void>;
@@ -62,13 +62,18 @@ export default function CircularsScreen({
     queryKey,
     searchPlaceholder = 'Search circulars...',
     emptyText = 'No circulars found',
-    getCircularsPaginatedFn = getCircularsPaginated,
+    getCircularsPaginatedFn = defaultGetCircularsPaginated,
     roleFilter,
     canAccessOverride,
     onDownloadPress,
 }: CircularsScreenProps) {
     const { user } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Derive user location info for circular visibility filtering
+    const userRole = user?.role || role.toUpperCase().replace(/-/g, '_');
+    const userDistrictId = user?.district_id || null;
+    const userSchoolId = user?.school_id || user?.faculty?.school_id || null;
 
     const { data: profileStatus } = useQuery({
         queryKey: ['profile-status', user?.id],
@@ -97,7 +102,7 @@ export default function CircularsScreen({
         isRefetching,
     } = useInfiniteQuery({
         queryKey: circularsQueryKey,
-        queryFn: ({ pageParam }) => getCircularsPaginatedFn(CIRCULARS_PAGE_SIZE, pageParam ?? null),
+        queryFn: ({ pageParam }) => getCircularsPaginatedFn(userRole, userDistrictId, userSchoolId, CIRCULARS_PAGE_SIZE, pageParam ?? null),
         initialPageParam: null as string | null,
         getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
         enabled: canAccess,
@@ -114,6 +119,27 @@ export default function CircularsScreen({
         [data],
     );
 
+    // All hooks MUST be called before any early return to satisfy React's rules of hooks.
+    // Moving useCallback / useMemo above the canAccess guard prevents the
+    // "Rendered fewer hooks than expected" crash when is_active toggles.
+    const filteredCirculars = useMemo(
+        () =>
+            allCirculars?.filter((c) => {
+                const title = typeof c.title === 'string' ? c.title : '';
+                const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesRole = roleFilter ? roleFilter(c, role) : true;
+                return matchesSearch && matchesRole;
+            }) ?? [],
+        [allCirculars, searchQuery, roleFilter, role],
+    );
+
+    const handleEndReached = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    // ── Early return AFTER all hooks ──
     if (!canAccess) {
         return (
             <View className="flex-1 bg-[#f0f4f8] justify-center items-center px-6">
@@ -130,14 +156,6 @@ export default function CircularsScreen({
         );
     }
 
-    const filteredCirculars =
-        allCirculars?.filter((c) => {
-            const title = typeof c.title === 'string' ? c.title : '';
-            const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesRole = roleFilter ? roleFilter(c, role) : true;
-            return matchesSearch && matchesRole;
-        }) ?? [];
-
     const formatIssuedDate = (value: CircularItem['issue_date']) => {
         if (!value) return 'N/A';
         const raw = value as any;
@@ -145,12 +163,6 @@ export default function CircularsScreen({
         if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'N/A';
         return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     };
-
-    const handleEndReached = useCallback(() => {
-        if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-        }
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const openFile = async (url: string, item: CircularItem) => {
         if (onDownloadPress) {

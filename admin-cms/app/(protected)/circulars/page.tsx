@@ -43,19 +43,18 @@ import {
   Sparkles,
   FileUp,
   X,
-  Search,
-  BookOpen
+  Search
 } from 'lucide-react';
 import { circularFirestore, CircularsResponse } from '@/services/firebase/circular.firestore';
 import { masterDataFirestore } from '@/services/firebase/master-data.firestore';
 import { District, School } from '@/types';
 import { DeleteCircularButton } from '@/components/DeleteCircularButton';
 import { CircularFormSchema, circularFormSchema } from '@/lib/zod';
+import { useAuthStore } from '@/lib/store';
 import { showSuccessToast, showErrorToast } from '@/components/ui/custom-toast';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
 import { GoToTopButton } from '@/components/GoToTopButton';
 import { useDebounceValue } from 'usehooks-ts';
-import { useGetSubjects } from '@/services/user.service';
 
 // Animation variants
 const containerVariants = {
@@ -109,12 +108,9 @@ export default function CircularsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useDebounceValue('', 500);
   const [recipientType, setRecipientType] = useState<RecipientType>('ALL');
-  const [targetSubject, setTargetSubject] = useState<string>('');
   const pageSize = 20;
   const queryClient = useQueryClient();
-
-  // Fetch subjects from backend for teacher filter
-  const { data: subjects = [] } = useGetSubjects();
+  const userId = useAuthStore((s) => s.userId);
 
   // Ref-based mutex lock to absolutely prevent double submissions
   const isSubmittingRef = useRef(false);
@@ -221,11 +217,9 @@ export default function CircularsPage() {
         recipient_type: (selectedSchools.length > 0 && recipientType !== 'ALL')
           ? (recipientType === 'TEACHERS' ? 'TEACHER' as const : 'HEADMASTER' as const)
           : undefined,
-        target_subject: (recipientType === 'TEACHERS' && targetSubject && targetSubject !== '__all__')
-          ? targetSubject : undefined,
       };
-      // TODO: pass real userId from auth context
-      return circularFirestore.create('admin', payload, selectedFile || undefined);
+      // Pass the real authenticated userId
+      return circularFirestore.create(userId || 'unknown', payload, selectedFile || undefined);
     },
     onSuccess: () => {
       // Invalidate all circular queries (matches any query starting with 'circulars')
@@ -234,8 +228,7 @@ export default function CircularsPage() {
       setSelectedFile(null);
       setSelectedSchools([]);
       setRecipientType('ALL');
-      setTargetSubject('');
-      showSuccessToast('Circular created successfully! Notifications sent to selected schools.');
+      showSuccessToast('Circular created successfully!');
     },
     onError: (err: any) => {
       console.error('Error creating circular:', err);
@@ -438,7 +431,6 @@ export default function CircularsPage() {
                         setSelectedSchools([]);
                         setSchoolSearch('');
                         setRecipientType('ALL');
-                        setTargetSubject('');
                       }} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-white dark:bg-slate-800/50 border-slate-300 dark:border-blue-500/50 text-slate-900 dark:text-white focus:border-blue-500 transition-all">
@@ -561,7 +553,7 @@ export default function CircularsPage() {
                         <motion.button
                           type="button"
                           onClick={() => setIsSchoolListExpanded(!isSchoolListExpanded)}
-                          className="flex items-center gap-1 bg-slate-100 dark:bg-white/10 p-2 rounded-full text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300"
+                          className="flex items-center gap-1 bg-slate-200 dark:bg-white/10 p-2 rounded-full text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -612,7 +604,7 @@ export default function CircularsPage() {
                           <p className="text-slate-500 text-sm text-center py-4">No schools match your search</p>
                         ) : (
                           <div className="space-y-1">
-                            {filteredSchools.map((school, index) => (
+                            {filteredSchools.slice(0, 50).map((school, index) => (
                               <motion.label
                                 key={school.id}
                                 className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors ${selectedSchools.includes(school.id)
@@ -634,6 +626,11 @@ export default function CircularsPage() {
                                 </span>
                               </motion.label>
                             ))}
+                            {filteredSchools.length > 50 && (
+                              <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
+                                Showing 50 of {filteredSchools.length} schools. Use search above to find specific schools.
+                              </p>
+                            )}
                           </div>
                         );
                       })()}
@@ -682,7 +679,7 @@ export default function CircularsPage() {
                       {/* Everyone */}
                       <button
                         type="button"
-                        onClick={() => { setRecipientType('ALL'); setTargetSubject(''); }}
+                        onClick={() => { setRecipientType('ALL'); }}
                         className={`relative z-10 flex items-center justify-center gap-2 flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${recipientType === 'ALL'
                           ? 'text-blue-600 dark:text-blue-400'
                           : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
@@ -708,7 +705,7 @@ export default function CircularsPage() {
                       {/* Headmasters */}
                       <button
                         type="button"
-                        onClick={() => { setRecipientType('HEADMASTERS'); setTargetSubject(''); }}
+                        onClick={() => { setRecipientType('HEADMASTERS'); }}
                         className={`relative z-10 flex items-center justify-center gap-2 flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${recipientType === 'HEADMASTERS'
                           ? 'text-amber-600 dark:text-amber-400'
                           : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
@@ -719,54 +716,17 @@ export default function CircularsPage() {
                       </button>
                     </div>
 
-                    {/* Subject dropdown when Teachers is selected */}
-                    <AnimatePresence>
-                      {recipientType === 'TEACHERS' && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.25 }}
-                        >
-                          <label className="text-slate-700 dark:text-slate-300 text-sm font-medium flex items-center gap-2 mb-2">
-                            <BookOpen className="h-4 w-4 text-teal-500" />
-                            Filter by Subject
-                          </label>
-                          <Select value={targetSubject} onValueChange={setTargetSubject}>
-                            <SelectTrigger className="bg-white dark:bg-slate-800/50 border-slate-300 dark:border-emerald-500/50 text-slate-900 dark:text-white focus:border-emerald-500 transition-all">
-                              <SelectValue placeholder="All Subjects (no filter)" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                              <SelectItem value="__all__" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
-                                All Subjects
-                              </SelectItem>
-                              {subjects.map((subject) => (
-                                <SelectItem key={subject} value={subject} className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
-                                  {subject}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                            Only teachers of the selected subject will receive this circular.
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
                     {/* Recipient info message */}
                     <motion.p
                       className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/30 rounded-lg p-2.5 flex items-center gap-2"
-                      key={recipientType + targetSubject}
+                      key={recipientType}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                     >
                       <Sparkles className="h-3.5 w-3.5 text-violet-400 shrink-0" />
                       {recipientType === 'ALL' && 'Circular will be sent to all faculty members at selected schools.'}
                       {recipientType === 'HEADMASTERS' && 'Circular will be sent only to headmasters of the selected schools.'}
-                      {recipientType === 'TEACHERS' && !targetSubject && 'Circular will be sent to all teachers at the selected schools.'}
-                      {recipientType === 'TEACHERS' && targetSubject && targetSubject !== '__all__' && `Circular will be sent only to ${targetSubject} teachers at the selected schools.`}
-                      {recipientType === 'TEACHERS' && targetSubject === '__all__' && 'Circular will be sent to all teachers at the selected schools.'}
+                      {recipientType === 'TEACHERS' && 'Circular will be sent to all teachers at the selected schools.'}
                     </motion.p>
                   </motion.div>
                 )}

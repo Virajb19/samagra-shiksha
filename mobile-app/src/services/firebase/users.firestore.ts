@@ -95,6 +95,7 @@ export function mapUserDoc(snap: DocumentSnapshot): User {
         has_completed_profile: d.has_completed_profile ?? false,
 
         district_id: d.district_id ?? undefined,
+        school_id: d.school_id ?? undefined,
         responsibilities: d.responsibilities ?? undefined,
         kgbv_type: d.kgbv_type ?? undefined,
         residential_location: d.residential_location ?? undefined,
