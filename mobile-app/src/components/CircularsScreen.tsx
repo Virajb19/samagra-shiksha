@@ -18,18 +18,10 @@ import { useAuthStore } from '../lib/store';
 import { getProfileStatus } from '../services/firebase/users.firestore';
 import { getCircularsPaginated as defaultGetCircularsPaginated, type PaginatedCircularsResult } from '../services/firebase/content.firestore';
 
+import StatusBanner from './StatusBanner';
+
 const BLUE = '#1565C0';
 const CIRCULARS_PAGE_SIZE = 10;
-
-function StatusBanner({ message }: { message: string }) {
-    return (
-        <View className="mx-4 mt-2">
-            <View className="rounded-xl py-[18px] items-center bg-blue-50" style={{ borderWidth: 1.5, borderColor: BLUE, borderStyle: 'dashed' }}>
-                <AppText className="text-[15px] font-semibold text-center" style={{ color: BLUE }}>{message}</AppText>
-            </View>
-        </View>
-    );
-}
 
 export interface CircularItem {
     id: string;

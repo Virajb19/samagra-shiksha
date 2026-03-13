@@ -12,6 +12,7 @@ import { AppText } from '@/components/AppText';
 import { ProfileHeaderCard } from '@/components/ProfileHeaderCard';
 import AccessBlockedModal from '@/components/AccessBlockedModal';
 import HomeActionCard from '@/components/HomeActionCard';
+import StatusBanner from '@/components/StatusBanner';
 
 export default function IEResourcePersonHomeTabScreen() {
     const { user } = useAuthStore();
@@ -49,18 +50,13 @@ export default function IEResourcePersonHomeTabScreen() {
             </View>
 
             {!loadingProfile && !hasCompletedProfile && (
-                <TouchableOpacity
-                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-[#1565C0] bg-[#e8f4fd]" style={{ borderStyle: 'dashed' }}
+                <StatusBanner
+                    message="Kindly complete your profile"
                     onPress={() => router.push('/(protected)/ie-resource-person/complete-profile')}
-                    activeOpacity={0.8}
-                >
-                    <AppText className="text-[#1565C0] text-[16px] font-semibold">Kindly complete your profile</AppText>
-                </TouchableOpacity>
+                />
             )}
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-[#1565C0] bg-[#e8f4fd]" style={{ borderStyle: 'dashed' }}>
-                    <AppText className="text-[#1565C0] text-[16px] font-semibold text-center">Your account is under verification. Contact Admin or your headmaster</AppText>
-                </View>
+                <StatusBanner message="Your account is under verification. Contact Admin or your headmaster" />
             )}
 
             <AccessBlockedModal visible={showProfileModal} mode={modalMode} onClose={() => setShowProfileModal(false)} onComplete={() => { setShowProfileModal(false); router.push('/(protected)/ie-resource-person/complete-profile'); }} />

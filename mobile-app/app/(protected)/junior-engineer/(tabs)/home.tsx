@@ -28,6 +28,7 @@ import { ProfileHeaderCard } from '@/components/ProfileHeaderCard';
 import AccessBlockedModal from '@/components/AccessBlockedModal';
 import HomeActionCard from '@/components/HomeActionCard';
 import ProjectCard from '@/components/ProjectCard';
+import StatusBanner from '@/components/StatusBanner';
 
 const BLUE = '#1565C0';
 
@@ -145,19 +146,14 @@ export default function JuniorEngineerHomeTabScreen() {
 
             {/* Profile status banners */}
             {!hasCompletedProfile && (
-                <TouchableOpacity
-                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-[#1565C0] bg-[#e8f4fd]" style={{ borderStyle: 'dashed' }}
+                <StatusBanner
+                    message="Kindly complete your profile"
                     onPress={() => router.push('/(protected)/junior-engineer/complete-profile')}
-                    activeOpacity={0.8}
-                >
-                    <AppText className="text-[#1565C0] text-[16px] font-semibold">Kindly complete your profile</AppText>
-                </TouchableOpacity>
+                />
             )}
 
             {hasCompletedProfile && !isActive && (
-                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-[#1565C0] bg-[#e8f4fd]" style={{ borderStyle: 'dashed' }}>
-                    <AppText className="text-[#1565C0] text-[16px] font-semibold text-center">Your account is under verification. Contact Admin or your headmaster</AppText>
-                </View>
+                <StatusBanner message="Your account is under verification. Contact Admin or your headmaster" />
             )}
 
             {/* Access Blocked Modal */}

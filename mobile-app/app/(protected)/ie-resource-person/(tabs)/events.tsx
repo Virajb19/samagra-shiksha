@@ -11,18 +11,9 @@ import { useAuthStore } from '../../../../src/lib/store';
 import { getProfileStatus } from '../../../../src/services/firebase/users.firestore';
 import EventsListScreen from '../../../../src/components/EventsListScreen';
 import { AppText } from '@/components/AppText';
+import StatusBanner from '@/components/StatusBanner';
 
 const BLUE = '#1565C0';
-
-function StatusBanner({ message }: { message: string }) {
-    return (
-        <View className="flex-1 p-4">
-            <View className="border-[1.5px] rounded-xl py-[18px] items-center bg-blue-50" style={{ borderColor: BLUE, borderStyle: 'dashed' }}>
-                <AppText className="text-[15px] font-semibold" style={{ color: BLUE }}>{message}</AppText>
-            </View>
-        </View>
-    );
-}
 
 export default function IEResourcePersonEventsTabScreen() {
     const router = useRouter();
