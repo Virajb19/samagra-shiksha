@@ -4,6 +4,7 @@
  * Shows activity forms relevant to the user's role:
  * - Teachers/Headmasters: ICT, Library, Science Lab, Self Defence, Vocational Education
  * - Wardens (KGBV/NSCBAV): KGBV, NSCBAV
+ * - IE Resource Person: School Visit, Home Visit
  *
  * Open forms are tappable (green number badge, chevron).
  * Closed forms show a lock icon and "Form is currently closed".
@@ -13,11 +14,9 @@ import React, { useCallback, useState } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
-    Image,
     StatusBar,
     RefreshControl,
 } from 'react-native';
@@ -33,6 +32,10 @@ import {
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
+const IE_RESOURCE_PERSON_FORMS: ActivityForm[] = [
+    { id: 'ie-school-visit', name: 'School Visit', status: 'Active', starting_date: null, ending_date: null },
+    { id: 'ie-home-visit', name: 'Home Visit', status: 'Active', starting_date: null, ending_date: null },
+];
 
 function formatEndDate(iso: string | null): string {
     if (!iso) return '';
@@ -46,25 +49,35 @@ export default function ActivityFormsScreen() {
 
     const isWarden = user?.role === 'KGBV_WARDEN' || user?.role === 'NSCBAV_WARDEN';
     const isHeadmaster = user?.role === 'HEADMASTER';
+    const isIEResourcePerson = user?.role === 'IE_RESOURCE_PERSON';
 
     const [blockedFormName, setBlockedFormName] = useState<string | null>(null);
 
-    const { data: forms, isLoading, error, refetch } = useQuery({
-        queryKey: ['activity-forms', isWarden ? 'warden' : 'teacher'],
+    const { data: forms, isLoading, error, refetch } = useQuery<ActivityForm[]>({
+        queryKey: ['activity-forms', isWarden ? 'warden' : isIEResourcePerson ? 'ie' : 'teacher'],
         queryFn: () => (isWarden ? getWardenForms() : getTeacherForms()),
+        enabled: !isIEResourcePerson,
     });
 
     const [refreshing, setRefreshing] = useState(false);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        await refetch();
+        if (!isIEResourcePerson) {
+            await refetch();
+        }
         setRefreshing(false);
-    }, [refetch]);
+    }, [isIEResourcePerson, refetch]);
 
-    useFocusEffect(() => {
-        refetch();
-    })
+    useFocusEffect(useCallback(() => {
+        if (!isIEResourcePerson) {
+            refetch();
+        }
+    }, [isIEResourcePerson, refetch]));
+
+    const displayForms = isIEResourcePerson ? IE_RESOURCE_PERSON_FORMS : (forms ?? []);
+    const showLoading = !isIEResourcePerson && isLoading;
+    const showError = !isIEResourcePerson && !!error;
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
@@ -72,7 +85,7 @@ export default function ActivityFormsScreen() {
 
             {params.schoolCode && (
                 <View className="px-4 py-2 bg-[#e8f4fd]">
-                    <AppText className="text-xs text-[#1565C0] font-medium">
+                    <AppText className="text-sm text-[#1565C0] font-medium">
                         {params.schoolCode}{params.schoolName ? ` - ${params.schoolName}` : ''}
                     </AppText>
                 </View>
@@ -86,24 +99,33 @@ export default function ActivityFormsScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[BLUE]} tintColor={BLUE} />
                 }
             >
-                {isLoading ? (
+                <AppText className="text-2xl font-bold text-[#111827] mb-4">Forms</AppText>
+
+                {showLoading ? (
                     <View className="items-center justify-center py-20">
                         <ActivityIndicator size="large" color={BLUE} />
-                        <AppText className="text-gray-500 mt-3 text-sm">Loading forms...</AppText>
+                        <AppText className="text-gray-500 mt-3 text-base">Loading forms...</AppText>
                     </View>
-                ) : error ? (
+                ) : showError ? (
                     <View className="items-center justify-center py-20">
                         <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                        <AppText className="text-red-500 mt-3 text-sm">Failed to load forms</AppText>
+                        <AppText className="text-red-500 mt-3 text-base">Failed to load forms</AppText>
                     </View>
-                ) : !forms?.length ? (
+                ) : !displayForms.length ? (
                     <View className="items-center justify-center py-20">
                         <Ionicons name="document-text-outline" size={48} color="#9ca3af" />
-                        <AppText className="text-gray-400 mt-3 text-sm">No forms available</AppText>
+                        <AppText className="text-gray-400 mt-3 text-base">No forms available</AppText>
                     </View>
                 ) : (
-                    forms.map((form, index) => (
-                        <FormCard key={form.id} form={form} index={index + 1} isHeadmaster={isHeadmaster} onBlocked={(name) => setBlockedFormName(name)} />
+                    displayForms.map((form, index) => (
+                        <FormCard
+                            key={form.id}
+                            form={form}
+                            index={index + 1}
+                            isHeadmaster={isHeadmaster}
+                            isIEResourcePerson={isIEResourcePerson}
+                            onBlocked={(name) => setBlockedFormName(name)}
+                        />
                     ))
                 )}
             </ScrollView>
@@ -119,7 +141,19 @@ export default function ActivityFormsScreen() {
     );
 }
 
-function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm; index: number; isHeadmaster: boolean; onBlocked: (name: string) => void }) {
+function FormCard({
+    form,
+    index,
+    isHeadmaster,
+    isIEResourcePerson,
+    onBlocked,
+}: {
+    form: ActivityForm;
+    index: number;
+    isHeadmaster: boolean;
+    isIEResourcePerson: boolean;
+    onBlocked: (name: string) => void;
+}) {
     const isActive = form.status === 'Active';
 
     return (
@@ -129,6 +163,14 @@ function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm
                 if (!isActive) return;
                 if (isHeadmaster) {
                     onBlocked(form.name);
+                    return;
+                }
+                if (isIEResourcePerson) {
+                    if (form.name === 'School Visit') {
+                        router.push('/(protected)/ie-resource-person/school-visit-form' as any);
+                    } else if (form.name === 'Home Visit') {
+                        router.push('/(protected)/ie-resource-person/home-visit-form' as any);
+                    }
                     return;
                 }
                 if (form.name === 'ICT') {
@@ -166,7 +208,7 @@ function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm
                 }}
             >
                 <AppText
-                    className="font-extrabold text-lg"
+                    className="font-extrabold text-xl"
                     style={{ color: isActive || form.status === 'Inactive' ? '#fff' : '#9ca3af' }}
                 >
                     {index}
@@ -176,17 +218,21 @@ function FormCard({ form, index, isHeadmaster, onBlocked }: { form: ActivityForm
             {/* Form Info */}
             <View className="flex-1">
                 <AppText
-                    className="text-base font-bold mb-0.5"
+                    className="text-lg font-bold mb-0.5"
                     style={{ color: isActive ? '#111827' : '#6b7280' }}
                 >
                     {form.name}
                 </AppText>
                 <AppText
-                    className="text-xs"
+                    className="text-sm"
                     style={{ color: isActive ? '#6b7280' : '#9ca3af' }}
                 >
-                    {isActive
-                        ? formatEndDate(form.ending_date)
+                    {isIEResourcePerson
+                        ? form.name === 'School Visit'
+                            ? 'Submit school visit details'
+                            : 'Submit home visit details'
+                        : isActive
+                            ? formatEndDate(form.ending_date)
                         : form.status === 'Inactive'
                             ? 'Form is scheduled — not yet active'
                             : 'Form is currently closed'}

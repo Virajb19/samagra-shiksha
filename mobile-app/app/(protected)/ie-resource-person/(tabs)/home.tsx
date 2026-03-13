@@ -1,6 +1,6 @@
 /**
  * IE Resource Person Home Tab Screen
- * 3-state profile flow with AccessBlockedModal + Visit Type Picker.
+ * 3-state profile flow with AccessBlockedModal.
  */
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, Modal, Animated } from 'react-native';
@@ -80,72 +80,10 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: { visible: b
     );
 }
 
-function VisitTypePickerModal({ visible, onClose, onSelectSchool, onSelectHome }: { visible: boolean; onClose: () => void; onSelectSchool: () => void; onSelectHome: () => void }) {
-    const [internalVisible, setInternalVisible] = useState(false);
-    const translateY = useRef(new Animated.Value(300)).current;
-    const opacity = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        if (visible) {
-            setInternalVisible(true); translateY.setValue(300); opacity.setValue(0);
-            Animated.parallel([
-                Animated.timing(translateY, { toValue: 0, duration: 280, useNativeDriver: true }),
-                Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-            ]).start();
-        } else if (internalVisible) {
-            Animated.parallel([
-                Animated.timing(translateY, { toValue: 300, duration: 220, useNativeDriver: true }),
-                Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }),
-            ]).start(() => setInternalVisible(false));
-        }
-    }, [visible]);
-    if (!internalVisible) return null;
-
-    return (
-        <Modal visible={internalVisible} transparent statusBarTranslucent onRequestClose={onClose}>
-            <Animated.View
-                className="flex-1 justify-center items-center px-6"
-                style={{ backgroundColor: 'rgba(0,0,0,0.5)', opacity }}
-            >
-                <TouchableOpacity className="absolute top-0 left-0 right-0 bottom-0" activeOpacity={1} onPress={onClose} />
-                <Animated.View
-                    className="bg-white rounded-3xl w-full px-6 pt-7 pb-6"
-                    style={{ transform: [{ translateY }] }}
-                >
-                    <AppText className="text-xl font-bold text-[#1a1a2e] text-center mb-6">Select Visit Type</AppText>
-                    <View className="flex-row justify-around">
-                        <TouchableOpacity
-                            className="items-center w-[40%]"
-                            activeOpacity={0.7}
-                            onPress={() => { onClose(); onSelectSchool(); }}
-                        >
-                            <View className="w-[100px] h-[100px] rounded-2xl bg-[#e8f4fd] justify-center items-center mb-3">
-                                <Ionicons name="school-outline" size={48} color={BLUE} />
-                            </View>
-                            <AppText className="text-base font-semibold text-[#1a1a2e]">School Visit</AppText>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            className="items-center w-[40%]"
-                            activeOpacity={0.7}
-                            onPress={() => { onClose(); onSelectHome(); }}
-                        >
-                            <View className="w-[100px] h-[100px] rounded-2xl bg-[#e8f4fd] justify-center items-center mb-3">
-                                <Ionicons name="home-outline" size={48} color={BLUE} />
-                            </View>
-                            <AppText className="text-base font-semibold text-[#1a1a2e]">Home Visit</AppText>
-                        </TouchableOpacity>
-                    </View>
-                </Animated.View>
-            </Animated.View>
-        </Modal>
-    );
-}
-
 export default function IEResourcePersonHomeTabScreen() {
     const { user } = useAuthStore();
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [modalMode, setModalMode] = useState<'complete' | 'verification'>('complete');
-    const [showVisitPicker, setShowVisitPicker] = useState(false);
 
     const { data: profileStatus, isLoading: loadingProfile, refetch: refetchProfile } = useQuery({
         queryKey: ['profile-status', user?.id],
@@ -173,7 +111,7 @@ export default function IEResourcePersonHomeTabScreen() {
                         else router.push('/(protected)/ie-resource-person/view-profile');
                     }} />
                     <ActionCard title="Important Notices" iconName="megaphone-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/notices' as any); }} disabled={!hasCompletedProfile || !isActive} />
-                    <ActionCard title="Home / School Visits" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } setShowVisitPicker(true); }} disabled={!hasCompletedProfile || !isActive} />
+                    <ActionCard title="Activities Forms" iconName="document-text-outline" onPress={() => { if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; } router.push('/(protected)/activity-forms' as any); }} disabled={!hasCompletedProfile || !isActive} />
                 </View>
             </View>
 
@@ -193,12 +131,6 @@ export default function IEResourcePersonHomeTabScreen() {
             )}
 
             <AccessBlockedModal visible={showProfileModal} mode={modalMode} onClose={() => setShowProfileModal(false)} onComplete={() => { setShowProfileModal(false); router.push('/(protected)/ie-resource-person/complete-profile'); }} />
-            <VisitTypePickerModal
-                visible={showVisitPicker}
-                onClose={() => setShowVisitPicker(false)}
-                onSelectSchool={() => router.push('/(protected)/ie-resource-person/school-visit-form' as any)}
-                onSelectHome={() => router.push('/(protected)/ie-resource-person/home-visit-form' as any)}
-            />
         </ScrollView>
     );
 }

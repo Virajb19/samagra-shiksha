@@ -11,7 +11,6 @@ import React from 'react';
 import { View, TouchableOpacity, Platform, StatusBar, Image, ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname, router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../lib/store';
 import { AppText } from '@/components/AppText';
 
@@ -122,19 +121,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             key={tab.key}
                             onPress={() => handleTabPress(tab.key)}
                             activeOpacity={0.7}
-                            className="flex-1 items-center py-1"
+                            className="flex-1 items-center justify-center py-1"
                         >
-                            <Image
-                                source={tab.icon}
-                                className="w-6 h-6"
-                                resizeMode="contain"
-                                style={{ tintColor: isActive ? '#0c509eff' : '#000000'}}
-                            />
-                            <AppText
-                                className={`text-xs font-medium mt-1 ${isActive ? 'text-[#0c509eff]' : 'text-black'}`}
-                            >
-                                {tab.label}
-                            </AppText>
+                            <View
+                                className={`items-center justify-center ${
+                                    isActive ? 'bg-[#1565C0] w-12 h-12 rounded-full' : ''
+                                }`}
+                                  >
+                                <Image
+                                    source={tab.icon}
+                                    className="w-6 h-6"
+                                    resizeMode="contain"
+                                    style={{ tintColor: isActive ? '#ffffff' : '#000000' }}
+                                />
+                             </View>
+                            {!isActive && (
+                                  <AppText
+                                     className={`text-xs font-medium mt-1 text-black`}
+                                      >
+                                   {tab.label}
+                               </AppText>
+                            )}
                         </TouchableOpacity>
                     );
                 })}

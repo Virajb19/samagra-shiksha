@@ -16,7 +16,6 @@ import { useState } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     TextInput,
     TouchableOpacity,
     KeyboardAvoidingView,
@@ -24,13 +23,13 @@ import {
     ActivityIndicator,
     ScrollView,
     Image,
-    Alert,
     StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     RegisterSchema,
     RegisterFormData,
@@ -38,13 +37,14 @@ import {
     Gender,
 } from '../../src/lib/zod';
 import { register } from '../../src/services/auth.service';
+import { useAuthStore } from '../../src/lib/store';
 import { X } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { on } from 'events';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 
-/** Dark navy color used in header and primary buttons */
-const NAVY = '#2c3e6b';
-const NAVY_LIGHT = '#3a5086';
+const SKY_BLUE_DARK = '#0284C7';
+const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular', fontSize: 17 } as const;
 
 /**
  * Role options for dropdown
@@ -61,12 +61,24 @@ const ROLE_OPTIONS: { label: string; value: RegistrationRole }[] = [
 /**
  * Gender options for tabs
  */
-const GENDER_OPTIONS: { label: string; value: Gender; icon: string }[] = [
-    { label: 'Male', value: 'MALE', icon: '♂' },
-    { label: 'Female', value: 'FEMALE', icon: '♀' },
+const GENDER_OPTIONS: { label: string; value: Gender; icon: React.ComponentProps<typeof MaterialIcons>['name']; }[] = [
+    { label: 'Male', value: 'MALE', icon: 'male' },
+    { label: 'Female', value: 'FEMALE', icon: 'female' },
 ];
 
+const HOME_ROUTE_BY_ROLE: Record<RegistrationRole, string> = {
+    TEACHER: '/(protected)/teacher/(tabs)/home',
+    HEADMASTER: '/(protected)/headmaster/(tabs)/home',
+    IE_RESOURCE_PERSON: '/(protected)/ie-resource-person/(tabs)/home',
+    KGBV_WARDEN: '/(protected)/kgbv-warden/(tabs)/home',
+    NSCBAV_WARDEN: '/(protected)/nscbav-warden/(tabs)/home',
+    JUNIOR_ENGINEER: '/(protected)/junior-engineer/(tabs)/home',
+};
+
 export default function RegisterScreen() {
+    const insets = useSafeAreaInsets();
+    const { login } = useAuthStore();
+
     // const [isSubmitting, setIsSubmitting] = useState(false);
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -94,19 +106,21 @@ export default function RegisterScreen() {
 
     const onFormError = (errors: any) => {
         console.log('[Register] Validation errors:', errors);
-        const firstError = Object.values(errors)?.[0]?.message || 'Please fill out all required fields correctly.';
+        const firstError = (Object.values(errors)?.[0] as { message?: string } | undefined)?.message
+            || 'Please fill out all required fields correctly.';
         Toast.show({
             type: 'error',
             text1: 'Registration Error',
             text2: firstError,
-            position: 'bottom',
-            bottomOffset: 60
         });
     };
 
     const selectedGender = watch('gender');
     const selectedRole = watch('role');
     const profileImage = watch('profileImage');
+    const registerMutation = useMutation({
+        mutationFn: register,
+    });
 
     /**
      * Pick image from gallery
@@ -115,7 +129,11 @@ export default function RegisterScreen() {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (!permissionResult.granted) {
-            Alert.alert('Permission Required', 'Please grant access to your photo library.');
+            Toast.show({
+                type: 'error',
+                text1: 'Permission Required',
+                text2: 'Please grant access to your photo library.',
+            });
             return;
         }
 
@@ -153,13 +171,24 @@ export default function RegisterScreen() {
             console.log('[Register] Submitting registration...');
 
             // Call registration service
-            await register(payload);
+            await registerMutation.mutateAsync(payload);
 
-            Alert.alert(
-                'Registration Submitted',
-                'Your registration has been submitted successfully. Please wait for admin approval.',
-                [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
-            );
+            // Auto-login right after successful registration.
+            const loginResult = await login({
+                email: data.email,
+                password: data.password,
+            });
+
+            if (!loginResult.success) {
+                Toast.show({
+                    type: 'error',
+                    text2: loginResult.error || 'Registration succeeded, but auto login failed.',
+                });
+                router.replace('/(auth)/login');
+                return;
+            }
+
+            router.replace(HOME_ROUTE_BY_ROLE[data.role] as any);
         } catch (error: any) {
             console.log('[Register] Error:', error);
 
@@ -173,7 +202,11 @@ export default function RegisterScreen() {
                 errorMessage = error.message;
             }
 
-            Alert.alert('Registration Failed', errorMessage);
+            Toast.show({
+                type: 'error',
+                text1: 'Registration Failed',
+                text2: errorMessage,
+            });
         } finally {
             // setIsSubmitting(false);
         }
@@ -187,40 +220,32 @@ export default function RegisterScreen() {
     };
 
     return (
-        <View className="flex-1 bg-[#2c3e6b]">
-            <StatusBar barStyle="light-content" backgroundColor={NAVY} />
+        <View className="flex-1" style={{ backgroundColor: SKY_BLUE_DARK }}>
+            <StatusBar barStyle="light-content" backgroundColor={SKY_BLUE_DARK} />
 
-            {/* Dark Navy Header */}
-            <View className="bg-[#2c3e6b] pb-[50px] items-center justify-center" style={{ paddingTop: Platform.OS === 'ios' ? 60 : 40 }}>
-                <View className="flex-row items-center gap-4">
-                    <View className="w-[70px] h-[70px] rounded-full overflow-hidden bg-white">
-                        <Image
-                            source={require('../../assets/nbse-logo.png')}
-                            className="w-[70px] h-[70px]"
-                            resizeMode="cover"
-                        />
-                    </View>
-                    <View className="justify-center">
-                        <AppText className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">NBSE</AppText>
-                        <AppText className="text-[32px] font-extrabold text-white tracking-[2px] leading-[38px]">CONNECT</AppText>
-                    </View>
-                </View>
+            <View className="pb-[36px] items-center justify-center" style={{ paddingTop: Platform.OS === 'ios' ? 62 : 42, backgroundColor: SKY_BLUE_DARK }}>
+                <Image
+                    source={require('../../assets/assets_banner.png')}
+                    style={{ width: 304, height: 104 }}
+                    resizeMode="contain"
+                />
             </View>
 
             {/* White Card Section */}
             <KeyboardAvoidingView
-                className="flex-1"
+                className="flex-1 bg-white rounded-t-[30px] overflow-hidden"
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <ScrollView
+                    className="flex-1"
                     contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    <View className="flex-1 bg-white rounded-t-[30px] px-7 pt-8 pb-10">
+                    <View className="flex-1 px-7 pt-8" style={{ paddingBottom: Math.max(insets.bottom + 12, 20) }}>
                         {/* Title */}
-                        <AppText className="text-[28px] font-bold text-[#1a1a2e] mb-2">Create Account</AppText>
-                        <AppText className="text-sm text-gray-500 leading-5 mb-6">
+                        <AppText className="text-[30px] font-bold text-[#1a1a2e] mb-2">Create Account</AppText>
+                        <AppText className="text-[15px] text-gray-500 leading-[22px] mb-6">
                             Make sure you have access to the entered Email ID / Phone Number.
                         </AppText>
 
@@ -235,7 +260,7 @@ export default function RegisterScreen() {
                                 ) : (
                                     <View className="flex-1 bg-[#f9fafb] justify-center items-center">
                                         <AppText className="text-[28px] mb-0.5 opacity-40">📷</AppText>
-                                        <AppText className="text-xs text-gray-400 font-medium">IMG</AppText>
+                                        <AppText className="text-[13px] text-gray-400 font-medium">IMG</AppText>
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -249,7 +274,7 @@ export default function RegisterScreen() {
                                 </TouchableOpacity>
                             )}
                             {errors.profileImage && (
-                                <AppText className="text-xs text-[#ef4444] mt-2">{errors.profileImage.message}</AppText>
+                                <AppText className="text-[13px] text-[#ef4444] mt-2">{errors.profileImage.message}</AppText>
                             )}
                         </View>
 
@@ -258,16 +283,16 @@ export default function RegisterScreen() {
                             {GENDER_OPTIONS.map((option) => (
                                 <TouchableOpacity
                                     key={option.value}
-                                    className={`flex-1 flex-row items-center justify-center py-3 rounded-[25px] gap-1.5 ${selectedGender === option.value ? 'bg-[#2c3e6b]' : 'bg-[#f3f4f6] border border-[#e5e7eb]'}`}
+                                    className={`flex-1 flex-row items-center justify-center px-3 py-2 rounded-xl gap-1.5 ${selectedGender === option.value ? 'bg-[#0284C7]' : 'bg-[#f3f4f6] border border-[#e5e7eb]'}`}
                                     onPress={() => setValue('gender', option.value)}
                                 >
+                                    <MaterialIcons
+                                        name={option.icon}
+                                        size={25}
+                                        color={selectedGender === option.value ? '#ffffff' : '#374151'}
+                                      />
                                     <AppText
-                                        className={`text-base ${selectedGender === option.value ? 'text-white' : 'text-[#374151]'}`}
-                                    >
-                                        {option.icon}
-                                    </AppText>
-                                    <AppText
-                                        className={`text-[15px] font-semibold ${selectedGender === option.value ? 'text-white' : 'text-[#374151]'}`}
+                                        className={`text-[17px] font-semibold ${selectedGender === option.value ? 'text-white' : 'text-[#374151]'}`}
                                     >
                                         {option.label}
                                     </AppText>
@@ -282,7 +307,8 @@ export default function RegisterScreen() {
                                 name="fullName"
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        className="text-base text-[#1a1a2e] py-3 px-1"
+                                        className="text-[17px] text-[#1a1a2e] py-3 px-1"
+                                        style={INPUT_TEXT_STYLE}
                                         placeholder="Full Name"
                                         placeholderTextColor="#9ca3af"
                                         value={value}
@@ -295,7 +321,7 @@ export default function RegisterScreen() {
                             />
                             <View className={`h-px bg-[#d1d5db] ${errors.fullName ? 'bg-[#ef4444]' : ''}`} />
                             {errors.fullName && (
-                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.fullName.message}</AppText>
+                                <AppText className="text-[#ef4444] text-[13px] mt-1">{errors.fullName.message}</AppText>
                             )}
                         </View>
 
@@ -306,7 +332,8 @@ export default function RegisterScreen() {
                                 name="email"
                                 render={({ field: { onChange, onBlur, value } }) => (
                                     <TextInput
-                                        className="text-base text-[#1a1a2e] py-3 px-1"
+                                        className="text-[17px] text-[#1a1a2e] py-3 px-1"
+                                        style={INPUT_TEXT_STYLE}
                                         placeholder="Email ID"
                                         placeholderTextColor="#9ca3af"
                                         value={value}
@@ -321,7 +348,7 @@ export default function RegisterScreen() {
                             />
                             <View className={`h-px bg-[#d1d5db] ${errors.email ? 'bg-[#ef4444]' : ''}`} />
                             {errors.email && (
-                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.email.message}</AppText>
+                                <AppText className="text-[#ef4444] text-[13px] mt-1">{errors.email.message}</AppText>
                             )}
                         </View>
 
@@ -333,7 +360,8 @@ export default function RegisterScreen() {
                                     name="password"
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <TextInput
-                                            className="text-base text-[#1a1a2e] py-3 px-1 flex-1"
+                                            className="text-[17px] text-[#1a1a2e] py-3 px-1 flex-1"
+                                            style={INPUT_TEXT_STYLE}
                                             placeholder="Password"
                                             placeholderTextColor="#9ca3af"
                                             value={value}
@@ -357,7 +385,7 @@ export default function RegisterScreen() {
                             </View>
                             <View className={`h-px bg-[#d1d5db] ${errors.password ? 'bg-[#ef4444]' : ''}`} />
                             {errors.password && (
-                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.password.message}</AppText>
+                                <AppText className="text-[#ef4444] text-[13px] mt-1">{errors.password.message}</AppText>
                             )}
                         </View>
 
@@ -369,7 +397,8 @@ export default function RegisterScreen() {
                                     name="confirmPassword"
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <TextInput
-                                            className="text-base text-[#1a1a2e] py-3 px-1 flex-1"
+                                            className="text-[17px] text-[#1a1a2e] py-3 px-1 flex-1"
+                                            style={INPUT_TEXT_STYLE}
                                             placeholder="Confirm Password"
                                             placeholderTextColor="#9ca3af"
                                             value={value}
@@ -393,7 +422,7 @@ export default function RegisterScreen() {
                             </View>
                             <View className={`h-px bg-[#d1d5db] ${errors.confirmPassword ? 'bg-[#ef4444]' : ''}`} />
                             {errors.confirmPassword && (
-                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.confirmPassword.message}</AppText>
+                                <AppText className="text-[#ef4444] text-[13px] mt-1">{errors.confirmPassword.message}</AppText>
                             )}
                         </View>
 
@@ -404,8 +433,8 @@ export default function RegisterScreen() {
                                 onPress={() => setShowRoleDropdown(!showRoleDropdown)}
                                 disabled={isSubmitting}
                             >
-                                <AppText className="text-base text-[#1a1a2e] font-medium">{getRoleLabel(selectedRole)}</AppText>
-                                <AppText className="text-xs text-gray-500">{showRoleDropdown ? '▲' : '▼'}</AppText>
+                                <AppText className="text-[17px] text-[#1a1a2e] font-medium">{getRoleLabel(selectedRole)}</AppText>
+                                <AppText className="text-sm text-gray-500">{showRoleDropdown ? '▲' : '▼'}</AppText>
                             </TouchableOpacity>
                             <View className={`h-px bg-[#d1d5db] ${errors.role ? 'bg-[#ef4444]' : ''}`} />
 
@@ -414,14 +443,14 @@ export default function RegisterScreen() {
                                     {ROLE_OPTIONS.map((option) => (
                                         <TouchableOpacity
                                             key={option.value}
-                                            className={`px-4 py-3.5 border-b border-[#f3f4f6] ${selectedRole === option.value ? 'bg-[#2c3e6b]/[0.06]' : ''}`}
+                                            className={`px-4 py-3.5 border-b border-[#f3f4f6] ${selectedRole === option.value ? 'bg-[#0284C7]/[0.08]' : ''}`}
                                             onPress={() => {
                                                 setValue('role', option.value);
                                                 setShowRoleDropdown(false);
                                             }}
                                         >
                                             <AppText
-                                                className={`text-base ${selectedRole === option.value ? 'text-[#2c3e6b] font-semibold' : 'text-gray-500'}`}
+                                                className={`text-[17px] ${selectedRole === option.value ? 'text-[#0284C7] font-semibold' : 'text-gray-500'}`}
                                             >
                                                 {option.label}
                                             </AppText>
@@ -430,21 +459,22 @@ export default function RegisterScreen() {
                                 </View>
                             )}
                             {errors.role && (
-                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.role.message}</AppText>
+                                <AppText className="text-[#ef4444] text-[13px] mt-1">{errors.role.message}</AppText>
                             )}
                         </View>
 
                         {/* Phone Number */}
                         <View className="mb-[22px]">
                             <View className="flex-row items-center">
-                                <AppText className="text-base text-[#2c3e6b] font-medium py-3">+91</AppText>
-                                <AppText className="text-base text-[#d1d5db] mx-2.5">|</AppText>
+                                <AppText className="text-[17px] text-[#0284C7] font-medium py-3">+91</AppText>
+                                <AppText className="text-[17px] text-[#d1d5db] mx-2.5">|</AppText>
                                 <Controller
                                     control={control}
                                     name="phone"
                                     render={({ field: { onChange, onBlur, value } }) => (
                                         <TextInput
-                                            className="text-base text-[#1a1a2e] py-3 px-1 flex-1"
+                                            className="text-[17px] text-[#1a1a2e] py-3 px-1 flex-1"
+                                            style={INPUT_TEXT_STYLE}
                                             placeholder="Phone Number"
                                             placeholderTextColor="#9ca3af"
                                             value={value}
@@ -459,35 +489,35 @@ export default function RegisterScreen() {
                             </View>
                             <View className={`h-px bg-[#d1d5db] ${errors.phone ? 'bg-[#ef4444]' : ''}`} />
                             {errors.phone && (
-                                <AppText className="text-[#ef4444] text-xs mt-1">{errors.phone.message}</AppText>
+                                <AppText className="text-[#ef4444] text-[13px] mt-1">{errors.phone.message}</AppText>
                             )}
                         </View>
 
                         {/* Terms & Privacy */}
-                        <AppText className="text-[13px] text-gray-500 text-center leading-[18px] mb-5">
+                        <AppText className="text-[14px] text-gray-500 text-center leading-[20px] mb-5">
                             By registering, you agree to the{' '}
-                            <AppText className="text-[#2c3e6b] font-semibold">Terms & Privacy Policy</AppText>
-                            {' '}of NBSE, Government of Nagaland
+                            <AppText className="text-[#0284C7] font-semibold">Terms & Privacy Policy</AppText>
+                            {' '}of Samagra Shiksha, Nagaland
                         </AppText>
 
                         {/* Register Button */}
                         <TouchableOpacity
-                            className={`bg-[#2c3e6b] rounded-[10px] py-4 items-center justify-center min-h-[54px] ${isSubmitting ? 'bg-[#3a5086] opacity-70' : ''}`}
+                            className={`bg-[#0284C7] rounded-[10px] py-4 items-center justify-center min-h-[54px] ${isSubmitting ? 'opacity-70' : ''}`}
                             onPress={handleSubmit(onSubmit, onFormError)}
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (
                                 <ActivityIndicator color="#ffffff" />
                             ) : (
-                                <AppText className="text-white text-lg font-bold">Register</AppText>
+                                <AppText className="text-white text-[18px] font-bold">Register</AppText>
                             )}
                         </TouchableOpacity>
 
                         {/* Login Link */}
-                        <View className="flex-row justify-center items-center mt-5 gap-1.5">
-                            <AppText className="text-gray-500 text-sm">Already have an account?</AppText>
+                        <View className="flex-row justify-center items-center mt-7 gap-1.5">
+                            <AppText className="text-gray-500 text-[15px]">Already have an account?</AppText>
                             <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-                                <AppText className="text-[#2c3e6b] text-sm font-semibold">Login</AppText>
+                                <AppText className="text-[#0284C7] text-[15px] font-semibold">Login</AppText>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -496,4 +526,3 @@ export default function RegisterScreen() {
         </View>
     );
 }
-

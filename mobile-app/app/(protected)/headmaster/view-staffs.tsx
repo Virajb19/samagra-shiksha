@@ -340,7 +340,7 @@ export default function ViewStaffsScreen() {
                 animationType="fade"
                 onRequestClose={() => setToggleConfirmation(null)}
             >
-                <View className="flex-1 bg-black/35 items-center justify-center px-6">
+                <View className="flex-1 bg-black/20 items-center justify-center px-6">
                     <Pressable className="absolute inset-0" onPress={() => setToggleConfirmation(null)} />
 
                     <View className="w-full max-w-[360px] bg-white rounded-2xl p-6">

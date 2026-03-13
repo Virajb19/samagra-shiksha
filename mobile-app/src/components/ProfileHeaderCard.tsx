@@ -14,11 +14,16 @@ interface ProfileHeaderCardProps {
     roleLabel: string;
 }
 
+const BLUE = '#1565C0';
+const SKY_BLUE_LIGHT = '#7DD3FC';
+const SKY_BLUE_SOFT = '#E0F2FE';
+const SKY_BLUE_DARK = '#0284C7';
+
 export function ProfileHeaderCard({ roleLabel }: ProfileHeaderCardProps) {
     const { user } = useAuthStore();
 
     return (
-        <View className="bg-[#1565C0] rounded-b-3xl px-5 pt-5 pb-7">
+        <View className="rounded-b-3xl px-5 pt-5 pb-7" style={{ backgroundColor: BLUE }}>
             <View className="flex-row items-center rounded-3xl px-3 py-2 bg-white">
                 <View className="mr-4">
                     {user?.profile_image_url ? (
@@ -27,7 +32,7 @@ export function ProfileHeaderCard({ roleLabel }: ProfileHeaderCardProps) {
                             className="w-28 h-28 rounded-full"
                             style={{
                                 borderWidth: 3,
-                                borderColor: '#38BDF8',
+                                borderColor: SKY_BLUE_LIGHT,
                             }}
                         />
                     ) : (
@@ -46,8 +51,8 @@ export function ProfileHeaderCard({ roleLabel }: ProfileHeaderCardProps) {
                             {user?.email || 'No email'}
                         </AppText>
                     </View>
-                    <View className="border-2 border-blue-200 bg-blue-500/20 items-center justify-center px-3.5 py-1 rounded-lg w-full">
-                        <AppText className="text-blue-500 text-base font-semibold">
+                    <View className="border-2 items-center justify-center px-3.5 py-1 rounded-lg w-full" style={{ borderColor: SKY_BLUE_LIGHT, backgroundColor: SKY_BLUE_SOFT }}>
+                        <AppText className="text-base font-semibold" style={{ color: SKY_BLUE_DARK }}>
                             {roleLabel}
                         </AppText>
                     </View>
