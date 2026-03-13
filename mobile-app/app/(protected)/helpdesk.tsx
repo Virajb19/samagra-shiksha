@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     TextInput,
-    Alert,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    Modal,
+    Pressable,
+    Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
@@ -18,10 +19,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createTicket } from '../../src/services/firebase/helpdesk.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { HelpdeskTicketSchema, type HelpdeskTicketFormData } from '../../src/lib/zod';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 export default function HelpdeskScreen() {
     const router = useRouter();
     const { user } = useAuthStore();
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const { control, handleSubmit, reset, watch, formState: { errors } } = useForm<HelpdeskTicketFormData>({
         resolver: zodResolver(HelpdeskTicketSchema),
@@ -40,12 +43,14 @@ export default function HelpdeskScreen() {
             });
         },
         onSuccess: () => {
-            Alert.alert('Success', 'Your query has been submitted. Our team will get back to you within 48 hours.', [
-                { text: 'OK', onPress: () => { reset(); router.back(); } },
-            ]);
+            reset();
+            setShowSuccessModal(true);
         },
         onError: (error: any) => {
-            Alert.alert('Error', error?.message || 'Failed to submit. Please try again.');
+            Toast.show({
+                type: 'error',
+                text2: error?.message || 'Failed to submit. Please try again.',
+            });
         },
     });
 
@@ -111,6 +116,38 @@ export default function HelpdeskScreen() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
+
+            <Modal
+                visible={showSuccessModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowSuccessModal(false)}
+            >
+                <View className="flex-1 items-center justify-center px-6 bg-black/30">
+                    <Pressable className="absolute inset-0" onPress={() => setShowSuccessModal(false)} />
+                    <View className="w-full max-w-[360px] rounded-2xl bg-white px-5 py-6 items-center">
+                        <Image
+                            source={require('../../assets/assets_submitted.png')}
+                            style={{ width: 170, height: 170 }}
+                            resizeMode="contain"
+                        />
+                        <AppText className="text-lg font-bold text-[#1a1a2e] mt-2">Ticket Submitted</AppText>
+                        <AppText className="text-sm text-gray-500 text-center mt-1">
+                            Your query has been submitted. Our team will get back to you within 48 hours.
+                        </AppText>
+
+                        <TouchableOpacity
+                            className="mt-6 w-full rounded-xl py-3.5 items-center bg-[#3b82f6]"
+                            onPress={() => {
+                                setShowSuccessModal(false);
+                                router.back();
+                            }}
+                        >
+                            <AppText className="text-white text-base font-semibold">Done</AppText>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </KeyboardAvoidingView>
     );
 }

@@ -24,12 +24,9 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
-    Modal,
-    FlatList,
     Image,
     StatusBar,
     Platform,
-    StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,61 +39,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IEResourcePersonProfileSchema, IEResourcePersonProfileFormData } from '../../../src/lib/zod';
 import CalendarPickerModal from '../../../src/components/CalendarPickerModal';
+import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
-
-interface SelectModalProps {
-    visible: boolean;
-    title: string;
-    data: { id: string; name: string }[];
-    selectedValue: string;
-    onSelect: (value: string) => void;
-    onClose: () => void;
-    loading?: boolean;
-}
-
-function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: SelectModalProps) {
-    return (
-        <Modal visible={visible} transparent animationType="slide">
-            <View className="flex-1 bg-black/50 justify-end">
-                <View className="bg-white rounded-t-[20px] max-h-[70%]">
-                    <View className="flex-row justify-between items-center p-4 border-b border-[#e5e7eb]">
-                        <AppText className="text-lg font-semibold text-[#1f2937]">{title}</AppText>
-                        <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color="#374151" />
-                        </TouchableOpacity>
-                    </View>
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#2c3e6b" style={{ padding: 40 }} />
-                    ) : (
-                        <FlatList
-                            data={data}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    className={`py-[14px] px-4 border-b border-[#f3f4f6] flex-row justify-between items-center ${selectedValue === item.id ? 'bg-[#e8ecf4]' : ''}`}
-                                    onPress={() => {
-                                        onSelect(item.id);
-                                        onClose();
-                                    }}
-                                >
-                                    <AppText className={`text-base text-[#374151] ${selectedValue === item.id ? 'text-[#2c3e6b] font-semibold' : ''}`}>
-                                        {item.name}
-                                    </AppText>
-                                    {selectedValue === item.id && (
-                                        <Ionicons name="checkmark" size={20} color="#2c3e6b" />
-                                    )}
-                                </TouchableOpacity>
-                            )}
-                            ListEmptyComponent={
-                                <AppText className="text-center p-5 text-[#6b7280] text-sm">No items available</AppText>
-                            }
-                        />
-                    )}
-                </View>
-            </View>
-        </Modal>
-    );
-}
 
 
 export default function IECompleteProfileScreen() {

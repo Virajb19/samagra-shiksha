@@ -25,8 +25,6 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
-    Modal,
-    FlatList,
     Image,
     StatusBar,
     Platform,
@@ -42,54 +40,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { NSCBAVProfileSchema, NSCBAVProfileFormData } from '../../../src/lib/zod';
 import CalendarPickerModal from '../../../src/components/CalendarPickerModal';
+import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
-
-interface SelectModalProps {
-    visible: boolean;
-    title: string;
-    data: { id: string; name: string }[];
-    selectedValue: string;
-    onSelect: (value: string) => void;
-    onClose: () => void;
-    loading?: boolean;
-}
-
-function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: SelectModalProps) {
-    return (
-        <Modal visible={visible} transparent animationType="slide">
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <AppText style={styles.modalTitle}>{title}</AppText>
-                        <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color="#374151" />
-                        </TouchableOpacity>
-                    </View>
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#2c3e6b" style={{ padding: 40 }} />
-                    ) : (
-                        <FlatList
-                            data={data}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={[styles.modalItem, selectedValue === item.id && styles.modalItemSelected]}
-                                    onPress={() => { onSelect(item.id); onClose(); }}
-                                >
-                                    <AppText style={[styles.modalItemText, selectedValue === item.id && styles.modalItemTextSelected]}>
-                                        {item.name}
-                                    </AppText>
-                                    {selectedValue === item.id && <Ionicons name="checkmark" size={20} color="#2c3e6b" />}
-                                </TouchableOpacity>
-                            )}
-                            ListEmptyComponent={<AppText style={styles.emptyText}>No items available</AppText>}
-                        />
-                    )}
-                </View>
-            </View>
-        </Modal>
-    );
-}
 
 
 export default function NSCBAVCompleteProfileScreen() {
@@ -432,15 +384,7 @@ const styles = StyleSheet.create({
     submitButtonDisabled: { backgroundColor: '#9ca3af' },
     submitButtonText: { fontSize: 16, fontWeight: '600', color: '#ffffff' },
     errorText: { fontSize: 12, color: '#ef4444', marginTop: 4 },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: '#ffffff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%' },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-    modalTitle: { fontSize: 18, fontWeight: '600', color: '#1f2937' },
-    modalItem: { paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    modalItemSelected: { backgroundColor: '#e8ecf4' },
-    modalItemText: { fontSize: 16, color: '#374151' },
-    modalItemTextSelected: { color: '#2c3e6b', fontWeight: '600' },
-    emptyText: { textAlign: 'center', padding: 20, color: '#6b7280', fontSize: 14 },
+
     warningBanner: { backgroundColor: '#fff3cd', borderWidth: 1, borderColor: '#ffc107', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20, gap: 8 },
     warningText: { flex: 1, fontSize: 13, color: '#856404', lineHeight: 18 },
 });

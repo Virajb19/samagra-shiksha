@@ -22,7 +22,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Calendar, MapPin, Users, Eye, Loader2, Check, X, Clock, CalendarDays, Search, Download, FileText, User, FilterX, ChevronDown } from 'lucide-react';
-import { eventsFirestore, EventFilterParams, SchoolEventType, EventWithStats, EventsResponse } from '@/services/firebase/events.firestore';
+import { eventsFirestore, EventFilterParams, EventWithStats, EventsResponse } from '@/services/firebase/events.firestore';
 import { DeleteEventButton } from '@/components/DeleteEventButton';
 import { useGetDistricts } from '@/services/user.service';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
@@ -118,16 +118,21 @@ const EventTableSkeleton = () => (
   </>
 );
 
-const eventTypeLabels: Record<SchoolEventType, string> = {
-  MEETING: 'Meeting',
-  EXAM: 'Exam',
-  HOLIDAY: 'Holiday',
-  SEMINAR: 'Seminar',
-  WORKSHOP: 'Workshop',
-  SPORTS: 'Sports',
-  CULTURAL: 'Cultural',
-  OTHER: 'Other',
-};
+const ACTIVITY_TYPE_OPTIONS = [
+  'SMC Meeting',
+  'Block Level Community Training',
+  'Teachers Training Program',
+  'Parent-Teacher Meeting',
+  'Annual Day Celebration',
+  'Sports Day',
+  'Science Exhibition',
+  'Cultural Festival',
+  'Workshop on NEP 2020',
+  'Orientation Program',
+  'Career Guidance Seminar',
+  'Health Camp',
+  'Other',
+] as const;
 
 // View Event Button - disabled while any delete is in progress
 function ViewEventButton({ eventId, onClick }: { eventId: string; onClick: () => void }) {
@@ -146,15 +151,20 @@ function ViewEventButton({ eventId, onClick }: { eventId: string; onClick: () =>
   );
 }
 
-const eventTypeColors: Record<SchoolEventType, string> = {
-  MEETING: 'bg-blue-500/20 text-blue-400',
-  EXAM: 'bg-red-500/20 text-red-400',
-  HOLIDAY: 'bg-green-500/20 text-green-400',
-  SEMINAR: 'bg-orange-500/20 text-orange-400',
-  WORKSHOP: 'bg-cyan-500/20 text-cyan-400',
-  SPORTS: 'bg-yellow-500/20 text-yellow-400',
-  CULTURAL: 'bg-pink-500/20 text-pink-400',
-  OTHER: 'bg-purple-500/20 text-purple-400',
+const activityTypeColors: Record<string, string> = {
+  'SMC Meeting': 'bg-blue-500/20 text-blue-400',
+  'Block Level Community Training': 'bg-orange-500/20 text-orange-400',
+  'Teachers Training Program': 'bg-cyan-500/20 text-cyan-400',
+  'Parent-Teacher Meeting': 'bg-teal-500/20 text-teal-400',
+  'Annual Day Celebration': 'bg-pink-500/20 text-pink-400',
+  'Sports Day': 'bg-yellow-500/20 text-yellow-400',
+  'Science Exhibition': 'bg-emerald-500/20 text-emerald-400',
+  'Cultural Festival': 'bg-violet-500/20 text-violet-400',
+  'Workshop on NEP 2020': 'bg-indigo-500/20 text-indigo-400',
+  'Orientation Program': 'bg-lime-500/20 text-lime-400',
+  'Career Guidance Seminar': 'bg-sky-500/20 text-sky-400',
+  'Health Camp': 'bg-red-500/20 text-red-400',
+  'Other': 'bg-purple-500/20 text-purple-400',
 };
 
 export default function EventsPage() {
@@ -180,7 +190,7 @@ export default function EventsPage() {
     if (fromDate) filters.from_date = fromDate;
     if (toDate) filters.to_date = toDate;
     if (districtFilter && districtFilter !== 'all') filters.district_id = districtFilter;
-    if (eventTypeFilter && eventTypeFilter !== 'all') filters.event_type = eventTypeFilter as SchoolEventType;
+    if (eventTypeFilter && eventTypeFilter !== 'all') filters.activity_type = eventTypeFilter;
     if (debouncedSearch) filters.search = debouncedSearch;
     return filters;
   }, [fromDate, toDate, districtFilter, eventTypeFilter, debouncedSearch]);
@@ -290,7 +300,7 @@ export default function EventsPage() {
         filterParts.push(`District: ${district?.name || districtFilter}`);
       }
       if (eventTypeFilter !== 'all') {
-        filterParts.push(`Type: ${eventTypeLabels[eventTypeFilter as SchoolEventType] || eventTypeFilter}`);
+        filterParts.push(`Activity: ${eventTypeFilter}`);
       }
 
       doc.text(filterParts.join(' | '), 14, 30);
@@ -300,7 +310,7 @@ export default function EventsPage() {
       const tableData = allEvents.map((event, index) => [
         index + 1,
         event.title,
-        eventTypeLabels[event.event_type as SchoolEventType] || event.event_type,
+        event.activity_type || '-',
         formatDate(event.event_date),
         event.location || '-',
         event.creator?.name || '-',
@@ -308,7 +318,7 @@ export default function EventsPage() {
       ]);
 
       autoTable(doc, {
-        head: [['#', 'Event Name', 'Type', 'Date', 'Venue', 'Created By', 'Participants']],
+        head: [['#', 'Event Name', 'Activity', 'Date', 'Venue', 'Created By', 'Participants']],
         body: tableData,
         startY: 42,
         styles: { fontSize: 8 },
@@ -434,15 +444,15 @@ export default function EventsPage() {
 
           {/* Event Type Filter */}
           <div className="min-w-[160px]">
-            <label className="text-slate-500 dark:text-slate-400 text-sm mb-2 block">Event Type</label>
+            <label className="text-slate-500 dark:text-slate-400 text-sm mb-2 block">Activity Type</label>
             <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
               <SelectTrigger className="bg-slate-100 dark:bg-slate-800/50 border-slate-300 dark:border-blue-500/50 text-slate-900 dark:text-white">
-                <SelectValue placeholder="All Types" />
+                <SelectValue placeholder="All Activities" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                <SelectItem value="all" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">All Types</SelectItem>
-                {Object.entries(eventTypeLabels).map(([key, label]) => (
-                  <SelectItem key={key} value={key} className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">{label}</SelectItem>
+                <SelectItem value="all" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">All Activities</SelectItem>
+                {ACTIVITY_TYPE_OPTIONS.map((activity) => (
+                  <SelectItem key={activity} value={activity} className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700">{activity}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -551,7 +561,7 @@ export default function EventsPage() {
                       </td>
                       <td className="py-4 px-5">
                         {event.flyer_url ? (
-                         <Image
+                          <Image
                             src={getImageUrl(event.flyer_url) || ""}
                             alt={event.title}
                             width={64}
@@ -570,8 +580,8 @@ export default function EventsPage() {
                       </td>
                       <td className="py-4 px-5">
                         <p className="text-slate-900 dark:text-white font-medium">{event.title}</p>
-                        <Badge className={`${eventTypeColors[event.event_type as SchoolEventType] || eventTypeColors.OTHER} mt-1`}>
-                          {eventTypeLabels[event.event_type as SchoolEventType] || event.event_type}
+                        <Badge className={`${activityTypeColors[event.activity_type || 'Other'] || activityTypeColors.Other} mt-1`}>
+                          {event.activity_type || 'Other'}
                         </Badge>
                       </td>
                       <td className="py-4 px-5 text-slate-700 dark:text-slate-300">
@@ -651,16 +661,16 @@ export default function EventsPage() {
               {eventDetails.flyer_url && (
                 <div className="px-6">
                   <Image
-                      src={getImageUrl(eventDetails.flyer_url) || "/placeholder.png"}
-                      alt={eventDetails.title}
-                      width={800}
-                      height={256}
-                      className="w-full h-64 object-cover rounded-lg"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                      unoptimized={process.env.NODE_ENV != "production"}
-                   />
+                    src={getImageUrl(eventDetails.flyer_url) || "/placeholder.png"}
+                    alt={eventDetails.title}
+                    width={800}
+                    height={256}
+                    className="w-full h-64 object-cover rounded-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                    unoptimized={process.env.NODE_ENV != "production"}
+                  />
                 </div>
               )}
 

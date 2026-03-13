@@ -128,10 +128,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                 source={tab.icon}
                                 className="w-6 h-6"
                                 resizeMode="contain"
-                                style={{ tintColor: isActive ? '#1565C0' : '#000000' }}
+                                style={{ tintColor: isActive ? '#0c509eff' : '#000000'}}
                             />
                             <AppText
-                                className={`text-xs font-medium mt-1 ${isActive ? 'text-[#1565C0]' : 'text-black'}`}
+                                className={`text-xs font-medium mt-1 ${isActive ? 'text-[#0c509eff]' : 'text-black'}`}
                             >
                                 {tab.label}
                             </AppText>

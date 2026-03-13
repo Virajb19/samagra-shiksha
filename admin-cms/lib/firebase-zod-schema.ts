@@ -30,6 +30,21 @@ export const InvitationStatusSchema = z.enum(["PENDING", "ACCEPTED", "REJECTED"]
 export const GenderSchema = z.enum(["MALE", "FEMALE"]);
 export const NoticeTypeSchema = z.enum(["GENERAL", "INVITATION", "PUSH_NOTIFICATION"]);
 export const SchoolEventTypeSchema = z.enum(["MEETING", "EXAM", "HOLIDAY", "SEMINAR", "WORKSHOP", "SPORTS", "CULTURAL", "OTHER"]);
+export const ActivityTypeSchema = z.enum([
+  "SMC Meeting",
+  "Block Level Community Training",
+  "Teachers Training Program",
+  "Parent-Teacher Meeting",
+  "Annual Day Celebration",
+  "Sports Day",
+  "Science Exhibition",
+  "Cultural Festival",
+  "Workshop on NEP 2020",
+  "Orientation Program",
+  "Career Guidance Seminar",
+  "Health Camp",
+  "Other",
+]);
 export const ExamTrackerEventTypeSchema = z.enum([
   "TREASURY_ARRIVAL",
   "CUSTODIAN_HANDOVER",
@@ -145,8 +160,8 @@ export const EventDocSchema = z.object({
   event_end_date: dateTimeLike.nullable().optional(),
   event_time: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
-  event_type: SchoolEventTypeSchema.default("OTHER"),
-  activity_type: z.string().nullable().optional(),
+  event_type: z.string().nullable().optional(),
+  activity_type: ActivityTypeSchema.nullable().optional(),
   flyer_url: z.string().nullable().optional(),
   male_participants: z.number().int().nullable().optional(),
   female_participants: z.number().int().nullable().optional(),

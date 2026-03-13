@@ -22,8 +22,6 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
-    Modal,
-    FlatList,
     Image,
     StatusBar,
     Platform,
@@ -38,54 +36,9 @@ import { completeJuniorEngineerProfile } from '../../../src/services/firebase/pr
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { JuniorEngineerProfileSchema, JuniorEngineerProfileFormData } from '../../../src/lib/zod';
+import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
 
-interface SelectModalProps {
-    visible: boolean;
-    title: string;
-    data: { id: string; name: string }[];
-    selectedValue: string;
-    onSelect: (value: string) => void;
-    onClose: () => void;
-    loading?: boolean;
-}
-
-function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: SelectModalProps) {
-    return (
-        <Modal visible={visible} transparent animationType="slide">
-            <View className="flex-1 bg-black/50 justify-end">
-                <View className="bg-white rounded-t-[20px] max-h-[70%]">
-                    <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-                        <AppText className="text-lg font-semibold text-gray-900">{title}</AppText>
-                        <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color="#374151" />
-                        </TouchableOpacity>
-                    </View>
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#2c3e6b" style={{ padding: 40 }} />
-                    ) : (
-                        <FlatList
-                            data={data}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    className={`flex-row justify-between items-center py-3.5 px-4 border-b border-gray-50 ${selectedValue === item.id ? 'bg-[#e8ecf4]' : ''}`}
-                                    onPress={() => { onSelect(item.id); onClose(); }}
-                                >
-                                    <AppText className={`text-base ${selectedValue === item.id ? 'text-[#2c3e6b] font-semibold' : 'text-gray-700'}`}>
-                                        {item.name}
-                                    </AppText>
-                                    {selectedValue === item.id && <Ionicons name="checkmark" size={20} color="#2c3e6b" />}
-                                </TouchableOpacity>
-                            )}
-                            ListEmptyComponent={<AppText className="text-center p-5 text-gray-500 text-sm">No items available</AppText>}
-                        />
-                    )}
-                </View>
-            </View>
-        </Modal>
-    );
-}
 
 export default function JuniorEngineerCompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();

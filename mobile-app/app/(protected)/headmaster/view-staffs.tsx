@@ -9,14 +9,14 @@ import React, { useState, useCallback } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     Image,
     ActivityIndicator,
     RefreshControl,
     TextInput,
-    Alert,
+    Modal,
+    Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -24,6 +24,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSchoolStaffs, getFacultyByUserId, toggleUserActive } from '../../../src/services/firebase/faculty.firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/lib/store';
+import Toast from 'react-native-toast-message';
 
 interface StaffUser {
     id: string;
@@ -41,6 +42,11 @@ interface Staff {
     user: StaffUser;
     years_of_experience?: number;
     designation?: string;
+}
+
+interface ToggleConfirmationState {
+    staff: Staff;
+    active: boolean;
 }
 
 const BLUE = '#1565C0';
@@ -174,6 +180,7 @@ export default function ViewStaffsScreen() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [toggleConfirmation, setToggleConfirmation] = useState<ToggleConfirmationState | null>(null);
 
     const { user: currentUser } = useAuthStore();
 
@@ -203,33 +210,32 @@ export default function ViewStaffsScreen() {
         },
         onSuccess: (_, variables) => {
             const statusText = variables.isActive ? 'activated' : 'deactivated';
-            Alert.alert('Success', `User has been ${statusText} successfully!`);
+            Toast.show({
+                type: 'success',
+                text2: `The user has been ${statusText} successfully.`,
+            });
             queryClient.invalidateQueries({ queryKey: ['school-staffs'] });
             setUpdatingId(null);
         },
         onError: (error: any) => {
-            Alert.alert('Error', error?.message || 'Failed to update user status');
+            Toast.show({
+                type: 'error',
+                text2: error?.message || 'Failed to update user status',
+            });
             setUpdatingId(null);
         },
     });
 
     const handleToggleActive = (staff: Staff, active: boolean) => {
-        const action = active ? 'activate' : 'deactivate';
-        Alert.alert(
-            `${active ? 'Activate' : 'Deactivate'} User`,
-            `Are you sure you want to ${action} ${staff.user.name}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: active ? 'Activate' : 'Deactivate',
-                    style: active ? 'default' : 'destructive',
-                    onPress: () => {
-                        setUpdatingId(staff.id);
-                        toggleActiveMutation.mutate({ userId: staff.user.id, isActive: active });
-                    },
-                },
-            ]
-        );
+        setToggleConfirmation({ staff, active });
+    };
+
+    const confirmToggleActive = () => {
+        if (!toggleConfirmation) return;
+        const { staff, active } = toggleConfirmation;
+        setToggleConfirmation(null);
+        setUpdatingId(staff.id);
+        toggleActiveMutation.mutate({ userId: staff.user.id, isActive: active });
     };
 
     const schoolName = profile?.school
@@ -327,6 +333,47 @@ export default function ViewStaffsScreen() {
                     )}
                 </ScrollView>
             </View>
+
+            <Modal
+                visible={!!toggleConfirmation}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setToggleConfirmation(null)}
+            >
+                <View className="flex-1 bg-black/35 items-center justify-center px-6">
+                    <Pressable className="absolute inset-0" onPress={() => setToggleConfirmation(null)} />
+
+                    <View className="w-full max-w-[360px] bg-white rounded-2xl p-6">
+                        <AppText className="text-lg font-bold text-[#1a1a2e] text-center">
+                            {toggleConfirmation?.active ? 'Activate User' : 'Deactivate User'}
+                        </AppText>
+                        <AppText className="text-sm text-gray-500 text-center mt-2">
+                            Are you sure you want to {toggleConfirmation?.active ? 'activate' : 'deactivate'}{' '}
+                            <AppText className="font-semibold text-[#374151]">
+                                {toggleConfirmation?.staff.user.name}
+                            </AppText>
+                            ?
+                        </AppText>
+
+                        <View className="flex-row gap-3 mt-6">
+                            <TouchableOpacity
+                                className="flex-1 py-3 rounded-xl bg-[#f3f4f6] items-center"
+                                onPress={() => setToggleConfirmation(null)}
+                            >
+                                <AppText className="text-[15px] font-semibold text-[#374151]">Cancel</AppText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                className={`flex-1 py-3 rounded-xl items-center ${toggleConfirmation?.active ? 'bg-[#22c55e]' : 'bg-[#ef4444]'}`}
+                                onPress={confirmToggleActive}
+                            >
+                                <AppText className="text-[15px] font-semibold text-white">
+                                    {toggleConfirmation?.active ? 'Activate' : 'Deactivate'}
+                                </AppText>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

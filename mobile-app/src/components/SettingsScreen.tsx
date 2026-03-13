@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Image, Modal, Share, Platform } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Modal, Share, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../lib/store';
-import { getImagePreviewUrl } from '../services/storage.service';
 import { AppText } from '@/components/AppText';
+import { ProfileHeaderCard } from '@/components/ProfileHeaderCard';
 
 /** Human-readable role labels for the settings profile card. */
 const ROLE_LABELS: Record<string, string> = {
@@ -20,7 +20,6 @@ export default function SettingsScreen() {
     const router = useRouter();
     const { user, logout } = useAuthStore();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const profileUrl = getImagePreviewUrl(user?.profile_image_url);
 
     const roleLabel = ROLE_LABELS[user?.role ?? ''] || user?.role || 'User';
 
@@ -42,27 +41,10 @@ export default function SettingsScreen() {
     };
 
     return (
-        <ScrollView className="flex-1 bg-[#eaf0fb]" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
-            {/* Profile Card */}
-            <View className="bg-white rounded-2xl p-5 items-center mb-5" style={{ elevation: 2 }}>
-                <View className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden border-[3px] border-[#3b82f6] mb-3">
-                    {profileUrl ? (
-                        <Image source={{ uri: profileUrl }} className="w-full h-full" />
-                    ) : (
-                        <View className="w-full h-full justify-center items-center bg-gray-300">
-                            <Ionicons name="person" size={40} color="#9ca3af" />
-                        </View>
-                    )}
-                </View>
-                <AppText className="text-xl font-bold text-[#1a1a2e]">{user?.name || roleLabel}</AppText>
-                <View className="flex-row items-center mt-1 gap-1">
-                    <Ionicons name="mail-outline" size={14} color="#6b7280" />
-                    <AppText className="text-sm text-gray-500">{user?.email || ''}</AppText>
-                </View>
-                <View className="bg-[#dbeafe] px-5 py-1.5 rounded-full mt-3">
-                    <AppText className="text-sm font-semibold text-[#3b82f6]">{roleLabel}</AppText>
-                </View>
-            </View>
+        <ScrollView className="flex-1 bg-[#eaf0fb]" contentContainerStyle={{ paddingBottom: 40 }}>
+            <ProfileHeaderCard roleLabel={roleLabel} />
+
+            <View className="px-4 mt-5">
 
             {/* Menu Items */}
             <TouchableOpacity
@@ -73,7 +55,7 @@ export default function SettingsScreen() {
                 <View className="w-12 h-12 rounded-full bg-[#dbeafe] justify-center items-center">
                     <Ionicons name="person-outline" size={24} color="#3b82f6" />
                 </View>
-                <AppText className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Edit Profile</AppText>
+                <AppText weight='bold' className="flex-1 text-lg font-semibold text-[#1a1a2e] ml-4">Edit Profile</AppText>
                 <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
             </TouchableOpacity>
 
@@ -85,7 +67,7 @@ export default function SettingsScreen() {
                 <View className="w-12 h-12 rounded-full bg-[#ede9fe] justify-center items-center">
                     <Ionicons name="help-circle-outline" size={24} color="#8b5cf6" />
                 </View>
-                <AppText className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Helpdesk / Support</AppText>
+                <AppText weight='bold' className="flex-1 text-lg font-semibold text-[#1a1a2e] ml-4">Helpdesk / Support</AppText>
                 <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
             </TouchableOpacity>
 
@@ -97,7 +79,7 @@ export default function SettingsScreen() {
                 <View className="w-12 h-12 rounded-full bg-[#d1fae5] justify-center items-center">
                     <Ionicons name="share-social-outline" size={24} color="#10b981" />
                 </View>
-                <AppText className="flex-1 text-base font-semibold text-[#1a1a2e] ml-4">Share the app</AppText>
+                <AppText weight='bold' className="flex-1 text-lg font-semibold text-[#1a1a2e] ml-4">Share the app</AppText>
                 <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
             </TouchableOpacity>
 
@@ -109,9 +91,10 @@ export default function SettingsScreen() {
                 <View className="w-12 h-12 rounded-full bg-[#fee2e2] justify-center items-center">
                     <Ionicons name="log-out-outline" size={24} color="#ef4444" />
                 </View>
-                <AppText className="flex-1 text-base text-[#1a1a2e] ml-4">Logout</AppText>
+                <AppText weight='bold' className="flex-1 text-lg text-[#1a1a2e] ml-4">Logout</AppText>
                 <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
             </TouchableOpacity>
+            </View>
 
             {/* Logout Modal */}
             <Modal visible={showLogoutDialog} transparent animationType="fade" onRequestClose={() => setShowLogoutDialog(false)}>

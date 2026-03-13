@@ -47,6 +47,7 @@ export interface EventFilterParams {
     to_date?: string;
     district_id?: string;
     event_type?: SchoolEventType;
+    activity_type?: string;
     search?: string;
 }
 
@@ -245,6 +246,10 @@ export const eventsFirestore = {
         // Equality filters FIRST (before range + orderBy)
         if (filters?.event_type) {
             constraints.push(where("event_type", "==", filters.event_type));
+        }
+
+        if (filters?.activity_type) {
+            constraints.push(where("activity_type", "==", filters.activity_type));
         }
 
         if (filters?.district_id) {

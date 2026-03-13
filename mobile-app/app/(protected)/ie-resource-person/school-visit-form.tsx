@@ -17,8 +17,6 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    Modal,
-    FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,61 +30,10 @@ import { IESchoolVisitFormSchema, type IESchoolVisitFormData } from '../../../sr
 import { submitIESchoolVisitForm } from '../../../src/services/firebase/ie-visit-form.firestore';
 import { getDistricts, getSchools } from '../../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../../src/lib/store';
+import SelectModal from '../../../src/components/SelectModal';
 
 const BLUE = '#1565C0';
 
-/* ── Reusable bottom-sheet select modal ── */
-function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: {
-    visible: boolean;
-    title: string;
-    data: { id: string; name: string }[];
-    selectedValue: string;
-    onSelect: (value: string) => void;
-    onClose: () => void;
-    loading?: boolean;
-}) {
-    return (
-        <Modal visible={visible} transparent animationType="slide">
-            <View className="flex-1 bg-black/50 justify-end">
-                <View className="bg-white rounded-t-[20px] max-h-[70%]">
-                    <View className="flex-row justify-between items-center p-4 border-b border-[#e5e7eb]">
-                        <AppText className="text-lg font-semibold text-[#1f2937]">{title}</AppText>
-                        <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color="#374151" />
-                        </TouchableOpacity>
-                    </View>
-                    {loading ? (
-                        <ActivityIndicator size="large" color={BLUE} style={{ padding: 40 }} />
-                    ) : (
-                        <FlatList
-                            data={data}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    className={`py-[14px] px-4 border-b border-[#f3f4f6] flex-row justify-between items-center ${selectedValue === item.id ? 'bg-[#e8ecf4]' : ''}`}
-                                    onPress={() => {
-                                        onSelect(item.id);
-                                        onClose();
-                                    }}
-                                >
-                                    <AppText className={`text-base text-[#374151] ${selectedValue === item.id ? 'font-semibold' : ''}`} style={selectedValue === item.id ? { color: BLUE } : undefined}>
-                                        {item.name}
-                                    </AppText>
-                                    {selectedValue === item.id && (
-                                        <Ionicons name="checkmark" size={20} color={BLUE} />
-                                    )}
-                                </TouchableOpacity>
-                            )}
-                            ListEmptyComponent={
-                                <AppText className="text-center p-5 text-[#6b7280] text-sm">No items available</AppText>
-                            }
-                        />
-                    )}
-                </View>
-            </View>
-        </Modal>
-    );
-}
 
 function GenderRadio({ value, onChange, error }: { value?: string; onChange: (v: 'MALE' | 'FEMALE') => void; error?: string }) {
     return (

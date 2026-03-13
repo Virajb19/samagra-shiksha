@@ -17,6 +17,7 @@ import { getEventsPaginated, type EventFilterParams } from '../services/firebase
 import { getDistricts } from '../services/firebase/master-data.firestore';
 import { District } from '../types';
 import CalendarPickerModal from './CalendarPickerModal';
+import SelectModal from './SelectModal';
 
 const BLUE = '#1565C0';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -101,12 +102,16 @@ function SearchFilterModal({ visible, onClose, onApply, currentFilters, onReset,
             </TouchableOpacity>
             <CalendarPickerModal visible={showStartCal} value={startDate} onSelect={setStartDate} onClose={() => setShowStartCal(false)} />
             <CalendarPickerModal visible={showEndCal} value={endDate} onSelect={setEndDate} onClose={() => setShowEndCal(false)} />
-            <Modal visible={showDP} transparent animationType="slide" onRequestClose={() => setShowDP(false)}>
-                <View className="flex-1 bg-black/50 justify-end"><View className="bg-white rounded-t-[20px] max-h-[70%]">
-                    <View className="flex-row justify-between items-center p-4 border-b border-gray-200"><AppText className="text-lg font-semibold text-gray-800">Select District</AppText><TouchableOpacity onPress={() => setShowDP(false)}><Ionicons name="close" size={24} color="#374151" /></TouchableOpacity></View>
-                    {loadingDistricts ? <ActivityIndicator size="large" color={BLUE} className="p-10" /> : <FlatList data={[{ id: '', name: 'All' }, ...districts]} keyExtractor={item => item.id || '__all'} renderItem={({ item }) => (<TouchableOpacity className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${districtId === item.id ? 'bg-blue-50' : 'bg-white'}`} onPress={() => { setDistrictId(item.id); setShowDP(false); }}><AppText className={`text-base ${districtId === item.id ? 'text-[#1565C0] font-semibold' : 'text-gray-700'}`}>{item.name}</AppText>{districtId === item.id && <Ionicons name="checkmark" size={20} color={BLUE} />}</TouchableOpacity>)} />}
-                </View></View>
-            </Modal>
+            <SelectModal
+                visible={showDP}
+                onClose={() => setShowDP(false)}
+                title="Select District"
+                data={[{ id: '', name: 'All' }, ...districts]}
+                selectedValue={districtId}
+                onSelect={(value) => { setDistrictId(value); }}
+                loading={loadingDistricts}
+                accentColor={BLUE}
+            />
         </Modal>
     );
 }

@@ -68,22 +68,6 @@ export default function RootLayout() {
 
     const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded) {
-            // Monkey-patch Text.render to inject Lato-Regular as the default font.
-            // This works with NativeWind because the font is set as the base,
-            // and NativeWind/user styles merge on top of it.
-            const originalRender = (Text as any).render;
-            if (originalRender && !(Text as any).__fontPatched) {
-                (Text as any).render = function (props: any, ref: any) {
-                    const baseStyle = { fontFamily: 'Lato-Regular' };
-                    const mergedProps = {
-                        ...props,
-                        style: [baseStyle, props.style],
-                    };
-                    return originalRender.call(this, mergedProps, ref);
-                };
-                (Text as any).__fontPatched = true;
-            }
-
             await SplashScreen.hideAsync();
         }
     }, [fontsLoaded]);

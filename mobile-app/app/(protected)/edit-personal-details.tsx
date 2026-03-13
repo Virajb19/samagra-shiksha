@@ -22,6 +22,7 @@ import { useAuthStore } from '../../src/lib/store';
 import { updatePersonalDetails } from '../../src/services/firebase/users.firestore';
 import { uploadProfileImage, getImagePreviewUrl } from '../../src/services/storage.service';
 import { EditPersonalDetailsSchema, type EditPersonalDetailsFormData } from '../../src/lib/zod';
+import Toast from 'react-native-toast-message';
 
 export default function EditPersonalDetailsScreen() {
     const router = useRouter();
@@ -69,13 +70,17 @@ export default function EditPersonalDetailsScreen() {
         },
         onSuccess: async () => {
             await refreshUser();
-            Alert.alert('Success', 'Personal details updated successfully', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            Toast.show({
+                type: 'success',
+                text2: 'Your personal details have been updated successfully.',
+            });
         },
         onError: (error: any) => {
             setUploadingPhoto(false);
-            Alert.alert('Error', error?.message || 'Failed to update details');
+            Toast.show({
+                type: 'error',
+                text2: error?.message || 'Failed to update details',
+            });
         },
     });
 

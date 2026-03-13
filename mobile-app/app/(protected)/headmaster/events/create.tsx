@@ -12,7 +12,6 @@ import {
     Text,
     ScrollView,
     TouchableOpacity,
-    Pressable,
     TextInput,
     ActivityIndicator,
     Alert,
@@ -20,7 +19,6 @@ import {
     Image,
     StatusBar,
     Platform,
-    FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,50 +33,15 @@ import { useAuthStore } from '../../../../src/lib/store';
 import { getDistricts } from '../../../../src/services/firebase/master-data.firestore';
 import { District } from '../../../../src/types';
 import CalendarPickerModal from '../../../../src/components/CalendarPickerModal';
+import AddPhotoSourceModal from '../../../../src/components/AddPhotoSourceModal';
+import SelectModal from '../../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
 
 const BLUE = '#1E88E5';
-const CAMERA_ICON = require('../../../../assets/camera.png');
-const GALLERY_ICON = require('../../../../assets/picture.png');
 
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/* ── Select Modal ── */
-function SelectModal({ visible, title, data, selectedValue, onSelect, onClose, loading }: {
-    visible: boolean; title: string; data: { id: string; name: string }[]; selectedValue: string; onSelect: (v: string) => void; onClose: () => void; loading?: boolean;
-}) {
-    return (
-        <Modal visible={visible} transparent animationType="slide">
-            <View className="flex-1 bg-black/50 justify-end">
-                <View className="bg-white rounded-t-[20px] max-h-[70%]">
-                    <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-                        <AppText className="text-lg font-semibold text-gray-800">{title}</AppText>
-                        <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></TouchableOpacity>
-                    </View>
-                    {loading ? (
-                        <ActivityIndicator size="large" color={BLUE} className="p-10" />
-                    ) : (
-                        <FlatList
-                            data={data}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${selectedValue === item.id ? 'bg-blue-50' : 'bg-white'}`}
-                                    onPress={() => { onSelect(item.id); onClose(); }}
-                                >
-                                    <AppText className={`text-base ${selectedValue === item.id ? 'text-[#1E88E5] font-semibold' : 'text-gray-700'}`}>{item.name}</AppText>
-                                    {selectedValue === item.id && <Ionicons name="checkmark" size={20} color={BLUE} />}
-                                </TouchableOpacity>
-                            )}
-                            ListEmptyComponent={<AppText className="text-center p-5 text-gray-500">No items</AppText>}
-                        />
-                    )}
-                </View>
-            </View>
-        </Modal>
-    );
-}
 
 /* ── Main Screen ── */
 export default function CreateEventScreen() {
@@ -299,67 +262,12 @@ export default function CreateEventScreen() {
                 </TouchableOpacity>
             </ScrollView>
 
-            {/* Image Source Modal */}
-            <Modal
+            <AddPhotoSourceModal
                 visible={showImageSourceModal}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowImageSourceModal(false)}
-            >
-                <View className="flex-1 justify-center items-center px-6">
-                    <Pressable
-                        className="absolute inset-0 bg-black/45"
-                        onPress={() => setShowImageSourceModal(false)}
-                    />
-                    <View className="w-full max-w-[360px] rounded-2xl bg-white p-5 z-10">
-                        <AppText className="text-lg font-bold text-[#1a1a1a] text-center">Add Photo</AppText>
-                        <AppText className="text-sm text-gray-500 text-center mt-1">Choose image source</AppText>
-
-                        <View className="flex-row gap-5 mt-5">
-                            <TouchableOpacity
-                                className="flex-1 items-center"
-                                onPress={async () => {
-                                    setShowImageSourceModal(false);
-                                    await takePhoto();
-                                }}
-                            >
-                                <View className="w-[82px] h-[82px] rounded-2xl bg-blue-50 items-center justify-center mb-2">
-                                    <Image
-                                        source={CAMERA_ICON}
-                                        style={{ width: 42, height: 42 }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
-                                <AppText className="text-sm font-semibold text-gray-700">Camera</AppText>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                className="flex-1 items-center"
-                                onPress={async () => {
-                                    setShowImageSourceModal(false);
-                                    await pickImage();
-                                }}
-                            >
-                                <View className="w-[82px] h-[82px] rounded-2xl bg-blue-50 items-center justify-center mb-2">
-                                    <Image
-                                        source={GALLERY_ICON}
-                                        style={{ width: 42, height: 42 }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
-                                <AppText className="text-sm font-semibold text-gray-700">Gallery</AppText>
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity
-                            className="mt-5 py-2.5 rounded-lg border border-gray-200"
-                            onPress={() => setShowImageSourceModal(false)}
-                        >
-                            <AppText className="text-center text-gray-600 font-semibold">Cancel</AppText>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+                onClose={() => setShowImageSourceModal(false)}
+                onPickCamera={takePhoto}
+                onPickGallery={pickImage}
+            />
 
             {/* Calendar Modals */}
             <CalendarPickerModal visible={showStartCal} value={startDate} onSelect={(v) => setValue('startDate', v, { shouldValidate: true })} onClose={() => setShowStartCal(false)} />

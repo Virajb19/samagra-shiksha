@@ -191,12 +191,20 @@ const locations = [
   'Treasury Office', 'Sub-Divisional Office',
 ];
 const activityTypes = [
-  'Teachers Training Program', 'Parent-Teacher Meeting', 'Annual Day Celebration',
-  'Sports Day', 'Science Exhibition', 'Cultural Festival', 'Workshop on NEP 2020',
-  'Orientation Program', 'Republic Day Celebration', 'Independence Day Celebration',
-  'Career Guidance Seminar', 'Health Camp', 'Environmental Awareness Program',
-  'Hornbill Festival Celebration', 'Naga Heritage Day',
-];
+  'SMC Meeting',
+  'Block Level Community Training',
+  'Teachers Training Program',
+  'Parent-Teacher Meeting',
+  'Annual Day Celebration',
+  'Sports Day',
+  'Science Exhibition',
+  'Cultural Festival',
+  'Workshop on NEP 2020',
+  'Orientation Program',
+  'Career Guidance Seminar',
+  'Health Camp',
+  'Other',
+] as const;
 
 const unsplashEventPhotos = [
   'https://images.unsplash.com/photo-1540575467063-178a50e2fd87?w=800&q=80',
@@ -714,7 +722,7 @@ function seedEvents(): void {
   console.log(`📅 Creating ${SCALE.events} events...`);
   for (let i = 0; i < SCALE.events; i++) {
     const isSchoolLevel = randomBool(0.7);
-    const eventType = randomElement(SCHOOL_EVENT_TYPES);
+    const activityType = randomElement(activityTypes);
     const eventDate = generateFutureDate(180);
     const eventEndDate = randomBool(0.3) ? new Date(eventDate.getTime() + randomInt(1, 3) * 86400000) : null;
     const districtId = getWeightedDistrictId();
@@ -723,14 +731,13 @@ function seedEvents(): void {
     const id = newId('events');
     writer.set(db.collection('events').doc(id), {
       id,
-      title: `${randomElement(['Annual', 'Monthly', 'Special', 'District'])} ${eventType} ${i + 1}`,
-      description: `Event description for ${eventType}. This event aims to enhance the educational experience.`,
+      title: `${randomElement(['Annual', 'Monthly', 'Special', 'District'])} ${activityType} ${i + 1}`,
+      description: `Event description for ${activityType}. This event aims to enhance the educational experience.`,
       event_date: admin.firestore.Timestamp.fromDate(eventDate),
       event_end_date: eventEndDate ? admin.firestore.Timestamp.fromDate(eventEndDate) : null,
       event_time: `${randomInt(8, 17)}:${randomElement(['00', '30'])}`,
       location: `${randomElement(locations)}, ${districtName}`,
-      event_type: eventType,
-      activity_type: randomElement(activityTypes),
+      activity_type: activityType,
       flyer_url: randomBool(0.6) ? randomElement(unsplashEventPhotos) : null,
       male_participants: randomInt(5, 100),
       female_participants: randomInt(5, 120),
