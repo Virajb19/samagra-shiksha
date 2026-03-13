@@ -21,6 +21,16 @@ import { getCircularsPaginated as defaultGetCircularsPaginated, type PaginatedCi
 const BLUE = '#1565C0';
 const CIRCULARS_PAGE_SIZE = 10;
 
+function StatusBanner({ message }: { message: string }) {
+    return (
+        <View className="mx-4 mt-2">
+            <View className="border-[1.5px] rounded-xl py-[18px] items-center bg-blue-50" style={{ borderColor: BLUE, borderStyle: 'dashed' }}>
+                <AppText className="text-[15px] font-semibold text-center" style={{ color: BLUE }}>{message}</AppText>
+            </View>
+        </View>
+    );
+}
+
 export interface CircularItem {
     id: string;
     title?: string;
@@ -143,16 +153,11 @@ export default function CircularsScreen({
     // ── Early return AFTER all hooks ──
     if (!canAccess) {
         return (
-            <View className="flex-1 bg-[#f0f4f8] justify-center items-center px-6">
-                <View
-                    className="rounded-2xl py-6 px-4 items-center w-full"
-                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
-                >
-                    <Ionicons name={!hasCompletedProfile ? 'person-circle-outline' : 'time-outline'} size={48} color={BLUE} />
-                    <AppText style={{ color: BLUE, fontSize: 16, fontWeight: '600', marginTop: 12, textAlign: 'center' }}>
-                        {!hasCompletedProfile ? 'Kindly complete your profile' : 'Your account is under verification'}
-                    </AppText>
+            <View className="flex-1 bg-[#f5f5f5]">
+                <View className="flex-row justify-between items-center px-4 pt-3 pb-2">
+                    <AppText className="text-[26px] font-bold text-[#1a1a1a]">Circulars</AppText>
                 </View>
+                <StatusBanner message={!hasCompletedProfile ? 'Kindly complete your profile' : 'Your account is under verification'} />
             </View>
         );
     }

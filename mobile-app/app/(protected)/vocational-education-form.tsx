@@ -295,7 +295,8 @@ function SingleImagePicker({
                 </View>
             ) : (
                 <TouchableOpacity
-                    className="border-2 border-dashed border-blue-200 rounded-xl items-center justify-center bg-blue-50 py-8"
+                    className="border-2 border-blue-200 rounded-xl items-center justify-center bg-blue-50 py-8"
+                    style={{ borderStyle: 'dashed' }}
                     onPress={onPick}
                 >
                     <Ionicons name="image-outline" size={40} color="#9ca3af" />
