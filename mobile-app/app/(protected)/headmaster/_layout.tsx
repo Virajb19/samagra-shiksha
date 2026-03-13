@@ -16,7 +16,6 @@ export default function HeadmasterLayout() {
             <Stack.Screen name="events/index" />
             <Stack.Screen name="events/create" />
             <Stack.Screen name="events/[id]" />
-            <Stack.Screen name="faq" />
         </Stack>
     );
 }
