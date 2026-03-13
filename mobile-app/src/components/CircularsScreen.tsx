@@ -253,14 +253,14 @@ export default function CircularsScreen({
                     </View>
                     <View className="flex-row items-center mt-2">
                         {typeof c.file_url === 'string' && c.file_url ? (
-                            <TouchableOpacity className="flex-row items-center mr-4" onPress={() => openFile(c.file_url!, c)}>
+                            <TouchableOpacity className="flex-row items-center mr-4 border border-blue-500 rounded-full px-2 py-1" onPress={() => openFile(c.file_url!, c)}>
                                 <Ionicons name="download-outline" size={16} color={BLUE} />
                                 <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
                                     Download
                                 </AppText>
                             </TouchableOpacity>
                         ) : null}
-                        <TouchableOpacity className="flex-row items-center" onPress={() => shareCircular(c)}>
+                        <TouchableOpacity className="flex-row items-center border border-blue-500 rounded-full px-2 py-1" onPress={() => shareCircular(c)}>
                             <Ionicons name="share-social-outline" size={16} color={BLUE} />
                             <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
                                 Share

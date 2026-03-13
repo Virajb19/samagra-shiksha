@@ -11,7 +11,6 @@ import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     Image,
@@ -23,6 +22,7 @@ import { useAuthStore } from '../../../../src/lib/store';
 import { useQuery } from '@tanstack/react-query';
 import { getProfileStatus } from '../../../../src/services/firebase/users.firestore';
 import { Ionicons } from '@expo/vector-icons';
+import { ProfileHeaderCard } from '@/components/ProfileHeaderCard';
 
 const BLUE = '#1565C0';
 
@@ -36,8 +36,8 @@ interface ActionCardProps {
 function ActionCard({ title, iconName, onPress, disabled = false }: ActionCardProps) {
     return (
         <TouchableOpacity
-            className={`bg-white rounded-xl items-center justify-center py-4 px-2 ${disabled ? 'opacity-50' : ''}`}
-            style={{ width: '31%', minHeight: 110, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3 }}
+            className={`bg-white rounded-xl items-center justify-center py-4 px-2 w-[31%] min-h-[110px] shadow-sm ${disabled ? 'opacity-50' : ''}`}
+            style={{ elevation: 2 }}
             onPress={onPress}
             activeOpacity={0.75}
         >
@@ -88,15 +88,17 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
     return (
         <Modal visible={internalVisible} transparent statusBarTranslucent onRequestClose={onClose}>
             <Animated.View
-                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, opacity }}
+                className="flex-1 justify-center items-center px-6"
+                style={{ backgroundColor: 'rgba(0,0,0,0.5)', opacity }}
             >
                 <TouchableOpacity
-                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                    className="absolute top-0 left-0 right-0 bottom-0"
                     activeOpacity={1}
                     onPress={onClose}
                 />
                 <Animated.View
-                    style={{ transform: [{ translateY }], backgroundColor: '#fff', borderRadius: 24, width: '100%', paddingHorizontal: 28, paddingTop: 32, paddingBottom: 28, alignItems: 'center' }}
+                    className="bg-white rounded-3xl w-full px-7 pt-8 pb-7 items-center"
+                    style={{ transform: [{ translateY }] }}
                 >
                     <Image
                         source={{
@@ -104,34 +106,34 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
                                 ? 'https://cdn-icons-png.flaticon.com/512/6195/6195699.png'
                                 : 'https://cdn-icons-png.flaticon.com/512/3596/3596165.png'
                         }}
-                        style={{ width: 140, height: 140, marginBottom: 20 }}
+                        className="w-[140px] h-[140px] mb-5"
                         resizeMode="contain"
                     />
-                    <AppText style={{ fontSize: 22, fontWeight: '700', color: '#1a1a2e', textAlign: 'center', marginBottom: 8 }}>
+                    <AppText className="text-[22px] font-bold text-[#1a1a2e] text-center mb-2">
                         {isVerification ? 'Account under verification' : 'Complete your profile'}
                     </AppText>
-                    <AppText style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22, marginBottom: 28 }}>
+                    <AppText className="text-sm text-gray-500 text-center leading-[22px] mb-7">
                         {isVerification
                             ? 'Your account is currently under verification by the admin. You will be able to access this once approved.'
                             : 'Kindly complete your profile by filling up relevant experience details.'}
                     </AppText>
                     {isVerification ? (
                         <TouchableOpacity
-                            style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center', marginBottom: 12 }}
+                            className="bg-[#1565C0] rounded-xl py-3.5 w-full items-center mb-3"
                             onPress={onClose}
                         >
-                            <AppText style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>OK, Got it</AppText>
+                            <AppText className="text-white text-base font-semibold">OK, Got it</AppText>
                         </TouchableOpacity>
                     ) : (
                         <>
                             <TouchableOpacity
-                                style={{ backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, width: '100%', alignItems: 'center', marginBottom: 12 }}
+                                className="bg-[#1565C0] rounded-xl py-3.5 w-full items-center mb-3"
                                 onPress={onComplete}
                             >
-                                <AppText style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Complete Profile</AppText>
+                                <AppText className="text-white text-base font-semibold">Complete Profile</AppText>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={onClose} style={{ paddingVertical: 8 }}>
-                                <AppText style={{ color: '#9ca3af', fontSize: 14 }}>Maybe later</AppText>
+                            <TouchableOpacity onPress={onClose} className="py-2">
+                                <AppText className="text-gray-400 text-sm">Maybe later</AppText>
                             </TouchableOpacity>
                         </>
                     )}
@@ -171,43 +173,11 @@ export default function TeacherHomeTabScreen() {
         }
     };
 
-    const getRoleLabel = () => {
-        if (user?.role === 'TEACHER') return 'Teacher';
-        if (user?.role === 'HEADMASTER') return 'Headmaster';
-        return user?.role ?? 'User';
-    };
-
     return (
         <ScrollView className="flex-1 bg-[#f0f4f8]" contentContainerStyle={{ paddingBottom: 32 }}>
 
             {/* Blue Profile Header Card */}
-            <View style={{ backgroundColor: BLUE, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 28 }}>
-                <View className="flex-row items-center">
-                    <View className="mr-4">
-                        {user?.profile_image_url ? (
-                            <Image
-                                source={{ uri: user.profile_image_url }}
-                                className="w-20 h-20 rounded-full"
-                                style={{ borderWidth: 3, borderColor: 'rgba(255,255,255,0.6)' }}
-                            />
-                        ) : (
-                            <View className="w-20 h-20 rounded-full justify-center items-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)' }}>
-                                <Ionicons name="person" size={38} color="rgba(255,255,255,0.8)" />
-                            </View>
-                        )}
-                    </View>
-                    <View className="flex-1">
-                        <AppText className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user?.name || 'User'}</AppText>
-                        <View className="flex-row items-center mb-2">
-                            <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.8)" />
-                            <AppText className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user?.email || 'No email'}</AppText>
-                        </View>
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' }}>
-                            <AppText className="text-white text-xs font-semibold">{getRoleLabel()}</AppText>
-                        </View>
-                    </View>
-                </View>
-            </View>
+            <ProfileHeaderCard roleLabel="Teacher" />
 
             {/* Action Cards Grid */}
             <View className="px-4 mt-5">
@@ -261,21 +231,17 @@ export default function TeacherHomeTabScreen() {
             {/* Profile status banners */}
             {!loadingProfile && !hasCompletedProfile && (
                 <TouchableOpacity
-                    className="mx-4 mt-2 rounded-xl py-4 items-center"
-                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
+                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]"
                     onPress={() => router.push('/(protected)/teacher/complete-profile')}
                     activeOpacity={0.8}
                 >
-                    <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Kindly complete your profile</AppText>
+                    <AppText className="text-[#1565C0] text-[15px] font-semibold">Kindly complete your profile</AppText>
                 </TouchableOpacity>
             )}
 
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <View
-                    className="mx-4 mt-2 rounded-xl py-4 items-center"
-                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
-                >
-                    <AppText style={{ color: BLUE, fontSize: 15, fontWeight: '600' }}>Your account is under verification</AppText>
+                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]">
+                    <AppText className="text-[#1565C0] text-[15px] font-semibold">Your account is under verification</AppText>
                 </View>
             )}
 

@@ -260,15 +260,9 @@ export default function ViewStaffsScreen() {
     return (
         <View className="flex-1 bg-[#f0f2f8]">
             {/* Header */}
-            <View className="bg-[#2c3e6b] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
-                <TouchableOpacity
-                    className="p-2 mr-2"
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </TouchableOpacity>
+            <View className="bg-[#1565C0] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
                 <View className="flex-1">
-                    <AppText className="text-[32px] font-bold text-white mb-1">View Staffs</AppText>
+                    <AppText className="text-[35px] font-bold text-white mb-1">View Staffs</AppText>
                     <AppText className="text-sm text-white/70">{schoolName}</AppText>
                 </View>
             </View>
