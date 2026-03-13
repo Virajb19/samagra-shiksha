@@ -243,7 +243,7 @@ export const CreateEventSchema = z.object({
         }, 'Must be a valid number'),
 }).refine(
     (data) => new Date(data.startDate) <= new Date(data.endDate),
-    { message: 'Starting date must be before or equal to ending date', path: ['endDate'] }
+    { message: 'Ending date must be after or equal to starting date', path: ['endDate'] }
 );
 
 export type CreateEventFormData = z.infer<typeof CreateEventSchema>;

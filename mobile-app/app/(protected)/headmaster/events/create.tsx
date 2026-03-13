@@ -185,7 +185,7 @@ export default function CreateEventScreen() {
 
     return (
         <View className="flex-1" style={{ backgroundColor: BLUE }}>
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />         
+            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
 
             <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
                 <AppText className="text-2xl font-extrabold text-[#1a1a1a] mb-1.5">Create Event</AppText>
@@ -345,7 +345,7 @@ export default function CreateEventScreen() {
                                         source={GALLERY_ICON}
                                         style={{ width: 42, height: 42 }}
                                         resizeMode="contain"
-                                     />
+                                    />
                                 </View>
                                 <AppText className="text-sm font-semibold text-gray-700">Gallery</AppText>
                             </TouchableOpacity>

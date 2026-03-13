@@ -14,8 +14,10 @@ import { queryClient } from '@/lib/queryClient';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import Toast, { BaseToastProps } from 'react-native-toast-message';
 import { useAuthStore } from '../src/lib/store';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { AppText } from '../src/components/AppText';
+import { GlobalLoader } from '../src/components/GlobalLoader';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -24,46 +26,32 @@ SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
     error: (props: BaseToastProps) => (
-        <View className="mx-4 mb-1 rounded-2xl bg-red-500 px-3 py-3" style={{ elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
-            <View className="flex-row items-start">
-            <View className="w-9 h-9 rounded-full bg-red-500 justify-center items-center shrink-0">
-                <Ionicons name="alert-circle" size={22} color="#fff" />
-            </View>
-                <View className="ml-3 flex-1">
-                    <Text
-                        numberOfLines={3}
-                        style={{
-                            color: '#ffffff',
-                            fontSize: 14,
-                            lineHeight: 20,
-                            fontFamily: 'Lato-Regular',
-                        }}
-                    >
-                        {props.text2 || props.text1 || 'Something went wrong.'}
-                    </Text>
+        <View style={{ marginHorizontal: 16, marginBottom: 4, borderRadius: 16, backgroundColor: '#ef4444', paddingHorizontal: 12, paddingVertical: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' }}>
+                    <Ionicons name="alert-circle" size={22} color="#fff" />
                 </View>
+                <AppText
+                    numberOfLines={3}
+                    style={{ color: '#ffffff', fontSize: 14, lineHeight: 20, marginLeft: 12, flex: 1 }}
+                >
+                    {props.text2 || props.text1 || 'Something went wrong.'}
+                </AppText>
             </View>
         </View>
     ),
     success: (props: BaseToastProps) => (
-        <View className="mx-4 mb-1 rounded-2xl bg-green-500 px-3 py-3" style={{ elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
-            <View className="flex-row items-start">
-                <View className="w-9 h-9 rounded-full bg-green-500 justify-center items-center shrink-0">
-                <Ionicons name="checkmark-circle" size={22} color="#fff" />
-            </View>
-                <View className="ml-3 flex-1">
-                    <Text
-                        numberOfLines={3}
-                        style={{
-                            color: '#ffffff',
-                            fontSize: 14,
-                            lineHeight: 20,
-                            fontFamily: 'Lato-Regular',
-                        }}
-                    >
-                        {props.text2 || props.text1 || 'Done successfully.'}
-                    </Text>
+        <View style={{ marginHorizontal: 16, marginBottom: 4, borderRadius: 16, backgroundColor: '#22c55e', paddingHorizontal: 12, paddingVertical: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' }}>
+                    <Ionicons name="checkmark-circle" size={22} color="#fff" />
                 </View>
+                <AppText
+                    numberOfLines={3}
+                    style={{ color: '#ffffff', fontSize: 14, lineHeight: 20, marginLeft: 12, flex: 1 }}
+                >
+                    {props.text2 || props.text1 || 'Done successfully.'}
+                </AppText>
             </View>
         </View>
     ),
@@ -113,18 +101,19 @@ export default function RootLayout() {
 
     return (
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-                <StatusBar style="light" />
-                <QueryClientProvider client={queryClient}>
-                   <View style={{ flex: 1, backgroundColor: 'white' }}>
-                      <Stack
-                            screenOptions={{
-                                headerShown: false,
-                                animation: 'slide_from_right',
-                            }}
-                      />
-                   </View>
-                </QueryClientProvider>
-                <Toast config={toastConfig} position="bottom" bottomOffset={90} />
+            <StatusBar style="light" />
+            <QueryClientProvider client={queryClient}>
+                <View style={{ flex: 1, backgroundColor: 'white' }}>
+                    <Stack
+                        screenOptions={{
+                            headerShown: false,
+                            animation: 'slide_from_right',
+                        }}
+                    />
+                    <GlobalLoader />
+                </View>
+            </QueryClientProvider>
+            <Toast config={toastConfig} position="bottom" bottomOffset={90} />
         </SafeAreaProvider>
     );
 }

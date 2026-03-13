@@ -3,14 +3,13 @@
  * 
  * Displays the headmaster's profile information including
  * school details, qualifications, and experience.
+ * Uses NativeWind (className) for styling.
  */
 
 import React from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
@@ -21,6 +20,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../../src/lib/store';
+
+const NAVY = '#2c3e6b';
 
 interface FacultyProfile {
     id: string;
@@ -39,11 +40,6 @@ interface FacultyProfile {
     } | null;
 }
 
-interface ProfileResponse {
-    has_profile: boolean;
-    faculty: FacultyProfile | null;
-}
-
 export default function ViewProfileScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -58,12 +54,11 @@ export default function ViewProfileScreen() {
         queryFn: async () => {
             if (!user?.id) throw new Error('Not authenticated');
             const data = await getFacultyByUserId(user.id);
-            return data; // null if no faculty doc yet
+            return data;
         },
         enabled: !!user?.id,
     });
 
-    // Format gender for display
     const formatGender = (gender: string | null | undefined) => {
         if (!gender) return 'Not specified';
         return gender === 'MALE' ? 'Male' : gender === 'FEMALE' ? 'Female' : gender;
@@ -71,20 +66,20 @@ export default function ViewProfileScreen() {
 
     if (isLoading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#2c3e6b" />
-                <AppText style={styles.loadingText}>Loading profile...</AppText>
+            <View className="flex-1 justify-center items-center bg-[#f0f2f8]">
+                <ActivityIndicator size="large" color={NAVY} />
+                <AppText className="mt-3 text-base text-gray-500">Loading profile...</AppText>
             </View>
         );
     }
 
     if (error) {
         return (
-            <View style={styles.errorContainer}>
+            <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                <AppText style={styles.errorText}>Failed to load profile</AppText>
-                <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
-                    <AppText style={styles.retryButtonText}>Go Back</AppText>
+                <AppText className="text-base text-gray-500 mt-3 mb-4">Failed to load profile</AppText>
+                <TouchableOpacity className="bg-[#2c3e6b] px-6 py-3 rounded-[10px]" onPress={() => router.back()}>
+                    <AppText className="text-white text-sm font-semibold">Go Back</AppText>
                 </TouchableOpacity>
             </View>
         );
@@ -92,87 +87,80 @@ export default function ViewProfileScreen() {
 
     if (!profile) {
         return (
-            <View style={styles.errorContainer}>
+            <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="person-circle-outline" size={64} color="#9ca3af" />
-                <AppText style={[styles.errorText, { marginTop: 12 }]}>Profile not completed yet</AppText>
+                <AppText className="text-base text-gray-500 mt-3 mb-4">Profile not completed yet</AppText>
                 <TouchableOpacity
-                    style={styles.retryButton}
+                    className="bg-[#2c3e6b] px-6 py-3 rounded-[10px]"
                     onPress={() => router.replace('/(protected)/headmaster/complete-profile')}
                 >
-                    <AppText style={styles.retryButtonText}>Complete Profile</AppText>
+                    <AppText className="text-white text-sm font-semibold">Complete Profile</AppText>
                 </TouchableOpacity>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top }]}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </TouchableOpacity>
-                <AppText style={styles.headerTitle}>My Profile</AppText>
-                {!profile.is_profile_locked && (
-                    <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => router.push('/headmaster/complete-profile')}
-                    >
-                        <AppText style={styles.editButtonText}>Edit Details</AppText>
-                    </TouchableOpacity>
-                )}
-                {profile.is_profile_locked && <View style={styles.placeholder} />}
-            </View>
+        <View className="flex-1 bg-[#eaf0fb]" style={{ paddingTop: insets.top }}>
+            <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+                {/* My Profile Heading + Edit Button */}
+                <View className="flex-row items-center justify-between mb-4">
+                    <AppText className="text-2xl font-bold text-[#1a1a2e]">My Profile</AppText>
+                    {!profile.is_profile_locked && (
+                        <TouchableOpacity
+                            className="bg-[#2c3e6b] px-4 py-2 rounded-lg"
+                            onPress={() => router.push('/headmaster/complete-profile')}
+                        >
+                            <AppText className="text-white text-sm font-medium">Edit Details</AppText>
+                        </TouchableOpacity>
+                    )}
+                </View>
 
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
                 {/* Profile Locked Badge */}
                 {profile.is_profile_locked && (
-                    <View style={styles.lockedBadge}>
-                        <Ionicons name="lock-closed" size={16} color="#2c3e6b" />
-                        <AppText style={styles.lockedText}>
+                    <View className="flex-row items-center bg-[#e8ecf4] border border-[#c5cee0] rounded-[10px] p-3 mb-4 gap-2">
+                        <Ionicons name="lock-closed" size={16} color={NAVY} />
+                        <AppText className="text-[13px] text-[#2c3e6b] font-medium">
                             Profile is locked and cannot be edited
                         </AppText>
                     </View>
                 )}
 
                 {/* Personal Information */}
-                <View style={styles.section}>
-                    <AppText style={styles.sectionTitle}>Personal Information</AppText>
-                    <View style={styles.card}>
-                        <View style={styles.infoRow}>
+                <View className="mb-5">
+                    <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Personal Information</AppText>
+                    <View className="bg-white rounded-[14px] p-4 mb-3" style={{ shadowColor: NAVY, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+                        <View className="flex-row items-start gap-3">
                             <Ionicons name="person-outline" size={20} color="#6b7280" />
-                            <View style={styles.infoContent}>
-                                <AppText style={styles.infoLabel}>Full Name</AppText>
-                                <AppText style={styles.infoValue}>{user?.name || '-'}</AppText>
+                            <View className="flex-1">
+                                <AppText className="text-xs text-gray-400 mb-0.5">Full Name</AppText>
+                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">{user?.name || '-'}</AppText>
                             </View>
                         </View>
-                        <View style={styles.divider} />
-                        <View style={styles.infoRow}>
+                        <View className="h-px bg-[#f0f2f8] my-3" />
+                        <View className="flex-row items-start gap-3">
                             <Ionicons name="call-outline" size={20} color="#6b7280" />
-                            <View style={styles.infoContent}>
-                                <AppText style={styles.infoLabel}>Phone Number</AppText>
-                                <AppText style={styles.infoValue}>{user?.phone || '-'}</AppText>
+                            <View className="flex-1">
+                                <AppText className="text-xs text-gray-400 mb-0.5">Phone Number</AppText>
+                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">{user?.phone || '-'}</AppText>
                             </View>
                         </View>
-                        <View style={styles.divider} />
-                        <View style={styles.infoRow}>
+                        <View className="h-px bg-[#f0f2f8] my-3" />
+                        <View className="flex-row items-start gap-3">
                             <Ionicons name={user?.gender === 'MALE' ? 'male' : user?.gender === 'FEMALE' ? 'female' : 'person-outline'} size={20} color="#6b7280" />
-                            <View style={styles.infoContent}>
-                                <AppText style={styles.infoLabel}>Gender</AppText>
-                                <AppText style={styles.infoValue}>{formatGender(user?.gender)}</AppText>
+                            <View className="flex-1">
+                                <AppText className="text-xs text-gray-400 mb-0.5">Gender</AppText>
+                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">{formatGender(user?.gender)}</AppText>
                             </View>
                         </View>
                         {user?.email && (
                             <>
-                                <View style={styles.divider} />
-                                <View style={styles.infoRow}>
+                                <View className="h-px bg-[#f0f2f8] my-3" />
+                                <View className="flex-row items-start gap-3">
                                     <Ionicons name="mail-outline" size={20} color="#6b7280" />
-                                    <View style={styles.infoContent}>
-                                        <AppText style={styles.infoLabel}>Email</AppText>
-                                        <AppText style={styles.infoValue}>{user.email}</AppText>
+                                    <View className="flex-1">
+                                        <AppText className="text-xs text-gray-400 mb-0.5">Email</AppText>
+                                        <AppText className="text-[15px] text-[#1a1a2e] font-medium">{user.email}</AppText>
                                     </View>
                                 </View>
                             </>
@@ -182,32 +170,32 @@ export default function ViewProfileScreen() {
 
                 {/* School Information */}
                 {profile.school && (
-                    <View style={styles.section}>
-                        <AppText style={styles.sectionTitle}>School Information</AppText>
-                        <View style={styles.card}>
-                            <View style={styles.infoRow}>
+                    <View className="mb-5">
+                        <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">School Information</AppText>
+                        <View className="bg-white rounded-[14px] p-4 mb-3" style={{ shadowColor: NAVY, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+                            <View className="flex-row items-start gap-3">
                                 <Ionicons name="school-outline" size={20} color="#6b7280" />
-                                <View style={styles.infoContent}>
-                                    <AppText style={styles.infoLabel}>School Name</AppText>
-                                    <AppText style={styles.infoValue}>{profile.school.name}</AppText>
+                                <View className="flex-1">
+                                    <AppText className="text-xs text-gray-400 mb-0.5">School Name</AppText>
+                                    <AppText className="text-[15px] text-[#1a1a2e] font-medium">{profile.school.name}</AppText>
                                 </View>
                             </View>
-                            <View style={styles.divider} />
-                            <View style={styles.infoRow}>
+                            <View className="h-px bg-[#f0f2f8] my-3" />
+                            <View className="flex-row items-start gap-3">
                                 <Ionicons name="barcode-outline" size={20} color="#6b7280" />
-                                <View style={styles.infoContent}>
-                                    <AppText style={styles.infoLabel}>School Code</AppText>
-                                    <AppText style={styles.infoValue}>{profile.school.registration_code || profile.school.code || '-'}</AppText>
+                                <View className="flex-1">
+                                    <AppText className="text-xs text-gray-400 mb-0.5">School Code</AppText>
+                                    <AppText className="text-[15px] text-[#1a1a2e] font-medium">{profile.school.registration_code || profile.school.code || '-'}</AppText>
                                 </View>
                             </View>
                             {profile.school.district && (
                                 <>
-                                    <View style={styles.divider} />
-                                    <View style={styles.infoRow}>
+                                    <View className="h-px bg-[#f0f2f8] my-3" />
+                                    <View className="flex-row items-start gap-3">
                                         <Ionicons name="location-outline" size={20} color="#6b7280" />
-                                        <View style={styles.infoContent}>
-                                            <AppText style={styles.infoLabel}>District</AppText>
-                                            <AppText style={styles.infoValue}>{profile.school.district.name}</AppText>
+                                        <View className="flex-1">
+                                            <AppText className="text-xs text-gray-400 mb-0.5">District</AppText>
+                                            <AppText className="text-[15px] text-[#1a1a2e] font-medium">{profile.school.district.name}</AppText>
                                         </View>
                                     </View>
                                 </>
@@ -217,184 +205,41 @@ export default function ViewProfileScreen() {
                 )}
 
                 {/* Experience Details */}
-                <View style={styles.section}>
-                    <AppText style={styles.sectionTitle}>Experience Details</AppText>
-                    <View style={styles.card}>
-                        <View style={styles.infoRow}>
+                <View className="mb-5">
+                    <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Experience Details</AppText>
+                    <View className="bg-white rounded-[14px] p-4 mb-3" style={{ shadowColor: NAVY, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 }}>
+                        <View className="flex-row items-start gap-3">
                             <Ionicons name="briefcase-outline" size={20} color="#6b7280" />
-                            <View style={styles.infoContent}>
-                                <AppText style={styles.infoLabel}>Designation</AppText>
-                                <AppText style={styles.infoValue}>
+                            <View className="flex-1">
+                                <AppText className="text-xs text-gray-400 mb-0.5">Designation</AppText>
+                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">
                                     {profile.designation || 'Principal/Headmaster'}
                                 </AppText>
                             </View>
                         </View>
-                        <View style={styles.divider} />
-                        <View style={styles.infoRow}>
+                        <View className="h-px bg-[#f0f2f8] my-3" />
+                        <View className="flex-row items-start gap-3">
                             <Ionicons name="ribbon-outline" size={20} color="#6b7280" />
-                            <View style={styles.infoContent}>
-                                <AppText style={styles.infoLabel}>Highest Qualification</AppText>
-                                <AppText style={styles.infoValue}>
+                            <View className="flex-1">
+                                <AppText className="text-xs text-gray-400 mb-0.5">Highest Qualification</AppText>
+                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">
                                     {profile.highest_qualification}
                                 </AppText>
                             </View>
                         </View>
-                        <View style={styles.divider} />
-                        <View style={styles.infoRow}>
+                        <View className="h-px bg-[#f0f2f8] my-3" />
+                        <View className="flex-row items-start gap-3">
                             <Ionicons name="time-outline" size={20} color="#6b7280" />
-                            <View style={styles.infoContent}>
-                                <AppText style={styles.infoLabel}>Years of Experience</AppText>
-                                <AppText style={styles.infoValue}>
+                            <View className="flex-1">
+                                <AppText className="text-xs text-gray-400 mb-0.5">Years of Experience</AppText>
+                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">
                                     {profile.years_of_experience} years
                                 </AppText>
                             </View>
                         </View>
                     </View>
                 </View>
-
             </ScrollView>
         </View>
     );
 }
-
-const NAVY = '#2c3e6b';
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f0f2f8',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        backgroundColor: NAVY,
-    },
-    backButton: {
-        padding: 8,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#ffffff',
-    },
-    editButton: {
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-    },
-    editButtonText: {
-        color: '#ffffff',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    placeholder: {
-        width: 80,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        padding: 16,
-        paddingBottom: 32,
-    },
-    lockedBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#e8ecf4',
-        borderWidth: 1,
-        borderColor: '#c5cee0',
-        borderRadius: 10,
-        padding: 12,
-        marginBottom: 16,
-        gap: 8,
-    },
-    lockedText: {
-        fontSize: 13,
-        color: NAVY,
-        fontWeight: '500',
-    },
-    section: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#6b7280',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 12,
-    },
-    card: {
-        backgroundColor: '#ffffff',
-        borderRadius: 14,
-        padding: 16,
-        shadowColor: NAVY,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        elevation: 2,
-        marginBottom: 12,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 12,
-    },
-    infoContent: {
-        flex: 1,
-    },
-    infoLabel: {
-        fontSize: 12,
-        color: '#9ca3af',
-        marginBottom: 2,
-    },
-    infoValue: {
-        fontSize: 15,
-        color: '#1a1a2e',
-        fontWeight: '500',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: '#f0f2f8',
-        marginVertical: 12,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f0f2f8',
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: '#6b7280',
-    },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f0f2f8',
-        padding: 24,
-    },
-    errorText: {
-        fontSize: 16,
-        color: '#6b7280',
-        marginTop: 12,
-        marginBottom: 16,
-    },
-    retryButton: {
-        backgroundColor: NAVY,
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 10,
-    },
-    retryButtonText: {
-        color: '#ffffff',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-});

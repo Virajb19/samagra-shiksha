@@ -3,14 +3,13 @@
  * 
  * Displays the teacher's profile information including
  * school details, qualifications, and teaching assignments.
- * Matches the headmaster navy theme.
+ * Uses NativeWind (className) for styling.
  */
 
 import React, { useCallback } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
@@ -21,6 +20,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../../src/lib/store';
+
+const NAVY = '#2c3e6b';
 
 interface FacultyProfile {
     id: string;
@@ -60,12 +61,10 @@ export default function ViewProfileScreen() {
         },
     });
 
-    // Refetch profile when screen gains focus
     useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
 
     const profile = profileData?.faculty;
 
-    // Format gender for display
     const formatGender = (gender: string | null | undefined) => {
         if (!gender) return 'Not specified';
         return gender === 'MALE' ? 'Male' : gender === 'FEMALE' ? 'Female' : gender;
@@ -100,28 +99,21 @@ export default function ViewProfileScreen() {
     }
 
     return (
-        <View className="flex-1 bg-[#f0f2f8]">
-            {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-4 bg-[#2c3e6b]" style={{ paddingTop: insets.top }}>
-                <TouchableOpacity
-                    className="p-2"
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </TouchableOpacity>
-                <AppText className="text-lg font-semibold text-white">My Profile</AppText>
-                {!profile.is_profile_locked && (
-                    <TouchableOpacity
-                        className="bg-white/20 px-3 py-1.5 rounded-lg"
-                        onPress={() => router.push('/(protected)/teacher/complete-profile')}
-                    >
-                        <AppText className="text-white text-sm font-medium">Edit Details</AppText>
-                    </TouchableOpacity>
-                )}
-                {profile.is_profile_locked && <View className="w-20" />}
-            </View>
-
+        <View className="flex-1 bg-[#eaf0fb]" style={{ paddingTop: insets.top }}>
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+                {/* My Profile Heading + Edit Button */}
+                <View className="flex-row items-center justify-between mb-4">
+                    <AppText className="text-2xl font-bold text-[#1a1a2e]">My Profile</AppText>
+                    {!profile.is_profile_locked && (
+                        <TouchableOpacity
+                            className="bg-[#2c3e6b] px-4 py-2 rounded-lg"
+                            onPress={() => router.push('/(protected)/teacher/complete-profile')}
+                        >
+                            <AppText className="text-white text-sm font-medium">Edit Details</AppText>
+                        </TouchableOpacity>
+                    )}
+                </View>
+
                 {/* Profile Locked Badge */}
                 {profile.is_profile_locked && (
                     <View className="flex-row items-center bg-[#e8ecf4] border border-[#c5cee0] rounded-[10px] p-3 mb-4 gap-2">
@@ -237,5 +229,3 @@ export default function ViewProfileScreen() {
         </View>
     );
 }
-
-const NAVY = '#2c3e6b';

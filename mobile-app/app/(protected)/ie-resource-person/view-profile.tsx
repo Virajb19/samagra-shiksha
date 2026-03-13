@@ -12,11 +12,9 @@ import React from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
-    Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -105,52 +103,17 @@ export default function IEViewProfileScreen() {
     }
 
     return (
-        <View className="flex-1 bg-[#f0f2f8]">
-            {/* Blue Profile Header — same as Home */}
-            <View
-                style={{ backgroundColor: BLUE, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, paddingTop: insets.top + 12 }}
-                className="px-5 pb-7"
-            >
-                {/* Back Button */}
-                <TouchableOpacity className="p-1 mb-3 self-start" onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </TouchableOpacity>
-
-                <View className="flex-row items-center">
-                    <View className="mr-4">
-                        {user.profile_image_url ? (
-                            <Image
-                                source={{ uri: user.profile_image_url }}
-                                className="w-20 h-20 rounded-full"
-                                style={{ borderWidth: 3, borderColor: 'rgba(255,255,255,0.6)' }}
-                            />
-                        ) : (
-                            <View
-                                className="w-20 h-20 rounded-full justify-center items-center"
-                                style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)' }}
-                            >
-                                <Ionicons name="person" size={38} color="rgba(255,255,255,0.8)" />
-                            </View>
-                        )}
-                    </View>
-                    <View className="flex-1">
-                        <AppText className="text-white text-2xl font-bold mb-1" numberOfLines={1}>{user.name || 'User'}</AppText>
-                        <View className="flex-row items-center mb-2">
-                            <Ionicons name="mail-outline" size={14} color="rgba(255,255,255,0.8)" />
-                            <AppText className="text-sm ml-1 flex-1" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{user.email || 'No email'}</AppText>
-                        </View>
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' }}>
-                            <AppText className="text-white text-xs font-semibold">IE Resource Person</AppText>
-                        </View>
-                    </View>
-                </View>
-            </View>
-
+        <View className="flex-1 bg-[#eaf0fb]" style={{ paddingTop: insets.top }}>
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+                {/* My Profile Heading */}
+                <AppText className="text-2xl font-bold text-[#1a1a2e] mb-4">My Profile</AppText>
+
                 {/* Personal Details */}
                 <View className="mb-5">
                     <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Personal Details</AppText>
                     <View className="bg-white rounded-2xl p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }}>
+                        <InfoRow icon="person-outline" label="Full Name" value={user.name || '-'} />
+                        <Divider />
                         <InfoRow icon="call-outline" label="Phone Number" value={user.phone || '-'} />
                         <Divider />
                         <InfoRow
@@ -158,6 +121,12 @@ export default function IEViewProfileScreen() {
                             label="Gender"
                             value={user.gender === 'MALE' ? 'Male' : user.gender === 'FEMALE' ? 'Female' : 'Not specified'}
                         />
+                        {user.email && (
+                            <>
+                                <Divider />
+                                <InfoRow icon="mail-outline" label="Email" value={user.email} />
+                            </>
+                        )}
                     </View>
                 </View>
 
