@@ -32,6 +32,7 @@ import { useAuthStore } from '../../src/lib/store';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema, LoginFormData } from '../../src/lib/zod';
+import { useMutation } from '@tanstack/react-query';
 
 /** Dark navy color used in header and primary buttons */
 const NAVY = '#2c3e6b';
@@ -54,23 +55,41 @@ export default function LoginScreen() {
         },
     });
 
+    const loginMutation = useMutation({
+        mutationFn: async (data: LoginFormData) => {
+            const result = await login({
+                email: data.email,
+                password: data.password,
+            });
+
+            if (!result.success) {
+                throw new Error(result.error || 'Login failed. Please try again.');
+            }
+
+            return result;
+        },
+        onError: (err: any) => {
+            setError(err?.message || 'An unexpected error occurred.');
+        },
+    });
+
     /**
      * Handle form submission.
      */
     const onSubmit = async (data: LoginFormData) => {
         setError(null);
+        await loginMutation.mutateAsync(data);
+        // try {
+        //     const result = await login({ email: data.email, password: data.password });
 
-        try {
-            const result = await login({ email: data.email, password: data.password });
-
-            if (!result.success) {
-                setError(result.error || 'Login failed. Please try again.');
-            }
-            // On success, the (auth)/_layout guard will detect isAuthenticated
-            // and redirect to the protected route automatically.
-        } catch (err) {
-            setError('An unexpected error occurred.');
-        }
+        //     if (!result.success) {
+        //         setError(result.error || 'Login failed. Please try again.');
+        //     }
+        //     // On success, the (auth)/_layout guard will detect isAuthenticated
+        //     // and redirect to the protected route automatically.
+        // } catch (err) {
+        //     setError('An unexpected error occurred.');
+        // }
     };
 
     /**

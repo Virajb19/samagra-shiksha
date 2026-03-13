@@ -168,14 +168,14 @@ export default function CreateEventScreen() {
     const pickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') { Alert.alert('Permission Required', 'Please grant camera roll permissions.'); return; }
-        const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [16, 9], quality: 0.8 });
+        const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 0.8 });
         if (!result.canceled && result.assets[0]) setPhoto(result.assets[0]);
     };
 
     const takePhoto = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') { Alert.alert('Permission Required', 'Please grant camera permissions.'); return; }
-        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [16, 9], quality: 0.8 });
+        const result = await ImagePicker.launchCameraAsync({ allowsEditing: false, quality: 0.8 });
         if (!result.canceled && result.assets[0]) setPhoto(result.assets[0]);
     };
 

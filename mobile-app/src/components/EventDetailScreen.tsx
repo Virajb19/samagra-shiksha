@@ -1,7 +1,7 @@
 /**
  * Shared Event Detail Screen — used by all roles.
  * Square hero image (object-contain), event details, resolved creator name.
- * Uses PNG icons from assets/material-icons/.
+ * Uses Expo MaterialIcons for all detail rows.
  */
 
 import React from 'react';
@@ -19,16 +19,6 @@ import { District } from '../types';
 const BLUE = '#1E88E5';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/* ── Icon assets from assets/material-icons/ ── */
-const ICON_ASSETS = {
-    activity: require('../../assets/material-icons/sports_volleyball_24dp_000000_FILL0_wght400_GRAD0_opsz24.png'),
-    calendar: require('../../assets/material-icons/calendar_month_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png'),
-    location: require('../../assets/material-icons/location_on_24dp_000000_FILL0_wght400_GRAD0_opsz24.png'),
-    male: require('../../assets/material-icons/face_24dp_000000_FILL0_wght400_GRAD0_opsz24.png'),
-    female: require('../../assets/material-icons/face_3_24dp_000000_FILL0_wght400_GRAD0_opsz24.png'),
-    createdBy: require('../../assets/material-icons/person_4_24dp_000000_FILL0_wght400_GRAD0_opsz24.png'),
-};
-
 function toJsDate(d: any): Date {
     if (!d) return new Date();
     if (d.toDate) return d.toDate();
@@ -42,19 +32,34 @@ function formatDateNice(d: any): string {
     return `${day}${suffix} ${MONTHS[date.getMonth()]}, ${date.getFullYear()}`;
 }
 
-function formatDateRange(start: any, end: any): string {
-    const startStr = formatDateNice(start);
-    if (!end) return startStr;
-    const e = toJsDate(end);
-    const s = toJsDate(start);
-    if (e.toDateString() === s.toDateString()) return startStr;
-    return `${startStr} to ${formatDateNice(end)}`;
-}
+type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
-function DetailRow({ iconSource, label, value }: { iconSource: any; label: string; value: string }) {
+function DetailRow({
+    iconName,
+    label,
+    value,
+    iconOverlayName,
+    iconOverlayColor,
+}: {
+    iconName: MaterialIconName;
+    label: string;
+    value: string;
+    iconOverlayName?: MaterialIconName;
+    iconOverlayColor?: string;
+}) {
     return (
         <View className="flex-row items-center mb-[18px] gap-3.5">
-            <Image source={iconSource} className="w-[22px] h-[22px]" resizeMode="contain" />
+            <View className="w-[22px] h-[22px] justify-center items-center relative">
+                <MaterialIcons name={iconName} size={22} color="#111" />
+                {iconOverlayName ? (
+                    <View
+                        className="absolute rounded-full bg-white"
+                        style={{ right: -5, bottom: -5 }}
+                    >
+                        <MaterialIcons name={iconOverlayName} size={12} color={iconOverlayColor || '#111'} />
+                    </View>
+                ) : null}
+            </View>
             <View className="flex-1">
                 <AppText className="text-[15px] text-[#4a4a4a] leading-5">
                     <AppText className="font-bold text-[#1a1a1a]">{label}:  </AppText>
@@ -101,7 +106,8 @@ export default function EventDetailScreen() {
 
     const districtName = event.district_id ? districts.find((d: District) => d.id === event.district_id)?.name : null;
     const locationStr = [event.location, districtName].filter(Boolean).join(', ');
-    const dateStr = formatDateRange(event.event_date, event.event_end_date);
+    const startDateStr = formatDateNice(event.event_date);
+    const endDateStr = event.event_end_date ? formatDateNice(event.event_end_date) : 'Not specified';
     const createdByName = event.creator_name || 'Unknown';
     const createdByDate = event.created_at ? formatDateNice(event.created_at) : '';
     const createdByStr = `${createdByName}${createdByDate ? `, on ${createdByDate}` : ''}`;
@@ -114,7 +120,7 @@ export default function EventDetailScreen() {
         <View className="flex-1 bg-white">
             <ScrollView className="flex-1" bounces={false}>
                 {/* Square Hero Image with object-contain */}
-                <View className="relative w-full bg-[#f3f4f6]" style={{ aspectRatio: 1 }}>
+                <View className="relative w-full bg-white mt-1" style={{ aspectRatio: 1 }}>
                     {event.flyer_url ? (
                         <Image source={{ uri: event.flyer_url }} className="w-full h-full" resizeMode="contain" />
                     ) : (
@@ -146,12 +152,13 @@ export default function EventDetailScreen() {
                     ) : null}
                     <View className="h-px bg-gray-200 my-4" />
                     <AppText className="text-lg font-bold text-[#1a1a1a] mb-5">Event Details</AppText>
-                    {event.activity_type && <DetailRow iconSource={ICON_ASSETS.activity} label="Activity" value={event.activity_type} />}
-                    <DetailRow iconSource={ICON_ASSETS.calendar} label="Date" value={dateStr} />
-                    {locationStr && <DetailRow iconSource={ICON_ASSETS.location} label="Location" value={locationStr} />}
-                    {event.male_participants != null && <DetailRow iconSource={ICON_ASSETS.male} label="Male Participants" value={String(event.male_participants)} />}
-                    {event.female_participants != null && <DetailRow iconSource={ICON_ASSETS.female} label="Female Participants" value={String(event.female_participants)} />}
-                    <DetailRow iconSource={ICON_ASSETS.createdBy} label="Created by" value={createdByStr} />
+                    {event.activity_type && <DetailRow iconName="sports-volleyball" label="Activity" value={event.activity_type} />}
+                    <DetailRow iconName="calendar-month" iconOverlayName="add" iconOverlayColor="#2E7D32" label="Starting date" value={startDateStr} />
+                    <DetailRow iconName="calendar-month" iconOverlayName="remove" iconOverlayColor="#C62828" label="Ending date" value={endDateStr} />
+                    {locationStr && <DetailRow iconName="location-on" label="Location" value={locationStr} />}
+                    {event.male_participants != null && <DetailRow iconName="face" label="Male Participants" value={String(event.male_participants)} />}
+                    {event.female_participants != null && <DetailRow iconName="face-3" label="Female Participants" value={String(event.female_participants)} />}
+                    <DetailRow iconName="person-4" label="Created by" value={createdByStr} />
                 </View>
             </ScrollView>
         </View>
