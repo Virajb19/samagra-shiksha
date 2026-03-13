@@ -35,6 +35,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 import {
     getUserNoticesPaginated,
     getUserRecipientMap,
@@ -133,11 +134,16 @@ export default function NoticesScreen() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['recipient-map'] });
             queryClient.invalidateQueries({ queryKey: ['user-notices'] });
-            setAcceptModalVisible(false);
-            setAcceptTarget(null);
-            Alert.alert('Success', 'Invitation accepted!');
+            Toast.show({
+                type: 'success',
+                text2: 'Invitation accepted successfully.',
+            });
         },
-        onError: () => Alert.alert('Error', 'Failed to accept invitation.'),
+        onError: () =>
+            Toast.show({
+                type: 'error',
+                text2: 'Failed to accept invitation.',
+            }),
     });
 
     const rejectMutation = useMutation({
@@ -146,12 +152,16 @@ export default function NoticesScreen() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['recipient-map'] });
             queryClient.invalidateQueries({ queryKey: ['user-notices'] });
-            setRejectModalVisible(false);
-            setRejectTarget(null);
-            setRejectReason('');
-            Alert.alert('Done', 'Invitation rejected.');
+            Toast.show({
+                type: 'success',
+                text2: 'Invitation rejected.',
+            });
         },
-        onError: () => Alert.alert('Error', 'Failed to reject invitation.'),
+        onError: () =>
+            Toast.show({
+                type: 'error',
+                text2: 'Failed to reject invitation.',
+            }),
     });
 
     // Flatten paginated notices
@@ -621,7 +631,10 @@ export default function NoticesScreen() {
                                     disabled={acceptMutation.isPending}
                                     onPress={() => {
                                         if (acceptTarget) {
-                                            acceptMutation.mutate(acceptTarget.recipient_id);
+                                            const recipientId = acceptTarget.recipient_id;
+                                            setAcceptModalVisible(false);
+                                            setAcceptTarget(null);
+                                            acceptMutation.mutate(recipientId);
                                         }
                                     }}
                                 >
@@ -676,7 +689,14 @@ export default function NoticesScreen() {
                                     disabled={!rejectReason.trim() || rejectMutation.isPending}
                                     onPress={() => {
                                         if (rejectTarget) {
-                                            rejectMutation.mutate({ recipientId: rejectTarget.recipient_id, reason: rejectReason.trim() });
+                                            const payload = {
+                                                recipientId: rejectTarget.recipient_id,
+                                                reason: rejectReason.trim(),
+                                            };
+                                            setRejectModalVisible(false);
+                                            setRejectTarget(null);
+                                            setRejectReason('');
+                                            rejectMutation.mutate(payload);
                                         }
                                     }}
                                 >

@@ -57,6 +57,7 @@ const KGBV_TYPES: { id: KGBVType; name: string }[] = [
 
 export default function KGBVCompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();
+    const isActive = user?.is_active ?? false;
 
     // React Hook Form
     const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<KGBVProfileFormData>({
@@ -382,6 +383,28 @@ export default function KGBVCompleteProfileScreen() {
                         <AppText style={styles.submitButtonText}>Submit</AppText>
                     )}
                 </TouchableOpacity>
+
+                {/* Verified Banner */}
+                {isActive && (
+                    <View
+                        style={{
+                            borderWidth: 1.5,
+                            borderStyle: 'dashed',
+                            borderColor: '#34d399',
+                            backgroundColor: '#ecfdf5',
+                            borderRadius: 12,
+                            paddingVertical: 14,
+                            marginTop: 12,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                        }}
+                    >
+                        <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+                        <AppText style={{ fontSize: 15, fontWeight: '600', color: '#10b981' }}>Your account is verified</AppText>
+                    </View>
+                )}
             </ScrollView>
 
             <ProfileCompletionModal

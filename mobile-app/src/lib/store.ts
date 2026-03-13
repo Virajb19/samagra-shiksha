@@ -60,6 +60,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const auth = getFirebaseAuth();
         const db = getFirebaseDb();
         let userDocUnsub: (() => void) | null = null;
+        const attachUserListener = (userDocId: string) => {
+            userDocUnsub = onSnapshot(
+                doc(db, 'users', userDocId),
+                async (snap) => {
+                    if (snap.exists()) {
+                        const updated = mapUserDoc(snap);
+                        console.log('[AuthStore] Real-time update:', { is_active: updated.is_active, has_completed_profile: updated.has_completed_profile });
+                        set({ user: updated, isAuthenticated: true });
+                        await storeUserData(updated);
+                    }
+                },
+                (error) => {
+                    console.error('[AuthStore] onSnapshot error:', error);
+                }
+            );
+        };
 
         // Immediately hydrate from cached user data (survives app kill)
         (async () => {
@@ -97,25 +113,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     if (profile) {
                         set({ user: profile, isAuthenticated: true });
                         await storeUserData(profile);
-
                         // Real-time listener on the CORRECT Firestore doc (by profile.id, not auth uid)
-                        userDocUnsub = onSnapshot(
-                            doc(db, 'users', profile.id),
-                            async (snap) => {
-                                if (snap.exists()) {
-                                    const updated = mapUserDoc(snap);
-                                    console.log('[AuthStore] Real-time update:', { is_active: updated.is_active, has_completed_profile: updated.has_completed_profile });
-                                    set({ user: updated, isAuthenticated: true });
-                                    await storeUserData(updated);
-                                }
-                            },
-                            (error) => {
-                                console.error('[AuthStore] onSnapshot error:', error);
-                            }
-                        );
+                        attachUserListener(profile.id);
                     } else if (cached) {
-                        // No Firestore doc found but we have a cache — keep user logged in
-                        console.log('[AuthStore] Using cached profile (Firestore doc not found)');
+                        // No Firestore profile fetch succeeded, but we have cached profile.
+                        // Keep user logged in and still attach real-time listener from cached id.
+                        console.log('[AuthStore] Using cached profile (Firestore fetch failed), attaching snapshot from cache');
+                        attachUserListener(cached.id);
                     } else {
                         console.warn('[AuthStore] No Firestore profile found, logging out');
                         set({ user: null, isAuthenticated: false });

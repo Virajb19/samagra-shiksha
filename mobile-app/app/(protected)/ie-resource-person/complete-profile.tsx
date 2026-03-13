@@ -47,6 +47,7 @@ const BLUE = '#1565C0';
 
 export default function IECompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();
+    const isActive = user?.is_active ?? false;
 
     // React Hook Form
     const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<IEResourcePersonProfileFormData>({
@@ -359,6 +360,17 @@ export default function IECompleteProfileScreen() {
                         <AppText className="text-base font-semibold text-white">Submit</AppText>
                     )}
                 </TouchableOpacity>
+
+                {/* Verified Banner */}
+                {isActive && (
+                    <View
+                        className="rounded-xl py-4 items-center flex-row justify-center gap-2 mt-3"
+                        style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#34d399', backgroundColor: '#ecfdf5' }}
+                    >
+                        <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+                        <AppText className="text-[15px] font-semibold text-emerald-500">Your account is verified</AppText>
+                    </View>
+                )}
             </ScrollView>
 
             <ProfileCompletionModal
