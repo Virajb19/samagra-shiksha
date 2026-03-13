@@ -41,7 +41,7 @@ function ActionCard({ title, iconName, onPress, disabled = false }: ActionCardPr
             onPress={onPress}
             activeOpacity={0.75}
         >
-            <View className="w-16 h-16 rounded-full bg-[#e8f4fd] justify-center items-center mb-2">
+            <View className="w-16 h-16 rounded-full bg-[#1565C0] justify-center items-center mb-2">
                 <Ionicons name={iconName} size={34} color={disabled ? '#9ca3af' : BLUE} />
             </View>
             <AppText
@@ -231,7 +231,7 @@ export default function TeacherHomeTabScreen() {
             {/* Profile status banners */}
             {!loadingProfile && !hasCompletedProfile && (
                 <TouchableOpacity
-                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]"
+                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#1565C0]"
                     onPress={() => router.push('/(protected)/teacher/complete-profile')}
                     activeOpacity={0.8}
                 >
@@ -240,7 +240,7 @@ export default function TeacherHomeTabScreen() {
             )}
 
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]">
+                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#1565C0]">
                     <AppText className="text-[#1565C0] text-[15px] font-semibold">Your account is under verification</AppText>
                 </View>
             )}

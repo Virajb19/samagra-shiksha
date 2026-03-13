@@ -284,9 +284,9 @@ export default function NSCBAVFormScreen() {
                 style={{
                     width: '100%', height: 160, borderRadius: 12,
                     borderWidth: 2, borderStyle: photo ? 'solid' : 'dashed',
-                    borderColor: photo ? '#e5e7eb' : '#93c5fd',
+                    borderColor: photo ? '#e5e7eb' : '#1565C0',
                     alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: photo ? '#fff' : '#eff6ff',
+                    backgroundColor: photo ? '#fff' : '#1565C0',
                     overflow: 'hidden', marginBottom: 4,
                 }}
             >
@@ -294,7 +294,7 @@ export default function NSCBAVFormScreen() {
                     <Image source={{ uri: photo }} style={{ width: '100%', height: '100%', borderRadius: 10 }} resizeMode="cover" />
                 ) : (
                     <View className="items-center">
-                        <Ionicons name="image-outline" size={48} color="#93c5fd" />
+                        <Ionicons name="image-outline" size={48} color="#1565C0" />
                         <AppText className="text-sm text-gray-400 mt-2">Tap to upload photo</AppText>
                     </View>
                 )}

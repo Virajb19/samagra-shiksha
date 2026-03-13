@@ -37,14 +37,14 @@ export default function AddPhotoSourceModal({
 
                     <View className="flex-row gap-5 mt-5">
                         <TouchableOpacity className="flex-1 items-center" onPress={handleCameraPick}>
-                            <View className="w-[82px] h-[82px] rounded-2xl bg-blue-50 items-center justify-center mb-2">
+                            <View className="w-[82px] h-[82px] rounded-2xl bg-[#1565C0] items-center justify-center mb-2">
                                 <Image source={CAMERA_ICON} style={{ width: 64, height: 64 }} resizeMode="contain" />
                             </View>
                             <AppText className="text-sm font-semibold text-gray-700">Camera</AppText>
                         </TouchableOpacity>
 
                         <TouchableOpacity className="flex-1 items-center" onPress={handleGalleryPick}>
-                            <View className="w-[82px] h-[82px] rounded-2xl bg-blue-50 items-center justify-center mb-2">
+                            <View className="w-[82px] h-[82px] rounded-2xl bg-[#1565C0] items-center justify-center mb-2">
                                 <Image source={GALLERY_ICON} style={{ width: 64, height: 64 }} resizeMode="contain" />
                             </View>
                             <AppText className="text-sm font-semibold text-gray-700">Gallery</AppText>

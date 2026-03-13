@@ -189,7 +189,7 @@ function PdfUploadField({
                 </AppText>
             </TouchableOpacity>
             {value && (
-                <View className="flex-row items-center mt-2 bg-blue-50 rounded-lg px-3 py-2">
+                <View className="flex-row items-center mt-2 bg-[#1565C0] rounded-lg px-3 py-2">
                     <Ionicons name="document-text" size={20} color={BLUE} style={{ marginRight: 8 }} />
                     <AppText className="flex-1 text-xs text-[#1a1a1a] font-medium" numberOfLines={1}>{fileName}</AppText>
                     <TouchableOpacity onPress={() => onChange('')}>
@@ -236,7 +236,7 @@ function ImagePickerGrid({
                 ))}
                 {images.length < MAX_PHOTOS && (
                     <TouchableOpacity
-                        style={{ width: 96, height: 96, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#93c5fd', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff6ff' }}
+                        style={{ width: 96, height: 96, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#1565C0', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1565C0' }}
                         onPress={onAdd}
                     >
                         <Ionicons name="add" size={36} color={BLUE} />

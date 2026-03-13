@@ -22,7 +22,6 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
-    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -128,18 +127,11 @@ export default function CompleteProfileScreen() {
 
     return (
         <View style={styles.outerContainer}>
-            <StatusBar barStyle="light-content" backgroundColor="#2c3e6b" />
+            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
 
             {/* Navy Header */}
             <View style={styles.headerSection}>
                 <View style={styles.headerContent}>
-                    <View style={styles.logoContainer}>
-                        <Image
-                            source={require('../../../assets/nbse-logo.png')}
-                            style={styles.headerLogo}
-                            resizeMode="cover"
-                        />
-                    </View>
                     <View>
                         <AppText style={styles.headerTitle}>Complete Profile</AppText>
                         <AppText style={styles.headerSubtitle}>Add your experience details</AppText>
@@ -167,7 +159,7 @@ export default function CompleteProfileScreen() {
                     <AppText style={styles.label}>District *</AppText>
                     {loadingDistricts ? (
                         <View style={styles.pickerButton}>
-                            <ActivityIndicator size="small" color="#2c3e6b" />
+                            <ActivityIndicator size="small" color="#1565C0" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -203,7 +195,7 @@ export default function CompleteProfileScreen() {
                     <AppText style={styles.label}>School (Currently Employed In) *</AppText>
                     {loadingSchools && selectedDistrict ? (
                         <View style={styles.pickerButton}>
-                            <ActivityIndicator size="small" color="#2c3e6b" />
+                            <ActivityIndicator size="small" color="#1565C0" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -329,10 +321,10 @@ export default function CompleteProfileScreen() {
 const styles = StyleSheet.create({
     outerContainer: {
         flex: 1,
-        backgroundColor: '#2c3e6b',
+        backgroundColor: '#1565C0',
     },
     headerSection: {
-        backgroundColor: '#2c3e6b',
+        backgroundColor: '#1565C0',
         paddingTop: Platform.OS === 'ios' ? 20 : 10,
         paddingBottom: 24,
         paddingHorizontal: 20,
@@ -340,18 +332,6 @@ const styles = StyleSheet.create({
     headerContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 14,
-    },
-    logoContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        overflow: 'hidden',
-        backgroundColor: '#ffffff',
-    },
-    headerLogo: {
-        width: 50,
-        height: 50,
     },
     headerTitle: {
         fontSize: 20,
@@ -359,7 +339,7 @@ const styles = StyleSheet.create({
         color: '#ffffff',
     },
     headerSubtitle: {
-        fontSize: 13,
+        fontSize: 14,
         color: 'rgba(255, 255, 255, 0.7)',
         marginTop: 2,
     },
@@ -444,8 +424,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     checkboxSelected: {
-        backgroundColor: '#2c3e6b',
-        borderColor: '#2c3e6b',
+        backgroundColor: '#1565C0',
+        borderColor: '#1565C0',
     },
     checkboxLabel: {
         fontSize: 15,
@@ -483,7 +463,7 @@ const styles = StyleSheet.create({
         color: '#6b7280',
     },
     submitButton: {
-        backgroundColor: '#2c3e6b',
+        backgroundColor: '#1565C0',
         borderRadius: 10,
         paddingVertical: 16,
         alignItems: 'center',

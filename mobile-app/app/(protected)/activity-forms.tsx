@@ -84,7 +84,7 @@ export default function ActivityFormsScreen() {
             <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
 
             {params.schoolCode && (
-                <View className="px-4 py-2 bg-[#e8f4fd]">
+                <View className="px-4 py-2 bg-[#1565C0]">
                     <AppText className="text-sm text-[#1565C0] font-medium">
                         {params.schoolCode}{params.schoolName ? ` - ${params.schoolName}` : ''}
                     </AppText>

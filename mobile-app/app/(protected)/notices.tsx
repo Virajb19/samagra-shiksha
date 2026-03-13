@@ -47,7 +47,7 @@ import {
 import { useAuthStore } from '../../src/lib/store';
 import type { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
-const NAVY = '#2c3e6b';
+const NAVY = '#1565C0';
 const REJECT_REASON_MAX = 500;
 const PAGE_SIZE = 10;
 

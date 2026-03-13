@@ -22,7 +22,6 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
-    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -98,22 +97,15 @@ export default function JuniorEngineerCompleteProfileScreen() {
     };
 
     return (
-        <View className="flex-1 bg-[#2c3e6b]">
-            <StatusBar barStyle="light-content" backgroundColor="#2c3e6b" />
+        <View className="flex-1 bg-[#1565C0]">
+            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
 
             {/* Navy Header */}
-            <View className="bg-[#2c3e6b] px-5 pb-6" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 10 }}>
-                <View className="flex-row items-center gap-3.5">
-                    <View className="w-[50px] h-[50px] rounded-full overflow-hidden bg-white">
-                        <Image
-                            source={require('../../../assets/nbse-logo.png')}
-                            className="w-[50px] h-[50px]"
-                            resizeMode="cover"
-                        />
-                    </View>
+            <View className="bg-[#1565C0] px-5 pb-6" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 10 }}>
+                <View>
                     <View>
                         <AppText className="text-xl font-bold text-white">Complete Profile</AppText>
-                        <AppText className="text-[13px] text-white/70 mt-0.5">Junior Engineer Details</AppText>
+                        <AppText className="text-[14px] text-white/70 mt-0.5">Junior Engineer Details</AppText>
                     </View>
                 </View>
             </View>
@@ -138,7 +130,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
                     <AppText className="text-sm font-semibold text-gray-700 mb-2">District *</AppText>
                     {loadingDistricts ? (
                         <View className="bg-white rounded-lg border border-gray-300 px-4 py-3.5 flex-row justify-between items-center">
-                            <ActivityIndicator size="small" color="#2c3e6b" />
+                            <ActivityIndicator size="small" color="#1565C0" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -242,7 +234,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
 
                 {/* Submit Button */}
                 <TouchableOpacity
-                    className={`rounded-[10px] py-4 items-center mt-6 ${submitMutation.isPending ? 'bg-gray-400' : 'bg-[#2c3e6b]'}`}
+                    className={`rounded-[10px] py-4 items-center mt-6 ${submitMutation.isPending ? 'bg-gray-400' : 'bg-[#1565C0]'}`}
                     onPress={handleSubmit(onSubmit, onFormError)}
                     disabled={submitMutation.isPending}
                 >

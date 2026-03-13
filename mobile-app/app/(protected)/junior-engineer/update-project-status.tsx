@@ -44,7 +44,7 @@ import { submitProjectUpdate } from '../../../src/services/project.service';
 import { useAuthStore } from '../../../src/lib/store';
 
 const BLUE = '#1565C0';
-const BLUE_DARK = '#0D47A1';
+const BLUE_DARK = '#1565C0';
 const MAX_PHOTOS = 10;
 
 export default function UpdateProjectStatusScreen() {
@@ -408,7 +408,7 @@ export default function UpdateProjectStatusScreen() {
                                         flexDirection: 'row',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        backgroundColor: selectedStatus === option ? '#eff6ff' : '#fff',
+                                        backgroundColor: selectedStatus === option ? '#1565C0' : '#fff',
                                         borderBottomWidth: idx < PROJECT_COMPLETION_OPTIONS.length - 1 ? 1 : 0,
                                         borderBottomColor: '#f1f5f9',
                                     }}
@@ -660,7 +660,7 @@ export default function UpdateProjectStatusScreen() {
                                     activeOpacity={0.7}
                                     style={{
                                         alignItems: 'center',
-                                        backgroundColor: '#eff6ff',
+                                        backgroundColor: '#1565C0',
                                         borderRadius: 16,
                                         paddingVertical: 20,
                                         paddingHorizontal: 24,

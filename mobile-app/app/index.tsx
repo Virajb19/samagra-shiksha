@@ -24,7 +24,7 @@ export default function Index() {
                     <AppText className="text-sm text-gray-500 mb-10 uppercase tracking-widest">Government Tracking System</AppText>
                     <ActivityIndicator
                         size="large"
-                        color="#4f8cff"
+                        color="#1565C0"
                         className="mb-4"
                     />
                     <AppText className="text-sm text-gray-400">Initializing...</AppText>

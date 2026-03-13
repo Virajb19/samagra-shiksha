@@ -244,7 +244,7 @@ export default function EventCamera({
     if (cameraPermission === null || locationPermission === null) {
         return (
             <View style={styles.container}>
-                <ActivityIndicator size="large" color="#4f8cff" />
+                <ActivityIndicator size="large" color="#1565C0" />
                 <AppText style={styles.loadingText}>Preparing camera...</AppText>
             </View>
         );
@@ -292,7 +292,7 @@ export default function EventCamera({
     if (captureState === 'capturing' || captureState === 'getting-location') {
         return (
             <View style={styles.container}>
-                <ActivityIndicator size="large" color="#4f8cff" />
+                <ActivityIndicator size="large" color="#1565C0" />
                 <AppText style={styles.loadingText}>
                     {captureState === 'capturing' ? 'Opening camera...' : 'Getting location...'}
                 </AppText>
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     captureButton: {
-        backgroundColor: '#4f8cff',
+        backgroundColor: '#1565C0',
         paddingHorizontal: 48,
         paddingVertical: 16,
         borderRadius: 12,
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     securityText: {
-        color: '#4f8cff',
+        color: '#1565C0',
         fontSize: 12,
         textAlign: 'center',
     },

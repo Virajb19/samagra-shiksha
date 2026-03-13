@@ -37,7 +37,7 @@ import AddPhotoSourceModal from '../../../../src/components/AddPhotoSourceModal'
 import SelectModal from '../../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
 
-const BLUE = '#1E88E5';
+const BLUE = '#1565C0';
 
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

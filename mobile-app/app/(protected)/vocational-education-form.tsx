@@ -143,7 +143,7 @@ function DropdownField({
                                     className="px-5 py-4 border-b border-gray-100"
                                     onPress={() => { onChange(item); setOpen(false); }}
                                 >
-                                    <AppText className={`text-[15px] ${value === item ? 'font-bold text-blue-600' : 'text-[#1a1a1a]'}`}>{item}</AppText>
+                                    <AppText className={`text-[15px] ${value === item ? 'font-bold text-[#1565C0]' : 'text-[#1a1a1a]'}`}>{item}</AppText>
                                 </TouchableOpacity>
                             )}
                         />
@@ -254,7 +254,7 @@ function ImagePickerGrid({
                 ))}
                 {images.length < maxPhotos && (
                     <TouchableOpacity
-                        style={{ width: 96, height: 96, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#93c5fd', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff6ff' }}
+                        style={{ width: 96, height: 96, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#1565C0', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1565C0' }}
                         onPress={onAdd}
                     >
                         <Ionicons name="add" size={36} color={BLUE} />
@@ -295,7 +295,7 @@ function SingleImagePicker({
                 </View>
             ) : (
                 <TouchableOpacity
-                    className="border-2 border-dashed border-blue-200 rounded-xl items-center justify-center bg-blue-50 py-8"
+                    className="border-2 border-dashed border-[#1565C0] rounded-xl items-center justify-center bg-[#1565C0] py-8"
                     onPress={onPick}
                 >
                     <Ionicons name="image-outline" size={40} color="#9ca3af" />

@@ -93,8 +93,8 @@ function ImagePickerGrid({
                     <TouchableOpacity
                         style={{
                             width: 96, height: 96, borderRadius: 12,
-                            borderWidth: 2, borderStyle: 'dashed', borderColor: '#93c5fd',
-                            alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff6ff',
+                            borderWidth: 2, borderStyle: 'dashed', borderColor: '#1565C0',
+                            alignItems: 'center', justifyContent: 'center', backgroundColor: '#1565C0',
                         }}
                         onPress={onAdd}
                     >

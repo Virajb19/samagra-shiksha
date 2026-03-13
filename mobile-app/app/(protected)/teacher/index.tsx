@@ -182,7 +182,7 @@ export default function TeacherHomeScreen() {
                     title={hasCompletedProfile ? "View Profile" : "Complete Profile"}
                     icon="person-outline"
                     onPress={handleEditProfile}
-                    iconBgColor="#dbeafe"
+                    iconBgColor="#1565C0"
                 />
                 <ActionCard
                     title="View Colleagues"
@@ -215,11 +215,11 @@ export default function TeacherHomeScreen() {
 
             {/* Info Card - Show only if profile not completed */}
             {!hasCompletedProfile && (
-                <View className="bg-[#eff6ff] rounded-xl p-4 mt-6 flex-row border border-[#bfdbfe]">
-                    <Ionicons name="information-circle" size={24} color="#3b82f6" />
+                <View className="bg-[#1565C0] rounded-xl p-4 mt-6 flex-row border border-[#1565C0]">
+                    <Ionicons name="information-circle" size={24} color="#1565C0" />
                     <View className="flex-1 ml-3">
                         <AppText className="text-sm font-semibold text-[#1e40af] mb-1">Important Notice</AppText>
-                        <AppText className="text-[13px] text-[#3b82f6] leading-[18px]">
+                        <AppText className="text-[13px] text-[#1565C0] leading-[18px]">
                             You can only create your profile once. Please ensure all details are correct before submitting as they cannot be modified later.
                         </AppText>
                     </View>

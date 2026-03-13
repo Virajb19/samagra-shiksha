@@ -26,7 +26,6 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
-    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -131,18 +130,11 @@ export default function KGBVCompleteProfileScreen() {
 
     return (
         <View style={styles.outerContainer}>
-            <StatusBar barStyle="light-content" backgroundColor="#2c3e6b" />
+            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
 
             {/* Navy Header */}
             <View style={styles.headerSection}>
                 <View style={styles.headerContent}>
-                    <View style={styles.logoContainer}>
-                        <Image
-                            source={require('../../../assets/nbse-logo.png')}
-                            style={styles.headerLogo}
-                            resizeMode="cover"
-                        />
-                    </View>
                     <View>
                         <AppText style={styles.headerTitle}>Complete Profile</AppText>
                         <AppText style={styles.headerSubtitle}>KGBV Warden Details</AppText>
@@ -213,7 +205,7 @@ export default function KGBVCompleteProfileScreen() {
                     <AppText style={styles.label}>District *</AppText>
                     {loadingDistricts ? (
                         <View style={styles.pickerButton}>
-                            <ActivityIndicator size="small" color="#2c3e6b" />
+                            <ActivityIndicator size="small" color="#1565C0" />
                         </View>
                     ) : (
                         <TouchableOpacity style={styles.pickerButton} onPress={() => setDistrictModalVisible(true)}>
@@ -393,13 +385,11 @@ export default function KGBVCompleteProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    outerContainer: { flex: 1, backgroundColor: '#2c3e6b' },
-    headerSection: { backgroundColor: '#2c3e6b', paddingTop: Platform.OS === 'ios' ? 20 : 10, paddingBottom: 24, paddingHorizontal: 20 },
-    headerContent: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-    logoContainer: { width: 50, height: 50, borderRadius: 25, overflow: 'hidden', backgroundColor: '#ffffff' },
-    headerLogo: { width: 50, height: 50 },
+    outerContainer: { flex: 1, backgroundColor: '#1565C0' },
+    headerSection: { backgroundColor: '#1565C0', paddingTop: Platform.OS === 'ios' ? 20 : 10, paddingBottom: 24, paddingHorizontal: 20 },
+    headerContent: { flexDirection: 'row', alignItems: 'center' },
     headerTitle: { fontSize: 20, fontWeight: '700', color: '#ffffff' },
-    headerSubtitle: { fontSize: 13, color: 'rgba(255, 255, 255, 0.7)', marginTop: 2 },
+    headerSubtitle: { fontSize: 14, color: 'rgba(255, 255, 255, 0.7)', marginTop: 2 },
     container: { flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
     content: { padding: 20, paddingBottom: 40 },
     title: { fontSize: 24, fontWeight: '700', color: '#1f2937', marginBottom: 8 },
@@ -416,7 +406,7 @@ const styles = StyleSheet.create({
     rowFields: { flexDirection: 'row' },
     readOnlyInput: { backgroundColor: '#f3f4f6', borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 16, paddingVertical: 12 },
     readOnlyText: { fontSize: 16, color: '#6b7280' },
-    submitButton: { backgroundColor: '#2c3e6b', borderRadius: 10, paddingVertical: 16, alignItems: 'center', marginTop: 24 },
+    submitButton: { backgroundColor: '#1565C0', borderRadius: 10, paddingVertical: 16, alignItems: 'center', marginTop: 24 },
     submitButtonDisabled: { backgroundColor: '#9ca3af' },
     submitButtonText: { fontSize: 16, fontWeight: '600', color: '#ffffff' },
     errorText: { fontSize: 12, color: '#ef4444', marginTop: 4 },

@@ -146,7 +146,7 @@ export default function CircularsScreen({
             <View className="flex-1 bg-[#f0f4f8] justify-center items-center px-6">
                 <View
                     className="rounded-2xl py-6 px-4 items-center w-full"
-                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#e8f4fd' }}
+                    style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#1565C0' }}
                 >
                     <Ionicons name={!hasCompletedProfile ? 'person-circle-outline' : 'time-outline'} size={48} color={BLUE} />
                     <AppText style={{ color: BLUE, fontSize: 16, fontWeight: '600', marginTop: 12, textAlign: 'center' }}>
@@ -216,8 +216,8 @@ export default function CircularsScreen({
             }
             renderItem={({ item: c }) => (
                 <View className="bg-white rounded-xl p-4 mb-3" style={{ elevation: 1 }}>
-                    <View className="bg-blue-100 px-2 py-0.5 rounded self-start">
-                        <AppText weight='bold' className="text-xs text-blue-700">{typeof c.circular_no === 'string' ? c.circular_no : ''}</AppText>
+                    <View className="bg-[#1565C0] px-2 py-0.5 rounded self-start">
+                        <AppText weight='bold' className="text-xs text-[#1565C0]">{typeof c.circular_no === 'string' ? c.circular_no : ''}</AppText>
                     </View>
                     <AppText weight='bold' className="text-base text-gray-900 mt-1">{typeof c.title === 'string' ? c.title : ''}</AppText>
                     {!!(c.description || c.content) && (
@@ -253,14 +253,14 @@ export default function CircularsScreen({
                     </View>
                     <View className="flex-row items-center mt-2">
                         {typeof c.file_url === 'string' && c.file_url ? (
-                            <TouchableOpacity className="flex-row items-center mr-4 border border-blue-500 rounded-full px-2 py-1" onPress={() => openFile(c.file_url!, c)}>
+                            <TouchableOpacity className="flex-row items-center mr-4 border border-[#1565C0] rounded-full px-2 py-1" onPress={() => openFile(c.file_url!, c)}>
                                 <Ionicons name="download-outline" size={16} color={BLUE} />
                                 <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
                                     Download
                                 </AppText>
                             </TouchableOpacity>
                         ) : null}
-                        <TouchableOpacity className="flex-row items-center border border-blue-500 rounded-full px-2 py-1" onPress={() => shareCircular(c)}>
+                        <TouchableOpacity className="flex-row items-center border border-[#1565C0] rounded-full px-2 py-1" onPress={() => shareCircular(c)}>
                             <Ionicons name="share-social-outline" size={16} color={BLUE} />
                             <AppText weight='bold' className="text-[13px] ml-1" style={{ color: BLUE }}>
                                 Share

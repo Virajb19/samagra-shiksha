@@ -164,7 +164,7 @@ function FilterPicker({
                             style={{
                                 paddingHorizontal: 14,
                                 paddingVertical: 11,
-                                backgroundColor: !value ? '#eff6ff' : 'transparent',
+                                backgroundColor: !value ? '#1565C0' : 'transparent',
                                 borderBottomWidth: 0.5,
                                 borderBottomColor: '#f3f4f6',
                             }}
@@ -180,7 +180,7 @@ function FilterPicker({
                                 style={{
                                     paddingHorizontal: 14,
                                     paddingVertical: 11,
-                                    backgroundColor: value === opt ? '#eff6ff' : 'transparent',
+                                    backgroundColor: value === opt ? '#1565C0' : 'transparent',
                                     borderBottomWidth: 0.5,
                                     borderBottomColor: '#f3f4f6',
                                 }}
