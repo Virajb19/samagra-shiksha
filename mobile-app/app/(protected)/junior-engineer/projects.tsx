@@ -177,12 +177,17 @@ export default function ProjectsListScreen() {
         setFilterVisible(false);
     };
 
-    // Reset filters
+    // Reset filters — clear both temp and applied state, then close dialog
     const handleReset = () => {
         setTmpCategory('');
         setTmpActivity('');
         setTmpDistrict('');
         setTmpYear('');
+        setCategoryFilter('');
+        setActivityFilter('');
+        setDistrictFilter('');
+        setYearFilter('');
+        setFilterVisible(false);
     };
 
     // ── Infinite Query ──

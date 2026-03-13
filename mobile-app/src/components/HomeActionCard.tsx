@@ -7,6 +7,7 @@ const BLUE = '#1565C0';
 const PROFILE_ICON = require('../../assets/assets_profile.png');
 const NOTICES_ICON = require('../../assets/assets_promote.png');
 const TEAMWORK_ICON = require('../../assets/assets_teamwork.png');
+const FORM_ICON = require('../../assets/assets_form.png');
 
 interface HomeActionCardProps {
     title: string;
@@ -29,7 +30,9 @@ export default function HomeActionCard({
                 ? NOTICES_ICON
                 : normalizedTitle.includes('colleague') || normalizedTitle.includes('staff')
                     ? TEAMWORK_ICON
-                    : null;
+                    : normalizedTitle.includes('project')
+                        ? FORM_ICON
+                        : null;
 
     return (
         <TouchableOpacity

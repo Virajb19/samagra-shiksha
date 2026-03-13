@@ -373,3 +373,35 @@ export async function uploadVocationalEducationFormFile(
         return { success: false, error: errorMessage };
     }
 }
+
+/**
+ * Upload a project status photo to Firebase Storage.
+ *
+ * Path: `project-update-files/<userId>/<timestamp>_<filename>`
+ *
+ * @param imageUri – Local URI of the image (from camera/gallery picker)
+ * @param userId   – Firebase Auth UID
+ * @returns Upload result with download URL
+ */
+export async function uploadProjectPhoto(
+    imageUri: string,
+    userId: string,
+): Promise<UploadResult> {
+    try {
+        console.log('[Storage] Uploading project photo...');
+        const storage = getFirebaseStorage();
+        const uriParts = imageUri.split('/');
+        const fileName = uriParts[uriParts.length - 1] || `project_${Date.now()}.jpg`;
+        const storagePath = `project-update-files/${userId}/${Date.now()}_${fileName}`;
+        const blob = await uriToBlob(imageUri);
+        const storageRef = ref(storage, storagePath);
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+        console.log('[Storage] Project photo upload successful:', downloadURL);
+        return { success: true, fileUrl: downloadURL };
+    } catch (error) {
+        console.error('[Storage] Project photo upload failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo';
+        return { success: false, error: errorMessage };
+    }
+}

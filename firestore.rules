@@ -31,7 +31,7 @@ service cloud.firestore {
       allow update: if isAdmin()
                     || request.auth.uid == userId
                     || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'gender', 'profile_image_url', 'updated_at']))
-                    || (isHeadmaster() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_active', 'updated_at']));
+                    || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_active', 'updated_at']));
       allow delete: if isAdmin();
     }
 
@@ -110,8 +110,8 @@ service cloud.firestore {
     // ── Events ──
     match /events/{eventId} {
       allow read: if isAuth();
-      allow create: if isHeadmaster();
-      allow update: if isHeadmaster() || isAdmin();
+      allow create: if isAuth();
+      allow update: if isAuth();
       allow delete: if isAdmin();
     }
 
@@ -139,9 +139,9 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow read: if isAuth();
       allow create, delete: if isAdmin();
-      // Admins: full update; JE: only progress, photos, status, updated_at
+      // Admins: full update; any authenticated user: only progress, photos, status, updated_at
       allow update: if isAdmin()
-                    || (isAuth() && getRole() == 'JUNIOR_ENGINEER'
+                    || (isAuth()
                         && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['progress', 'photos', 'status', 'updated_at']));
     }
@@ -149,7 +149,7 @@ service cloud.firestore {
     // ── Project Updates (submitted by Junior Engineers) ──
     match /project_updates/{updateId} {
       allow read: if isAuth();
-      allow create: if isAuth() && getRole() == 'JUNIOR_ENGINEER';
+      allow create: if isAuth();
       allow update, delete: if isAdmin();
     }
 
@@ -205,7 +205,7 @@ service cloud.firestore {
     // ── Vocational Education Form Data (submitted by teachers) ──
     match /vocational_education_form_data/{docId} {
       allow read: if isAuth();
-      allow create, update: if isAuth() && getRole() == 'TEACHER';
+      allow create, update: if isAuth();
       allow delete: if isAdmin();
     }
 

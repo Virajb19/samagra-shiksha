@@ -116,11 +116,11 @@ service firebase.storage {
     }
 
     // ── Project Update Files ──
-    // Any authenticated user can read; only Junior Engineers can upload; max 10 MB per file
+    // Any authenticated user can read/write; max 10 MB per file
     match /project-update-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow create, update: if isAuth() && getRole() == 'JUNIOR_ENGINEER' && request.resource.size < 10 * 1024 * 1024;
-      allow delete: if isAuth() && getRole() == 'JUNIOR_ENGINEER';
+      allow create, update: if isAuth() && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAuth();
     }
 
     // ── Event Files (flyers) ──

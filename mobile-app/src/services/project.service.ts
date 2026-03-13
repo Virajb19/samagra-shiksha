@@ -23,8 +23,8 @@ import {
     getCountFromServer,
     QueryConstraint,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirebaseDb, getFirebaseStorage } from '../lib/firebase';
+import { getFirebaseDb } from '../lib/firebase';
+import { uploadProjectPhoto } from './storage.service';
 import type { Project, ProjectUpdate } from '../types';
 
 // ── Helpers ──
@@ -208,35 +208,6 @@ export async function getProjectUpdates(projectId: string): Promise<ProjectUpdat
     return snap.docs.map((d) => docToProjectUpdate(d.id, d.data() as Record<string, unknown>));
 }
 
-// ── Upload ──
-
-/**
- * Upload a project status photo to Firebase Storage.
- * Path: `project-update-files/<userId>/<timestamp>_<filename>`
- */
-async function uploadProjectPhoto(
-    imageUri: string,
-    userId: string,
-): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
-    try {
-        const storage = getFirebaseStorage();
-        const uriParts = imageUri.split('/');
-        const fileName = uriParts[uriParts.length - 1] || `project_${Date.now()}.jpg`;
-        const storagePath = `project-update-files/${userId}/${Date.now()}_${fileName}`;
-
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
-        const storageRef = ref(storage, storagePath);
-        await uploadBytes(storageRef, blob);
-
-        const downloadURL = await getDownloadURL(storageRef);
-        return { success: true, fileUrl: downloadURL };
-    } catch (error) {
-        console.error('[Project] Photo upload failed:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo';
-        return { success: false, error: errorMessage };
-    }
-}
 
 // ── Submit Update ──
 
