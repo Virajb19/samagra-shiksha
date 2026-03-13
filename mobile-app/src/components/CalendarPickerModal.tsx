@@ -67,7 +67,7 @@ export default function CalendarPickerModal({ visible, value, onSelect, onClose 
                             return (
                                 <TouchableOpacity
                                     key={i}
-                                    className={`justify-center items-center rounded-xl ${sel ? 'bg-[#1565C0]' : ''} ${tod ? 'bg-[#1565C0]' : ''}`}
+                                    className={`justify-center items-center rounded-xl ${sel ? 'bg-[#1565C0]' : ''} ${tod ? 'bg-blue-100' : ''}`}
                                     style={{ width: '14.28%', aspectRatio: 1 }}
                                     onPress={() => day && pick(day)}
                                     disabled={!day}

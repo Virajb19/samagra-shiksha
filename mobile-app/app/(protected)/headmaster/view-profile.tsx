@@ -21,7 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../../src/lib/store';
 
-const NAVY = '#1565C0';
+const NAVY = '#2c3e6b';
 
 interface FacultyProfile {
     id: string;
@@ -78,7 +78,7 @@ export default function ViewProfileScreen() {
             <View className="flex-1 justify-center items-center bg-[#f0f2f8] p-6">
                 <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
                 <AppText className="text-base text-gray-500 mt-3 mb-4">Failed to load profile</AppText>
-                <TouchableOpacity className="bg-[#1565C0] px-6 py-3 rounded-[10px]" onPress={() => router.back()}>
+                <TouchableOpacity className="bg-[#2c3e6b] px-6 py-3 rounded-[10px]" onPress={() => router.back()}>
                     <AppText className="text-white text-sm font-semibold">Go Back</AppText>
                 </TouchableOpacity>
             </View>
@@ -91,7 +91,7 @@ export default function ViewProfileScreen() {
                 <Ionicons name="person-circle-outline" size={64} color="#9ca3af" />
                 <AppText className="text-base text-gray-500 mt-3 mb-4">Profile not completed yet</AppText>
                 <TouchableOpacity
-                    className="bg-[#1565C0] px-6 py-3 rounded-[10px]"
+                    className="bg-[#2c3e6b] px-6 py-3 rounded-[10px]"
                     onPress={() => router.replace('/(protected)/headmaster/complete-profile')}
                 >
                     <AppText className="text-white text-sm font-semibold">Complete Profile</AppText>
@@ -108,7 +108,7 @@ export default function ViewProfileScreen() {
                     <AppText className="text-2xl font-bold text-[#1a1a2e]">My Profile</AppText>
                     {!profile.is_profile_locked && (
                         <TouchableOpacity
-                            className="bg-[#1565C0] px-4 py-2 rounded-lg"
+                            className="bg-[#2c3e6b] px-4 py-2 rounded-lg"
                             onPress={() => router.push('/headmaster/complete-profile')}
                         >
                             <AppText className="text-white text-sm font-medium">Edit Details</AppText>
@@ -120,7 +120,7 @@ export default function ViewProfileScreen() {
                 {profile.is_profile_locked && (
                     <View className="flex-row items-center bg-[#e8ecf4] border border-[#c5cee0] rounded-[10px] p-3 mb-4 gap-2">
                         <Ionicons name="lock-closed" size={16} color={NAVY} />
-                        <AppText className="text-[13px] text-[#1565C0] font-medium">
+                        <AppText className="text-[13px] text-[#2c3e6b] font-medium">
                             Profile is locked and cannot be edited
                         </AppText>
                     </View>

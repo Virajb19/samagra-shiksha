@@ -80,7 +80,7 @@ function StaffCard({ staff, expanded, onToggle }: StaffCardProps) {
                         />
                     ) : (
                         <View className="w-[50px] h-[50px] rounded-[10px] bg-[#e8ecf4] justify-center items-center" style={{ borderWidth: 2.5, borderColor: isActive ? '#22c55e' : '#ef4444' }}>
-                            <AppText className="text-xl font-semibold text-[#1565C0]">
+                            <AppText className="text-xl font-semibold text-[#2c3e6b]">
                                 {staff.user.name.charAt(0).toUpperCase()}
                             </AppText>
                         </View>
@@ -94,7 +94,7 @@ function StaffCard({ staff, expanded, onToggle }: StaffCardProps) {
                 </View>
                 <View className="flex-1">
                     <AppText className="text-base font-semibold text-[#1a1a2e]">{staff.user.name}</AppText>
-                    <AppText className="text-[13px] text-[#1565C0]">{getRoleDisplay()}</AppText>
+                    <AppText className="text-[13px] text-[#2c3e6b]">{getRoleDisplay()}</AppText>
                 </View>
                 <Ionicons
                     name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -185,7 +185,7 @@ export default function ColleaguesScreen() {
     if (isLoading) {
         return (
             <View className="flex-1 justify-center items-center bg-[#f0f2f8]">
-                <ActivityIndicator size="large" color="#1565C0" />
+                <ActivityIndicator size="large" color="#2c3e6b" />
                 <AppText className="mt-3 text-base text-[#6b7280]">Loading colleagues...</AppText>
             </View>
         );
@@ -194,7 +194,7 @@ export default function ColleaguesScreen() {
     return (
         <View className="flex-1 bg-[#f0f2f8]">
             {/* Header */}
-            <View className="bg-[#1565C0] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
+            <View className="bg-[#2c3e6b] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
                 <TouchableOpacity
                     className="p-2 mr-2"
                     onPress={() => router.back()}
@@ -231,9 +231,9 @@ export default function ColleaguesScreen() {
 
                     {/* Stats */}
                     <View className="flex-row gap-[10px] mb-4">
-                        <View className="flex-1 bg-[#1565C0] rounded-[10px] py-[10px] items-center">
+                        <View className="flex-1 bg-[#eff6ff] rounded-[10px] py-[10px] items-center">
                             <AppText className="text-xl font-bold text-[#1565C0]">{filteredStaff.length}</AppText>
-                            <AppText className="text-[11px] font-medium text-[#1565C0] mt-[2px]">Total</AppText>
+                            <AppText className="text-[11px] font-medium text-[#3b82f6] mt-[2px]">Total</AppText>
                         </View>
                         <View className="flex-1 bg-[#dcfce7] rounded-[10px] py-[10px] items-center">
                             <AppText className="text-xl font-bold text-[#22c55e]">{filteredStaff.filter(s => s.user.is_active).length}</AppText>

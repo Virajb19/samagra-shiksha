@@ -26,6 +26,7 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
+    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -42,6 +43,9 @@ import { KGBVProfileSchema, KGBVProfileFormData } from '../../../src/lib/zod';
 import CalendarPickerModal from '../../../src/components/CalendarPickerModal';
 import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
+import ProfileCompletionModal from '@/components/ProfileCompletionModal';
+
+const BLUE = '#1565C0';
 
 const KGBV_TYPES: { id: KGBVType; name: string }[] = [
     { id: 'TYPE_1', name: 'Type 1' },
@@ -76,6 +80,7 @@ export default function KGBVCompleteProfileScreen() {
     const [kgbvTypeModalVisible, setKgbvTypeModalVisible] = useState(false);
     const [districtModalVisible, setDistrictModalVisible] = useState(false);
     const [datePickerVisible, setDatePickerVisible] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const dateOfJoining = watch('dateOfJoining');
 
     // Fetch districts from Firestore
@@ -106,9 +111,7 @@ export default function KGBVCompleteProfileScreen() {
         },
         onSuccess: async () => {
             await refreshUser();
-            Alert.alert('Success', 'Profile completed successfully! Your account is now under verification.', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            setShowSuccessModal(true);
         },
         onError: (error: any) => {
             Alert.alert('Error', error.message || 'Failed to complete profile');
@@ -130,7 +133,7 @@ export default function KGBVCompleteProfileScreen() {
 
     return (
         <View style={styles.outerContainer}>
-            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
 
             {/* Navy Header */}
             <View style={styles.headerSection}>
@@ -151,9 +154,9 @@ export default function KGBVCompleteProfileScreen() {
 
                 {/* Warning Banner */}
                 <View style={styles.warningBanner}>
-                    <Ionicons name="warning" size={20} color="#856404" />
+                    <Image source={require('../../../assets/warning.png')} style={styles.warningIcon} resizeMode="contain" />
                     <AppText style={styles.warningText}>
-                        Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
+                        <AppText weight="bold" style={styles.warningTextBold}>Important:</AppText> You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
                     </AppText>
                 </View>
 
@@ -205,7 +208,7 @@ export default function KGBVCompleteProfileScreen() {
                     <AppText style={styles.label}>District *</AppText>
                     {loadingDistricts ? (
                         <View style={styles.pickerButton}>
-                            <ActivityIndicator size="small" color="#1565C0" />
+                            <ActivityIndicator size="small" color="#2c3e6b" />
                         </View>
                     ) : (
                         <TouchableOpacity style={styles.pickerButton} onPress={() => setDistrictModalVisible(true)}>
@@ -380,14 +383,22 @@ export default function KGBVCompleteProfileScreen() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
+
+            <ProfileCompletionModal
+                visible={showSuccessModal}
+                onContinue={() => {
+                    setShowSuccessModal(false);
+                    router.back();
+                }}
+            />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    outerContainer: { flex: 1, backgroundColor: '#1565C0' },
-    headerSection: { backgroundColor: '#1565C0', paddingTop: Platform.OS === 'ios' ? 20 : 10, paddingBottom: 24, paddingHorizontal: 20 },
-    headerContent: { flexDirection: 'row', alignItems: 'center' },
+    outerContainer: { flex: 1, backgroundColor: BLUE },
+    headerSection: { backgroundColor: BLUE, paddingTop: Platform.OS === 'ios' ? 20 : 10, paddingBottom: 24, paddingHorizontal: 20 },
+    headerContent: { flexDirection: 'row', alignItems: 'center', gap: 14 },
     headerTitle: { fontSize: 20, fontWeight: '700', color: '#ffffff' },
     headerSubtitle: { fontSize: 14, color: 'rgba(255, 255, 255, 0.7)', marginTop: 2 },
     container: { flex: 1, backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
@@ -406,11 +417,13 @@ const styles = StyleSheet.create({
     rowFields: { flexDirection: 'row' },
     readOnlyInput: { backgroundColor: '#f3f4f6', borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 16, paddingVertical: 12 },
     readOnlyText: { fontSize: 16, color: '#6b7280' },
-    submitButton: { backgroundColor: '#1565C0', borderRadius: 10, paddingVertical: 16, alignItems: 'center', marginTop: 24 },
+    submitButton: { backgroundColor: BLUE, borderRadius: 10, paddingVertical: 16, alignItems: 'center', marginTop: 24 },
     submitButtonDisabled: { backgroundColor: '#9ca3af' },
     submitButtonText: { fontSize: 16, fontWeight: '600', color: '#ffffff' },
     errorText: { fontSize: 12, color: '#ef4444', marginTop: 4 },
 
     warningBanner: { backgroundColor: '#fff3cd', borderWidth: 1, borderColor: '#ffc107', borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20, gap: 8 },
+    warningIcon: { width: 20, height: 20, marginTop: 1 },
     warningText: { flex: 1, fontSize: 13, color: '#856404', lineHeight: 18 },
+    warningTextBold: { fontSize: 13, color: '#856404' },
 });

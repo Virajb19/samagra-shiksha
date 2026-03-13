@@ -105,7 +105,7 @@ export default function HelpdeskScreen() {
 
                 {/* Submit Button */}
                 <TouchableOpacity
-                    className={`bg-[#1565C0] rounded-xl py-4 items-center ${submitMutation.isPending ? 'opacity-70' : ''}`}
+                    className={`bg-[#3b82f6] rounded-xl py-4 items-center ${submitMutation.isPending ? 'opacity-70' : ''}`}
                     onPress={handleSubmit((data) => submitMutation.mutate(data))}
                     disabled={submitMutation.isPending}
                 >
@@ -137,7 +137,7 @@ export default function HelpdeskScreen() {
                         </AppText>
 
                         <TouchableOpacity
-                            className="mt-6 w-full rounded-xl py-3.5 items-center bg-[#1565C0]"
+                            className="mt-6 w-full rounded-xl py-3.5 items-center bg-[#3b82f6]"
                             onPress={() => {
                                 setShowSuccessModal(false);
                                 router.back();

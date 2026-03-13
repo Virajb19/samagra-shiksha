@@ -17,7 +17,7 @@ const BLUE = '#1565C0';
 function StatusBanner({ message }: { message: string }) {
     return (
         <View className="flex-1 p-4">
-            <View className="border-[1.5px] border-dashed rounded-xl py-[18px] items-center bg-[#1565C0]" style={{ borderColor: BLUE }}>
+            <View className="border-[1.5px] border-dashed rounded-xl py-[18px] items-center bg-blue-50" style={{ borderColor: BLUE }}>
                 <AppText className="text-[15px] font-semibold" style={{ color: BLUE }}>{message}</AppText>
             </View>
         </View>

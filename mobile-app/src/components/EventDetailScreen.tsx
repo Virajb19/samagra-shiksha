@@ -16,7 +16,7 @@ import { getEventById } from '../services/firebase/content.firestore';
 import { getDistricts } from '../services/firebase/master-data.firestore';
 import { District } from '../types';
 
-const BLUE = '#1565C0';
+const BLUE = '#1E88E5';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function toJsDate(d: any): Date {
@@ -112,7 +112,7 @@ export default function EventDetailScreen() {
     const createdByDate = event.created_at ? formatDateNice(event.created_at) : '';
     const createdByStr = `${createdByName}${createdByDate ? `, on ${createdByDate}` : ''}`;
 
-    const placeholderColors = ['#1565C0', '#1565C0', '#1565C0', '#1565C0', '#2E7D32'];
+    const placeholderColors = ['#1565C0', '#0277BD', '#00838F', '#00695C', '#2E7D32'];
     const hash = (event.id || '').split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0);
     const bgColor = placeholderColors[hash % placeholderColors.length];
 

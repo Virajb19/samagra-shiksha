@@ -15,9 +15,9 @@ interface ProfileHeaderCardProps {
 }
 
 const BLUE = '#1565C0';
-const SKY_BLUE_LIGHT = '#1565C0';
-const SKY_BLUE_SOFT = '#1565C0';
-const SKY_BLUE_DARK = '#1565C0';
+const SKY_BLUE_LIGHT = '#7DD3FC';
+const SKY_BLUE_SOFT = '#E0F2FE';
+const SKY_BLUE_DARK = '#0284C7';
 
 export function ProfileHeaderCard({ roleLabel }: ProfileHeaderCardProps) {
     const { user } = useAuthStore();
@@ -32,7 +32,7 @@ export function ProfileHeaderCard({ roleLabel }: ProfileHeaderCardProps) {
                             className="w-28 h-28 rounded-full"
                             style={{
                                 borderWidth: 3,
-                                borderColor: SKY_BLUE_LIGHT,
+                                borderColor: BLUE,
                             }}
                         />
                     ) : (

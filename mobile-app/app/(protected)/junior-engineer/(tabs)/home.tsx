@@ -3,7 +3,7 @@
  *
  * 3-state profile flow:
  * 1. Profile incomplete → "Kindly complete your profile" banner + AccessBlockedModal
- * 2. Profile complete, not active → "Your account is under verification"
+ * 2. Profile complete, not active → "Your account is under verification. Contact Admin or your headmaster"
  * 3. Active → full access
  *
  * Action cards: Complete/View Profile, Notices, View Projects
@@ -46,7 +46,7 @@ function ActionCard({ title, iconName, onPress, disabled = false }: ActionCardPr
             onPress={onPress}
             activeOpacity={0.75}
         >
-            <View className="w-16 h-16 rounded-full bg-[#1565C0] justify-center items-center mb-2">
+            <View className="w-16 h-16 rounded-full bg-[#e8f4fd] justify-center items-center mb-2">
                 <Ionicons name={iconName} size={34} color={disabled ? '#9ca3af' : BLUE} />
             </View>
             <AppText
@@ -115,7 +115,7 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: {
                     </AppText>
                     <AppText className="text-sm text-gray-500 text-center leading-[22px] mb-7">
                         {isVerification
-                            ? 'Your account is currently under verification by the admin. You will be able to access this once approved.'
+                            ? 'Your account is under verification. Contact Admin or your headmaster.'
                             : 'Kindly complete your profile by filling up relevant experience details.'}
                     </AppText>
                     {isVerification ? (
@@ -300,7 +300,7 @@ export default function JuniorEngineerHomeTabScreen() {
             {/* Profile status banners */}
             {!hasCompletedProfile && (
                 <TouchableOpacity
-                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#1565C0]"
+                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]"
                     onPress={() => router.push('/(protected)/junior-engineer/complete-profile')}
                     activeOpacity={0.8}
                 >
@@ -309,8 +309,8 @@ export default function JuniorEngineerHomeTabScreen() {
             )}
 
             {hasCompletedProfile && !isActive && (
-                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#1565C0]">
-                    <AppText className="text-[#1565C0] text-[15px] font-semibold">Your account is under verification</AppText>
+                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]">
+                    <AppText className="text-[#1565C0] text-[15px] font-semibold">Your account is under verification. Contact Admin or your headmaster</AppText>
                 </View>
             )}
 

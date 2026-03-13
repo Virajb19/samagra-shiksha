@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const ACCENT = '#1565C0';
+const ACCENT = '#1E88E5';
 
 export interface SelectModalProps {
     visible: boolean;
@@ -59,7 +59,7 @@ export default function SelectModal({
                             contentContainerStyle={{ paddingBottom: 40 }}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
-                                    className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${selectedValue === item.id ? 'bg-[#1565C0]' : 'bg-white'}`}
+                                    className={`py-3.5 px-4 border-b border-gray-100 flex-row justify-between items-center ${selectedValue === item.id ? 'bg-blue-50' : 'bg-white'}`}
                                     onPress={() => {
                                         onSelect(item.id);
                                         onClose();

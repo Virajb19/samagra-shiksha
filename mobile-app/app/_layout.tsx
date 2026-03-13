@@ -97,7 +97,7 @@ export default function RootLayout() {
                     <GlobalLoader />
                 </View>
             </QueryClientProvider>
-            <Toast config={toastConfig} position="bottom" bottomOffset={90} />
+            <Toast config={toastConfig} position="bottom" bottomOffset={90} visibilityTime={3000}/>
         </SafeAreaProvider>
     );
 }

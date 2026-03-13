@@ -22,6 +22,7 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
+    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -37,7 +38,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { JuniorEngineerProfileSchema, JuniorEngineerProfileFormData } from '../../../src/lib/zod';
 import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
+import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 
+const BLUE = '#1565C0';
 
 export default function JuniorEngineerCompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();
@@ -53,6 +56,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
 
     const selectedDistrict = watch('districtId');
     const [districtModalVisible, setDistrictModalVisible] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const { data: districts = [], isLoading: loadingDistricts } = useQuery<District[]>({
         queryKey: ['districts'],
@@ -74,12 +78,13 @@ export default function JuniorEngineerCompleteProfileScreen() {
         },
         onSuccess: async () => {
             await refreshUser();
-            Alert.alert('Success', 'Profile completed successfully! Your account is now under verification.', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            setShowSuccessModal(true);
         },
         onError: (error: any) => {
-            Alert.alert('Error', error.message || 'Failed to complete profile');
+            Toast.show({
+                type: 'error',
+                text2: error.message || 'Failed to complete profile',
+            })
         },
     });
 
@@ -97,12 +102,12 @@ export default function JuniorEngineerCompleteProfileScreen() {
     };
 
     return (
-        <View className="flex-1 bg-[#1565C0]">
-            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+        <View className="flex-1" style={{ backgroundColor: BLUE }}>
+            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
 
             {/* Navy Header */}
-            <View className="bg-[#1565C0] px-5 pb-6" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 10 }}>
-                <View>
+            <View className="px-5 pb-6" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 10, backgroundColor: BLUE }}>
+                <View className="flex-row items-center gap-3.5">
                     <View>
                         <AppText className="text-xl font-bold text-white">Complete Profile</AppText>
                         <AppText className="text-[14px] text-white/70 mt-0.5">Junior Engineer Details</AppText>
@@ -119,9 +124,9 @@ export default function JuniorEngineerCompleteProfileScreen() {
 
                 {/* Warning Banner */}
                 <View className="bg-[#fff3cd] border border-[#ffc107] rounded-lg p-3 flex-row items-start mb-5 gap-2">
-                    <Ionicons name="warning" size={20} color="#856404" />
+                    <Image source={require('../../../assets/warning.png')} className="w-5 h-5 mt-0.5" resizeMode="contain" />
                     <AppText className="flex-1 text-[13px] text-[#856404] leading-[18px]">
-                        Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
+                        <AppText weight="bold" className="text-[13px] text-[#856404]">Important:</AppText> You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
                     </AppText>
                 </View>
 
@@ -130,7 +135,7 @@ export default function JuniorEngineerCompleteProfileScreen() {
                     <AppText className="text-sm font-semibold text-gray-700 mb-2">District *</AppText>
                     {loadingDistricts ? (
                         <View className="bg-white rounded-lg border border-gray-300 px-4 py-3.5 flex-row justify-between items-center">
-                            <ActivityIndicator size="small" color="#1565C0" />
+                            <ActivityIndicator size="small" color="#2c3e6b" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -234,7 +239,8 @@ export default function JuniorEngineerCompleteProfileScreen() {
 
                 {/* Submit Button */}
                 <TouchableOpacity
-                    className={`rounded-[10px] py-4 items-center mt-6 ${submitMutation.isPending ? 'bg-gray-400' : 'bg-[#1565C0]'}`}
+                    className="rounded-[10px] py-4 items-center mt-6"
+                    style={{ backgroundColor: submitMutation.isPending ? '#9ca3af' : BLUE }}
                     onPress={handleSubmit(onSubmit, onFormError)}
                     disabled={submitMutation.isPending}
                 >
@@ -245,6 +251,14 @@ export default function JuniorEngineerCompleteProfileScreen() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
+
+            <ProfileCompletionModal
+                visible={showSuccessModal}
+                onContinue={() => {
+                    setShowSuccessModal(false);
+                    router.back();
+                }}
+            />
         </View>
     );
 }

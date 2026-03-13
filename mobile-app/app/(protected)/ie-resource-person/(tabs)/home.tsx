@@ -22,7 +22,7 @@ function ActionCard({ title, iconName, onPress, disabled = false }: { title: str
             onPress={onPress}
             activeOpacity={0.75}
         >
-            <View className="w-16 h-16 rounded-full bg-[#1565C0] justify-center items-center mb-2">
+            <View className="w-16 h-16 rounded-full bg-[#e8f4fd] justify-center items-center mb-2">
                 <Ionicons name={iconName} size={34} color={disabled ? '#9ca3af' : BLUE} />
             </View>
             <AppText className={`text-[11px] font-bold text-center leading-[14px] ${disabled ? 'text-gray-400' : 'text-gray-800'}`} numberOfLines={2}>{title}</AppText>
@@ -65,7 +65,7 @@ function AccessBlockedModal({ visible, mode, onClose, onComplete }: { visible: b
                 >
                     <Image source={{ uri: isVerification ? 'https://cdn-icons-png.flaticon.com/512/6195/6195699.png' : 'https://cdn-icons-png.flaticon.com/512/3596/3596165.png' }} className="w-[140px] h-[140px] mb-5" resizeMode="contain" />
                     <AppText className="text-[22px] font-bold text-[#1a1a2e] text-center mb-2">{isVerification ? 'Account under verification' : 'Complete your profile'}</AppText>
-                    <AppText className="text-sm text-gray-500 text-center leading-[22px] mb-7">{isVerification ? 'Your account is currently under verification by the admin. You will be able to access this once approved.' : 'Kindly complete your profile by filling up relevant experience details.'}</AppText>
+                    <AppText className="text-sm text-gray-500 text-center leading-[22px] mb-7">{isVerification ? 'Your account is under verification. Contact Admin or your headmaster.' : 'Kindly complete your profile by filling up relevant experience details.'}</AppText>
                     {isVerification ? (
                         <TouchableOpacity className="bg-[#1565C0] rounded-xl py-3.5 w-full items-center" onPress={onClose}><AppText className="text-white text-base font-semibold">OK, Got it</AppText></TouchableOpacity>
                     ) : (
@@ -117,7 +117,7 @@ export default function IEResourcePersonHomeTabScreen() {
 
             {!loadingProfile && !hasCompletedProfile && (
                 <TouchableOpacity
-                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#1565C0]"
+                    className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]"
                     onPress={() => router.push('/(protected)/ie-resource-person/complete-profile')}
                     activeOpacity={0.8}
                 >
@@ -125,8 +125,8 @@ export default function IEResourcePersonHomeTabScreen() {
                 </TouchableOpacity>
             )}
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#1565C0]">
-                    <AppText className="text-[#1565C0] text-[15px] font-semibold">Your account is under verification</AppText>
+                <View className="mx-4 mt-2 rounded-xl py-4 items-center border-[1.5px] border-dashed border-[#1565C0] bg-[#e8f4fd]">
+                    <AppText className="text-[#1565C0] text-[15px] font-semibold">Your account is under verification. Contact Admin or your headmaster</AppText>
                 </View>
             )}
 

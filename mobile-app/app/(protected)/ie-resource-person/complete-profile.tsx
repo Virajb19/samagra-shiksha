@@ -24,6 +24,7 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
+    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -40,7 +41,9 @@ import { IEResourcePersonProfileSchema, IEResourcePersonProfileFormData } from '
 import CalendarPickerModal from '../../../src/components/CalendarPickerModal';
 import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
+import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 
+const BLUE = '#1565C0';
 
 export default function IECompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();
@@ -64,6 +67,7 @@ export default function IECompleteProfileScreen() {
     // Modal visibility state
     const [districtModalVisible, setDistrictModalVisible] = useState(false);
     const [datePickerVisible, setDatePickerVisible] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const dateOfJoining = watch('dateOfJoining');
 
     // Fetch districts from Firestore
@@ -93,9 +97,7 @@ export default function IECompleteProfileScreen() {
         },
         onSuccess: async () => {
             await refreshUser();
-            Alert.alert('Success', 'Profile completed successfully! Your account is now under verification.', [
-                { text: 'OK', onPress: () => router.back() },
-            ]);
+            setShowSuccessModal(true);
         },
         onError: (error: any) => {
             const message = error.message || 'Failed to complete profile';
@@ -117,12 +119,12 @@ export default function IECompleteProfileScreen() {
     };
 
     return (
-        <View className="flex-1 bg-[#1565C0]">
-            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+        <View className="flex-1" style={{ backgroundColor: BLUE }}>
+            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
 
             {/* Navy Header */}
-            <View className="bg-[#1565C0] pb-6 px-5" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 10 }}>
-                <View>
+            <View className="pb-6 px-5" style={{ paddingTop: Platform.OS === 'ios' ? 20 : 10, backgroundColor: BLUE }}>
+                <View className="flex-row items-center gap-[14px]">
                     <View>
                         <AppText className="text-xl font-bold text-white">Complete Profile</AppText>
                         <AppText className="text-[14px] text-white/70 mt-[2px]">Add your professional details</AppText>
@@ -139,9 +141,9 @@ export default function IECompleteProfileScreen() {
 
                 {/* Warning Banner */}
                 <View className="bg-[#fff3cd] border border-[#ffc107] rounded-lg p-3 flex-row items-start mb-5 gap-2">
-                    <Ionicons name="warning" size={20} color="#856404" />
+                    <Image source={require('../../../assets/warning.png')} className="w-5 h-5 mt-0.5" resizeMode="contain" />
                     <AppText className="flex-1 text-[13px] text-[#856404] leading-[18px]">
-                        Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
+                        <AppText weight="bold" className="text-[13px] text-[#856404]">Important:</AppText> You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
                     </AppText>
                 </View>
 
@@ -150,7 +152,7 @@ export default function IECompleteProfileScreen() {
                     <AppText className="text-sm font-semibold text-[#374151] mb-2">District *</AppText>
                     {loadingDistricts ? (
                         <View className="bg-white rounded-lg border border-[#d1d5db] px-4 py-[14px] flex-row justify-between items-center">
-                            <ActivityIndicator size="small" color="#1565C0" />
+                            <ActivityIndicator size="small" color="#2c3e6b" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -346,7 +348,8 @@ export default function IECompleteProfileScreen() {
 
                 {/* Submit Button */}
                 <TouchableOpacity
-                    className={`bg-[#1565C0] rounded-[10px] py-4 items-center mt-6 ${submitMutation.isPending ? 'bg-[#9ca3af]' : ''}`}
+                    className="rounded-[10px] py-4 items-center mt-6"
+                    style={{ backgroundColor: submitMutation.isPending ? '#9ca3af' : BLUE }}
                     onPress={handleSubmit(onSubmit, onFormError)}
                     disabled={submitMutation.isPending}
                 >
@@ -357,6 +360,14 @@ export default function IECompleteProfileScreen() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
+
+            <ProfileCompletionModal
+                visible={showSuccessModal}
+                onContinue={() => {
+                    setShowSuccessModal(false);
+                    router.back();
+                }}
+            />
         </View>
     );
 }

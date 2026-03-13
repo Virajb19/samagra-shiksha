@@ -121,7 +121,7 @@ function EventCard({ event, districts, onPress }: { event: any; districts: Distr
     const districtName = event.district_id ? districts.find((d: District) => d.id === event.district_id)?.name : null;
     const loc = [event.location, districtName].filter(Boolean).join(', ');
     const dateLine = formatEventDate(event.event_date, event.event_end_date);
-    const colors = ['#1565C0', '#1565C0', '#1565C0', '#1565C0', '#2E7D32'];
+    const colors = ['#1565C0', '#0277BD', '#00838F', '#00695C', '#2E7D32'];
     const bg = colors[(event.id || '').split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % colors.length];
     return (
         <TouchableOpacity className="rounded-2xl overflow-hidden mb-4 h-[200px] bg-gray-300" style={{ elevation: 3 }} activeOpacity={0.85} onPress={onPress}>

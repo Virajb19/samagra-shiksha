@@ -94,7 +94,7 @@ export default function EditPersonalDetailsScreen() {
                 {/* Profile Photo */}
                 <View className="items-center mb-6 mt-2">
                     <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
-                        <View className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border-[3px] border-[#1565C0]">
+                        <View className="w-28 h-28 rounded-full bg-gray-200 overflow-hidden border-[3px] border-[#3b82f6]">
                             {profileUrl ? (
                                 <Image source={{ uri: profileUrl }} className="w-full h-full" />
                             ) : (
@@ -103,7 +103,7 @@ export default function EditPersonalDetailsScreen() {
                                 </View>
                             )}
                         </View>
-                        <View className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-[#1565C0] justify-center items-center border-2 border-white">
+                        <View className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-[#3b82f6] justify-center items-center border-2 border-white">
                             <Ionicons name="camera" size={18} color="#fff" />
                         </View>
                     </TouchableOpacity>
@@ -113,13 +113,13 @@ export default function EditPersonalDetailsScreen() {
                 <View className="mb-5">
                     <View className="flex-row bg-[#e5e7eb] rounded-full p-1">
                         <TouchableOpacity
-                            className={`flex-1 py-3 rounded-full items-center ${selectedGender === 'MALE' ? 'bg-[#1565C0]' : ''}`}
+                            className={`flex-1 py-3 rounded-full items-center ${selectedGender === 'MALE' ? 'bg-[#3b82f6]' : ''}`}
                             onPress={() => setValue('gender', 'MALE', { shouldValidate: true })}
                         >
                             <AppText className={`text-sm font-semibold ${selectedGender === 'MALE' ? 'text-white' : 'text-gray-500'}`}>Male</AppText>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            className={`flex-1 py-3 rounded-full items-center ${selectedGender === 'FEMALE' ? 'bg-[#1565C0]' : ''}`}
+                            className={`flex-1 py-3 rounded-full items-center ${selectedGender === 'FEMALE' ? 'bg-[#3b82f6]' : ''}`}
                             onPress={() => setValue('gender', 'FEMALE', { shouldValidate: true })}
                         >
                             <AppText className={`text-sm font-semibold ${selectedGender === 'FEMALE' ? 'text-white' : 'text-gray-500'}`}>Female</AppText>
@@ -173,7 +173,7 @@ export default function EditPersonalDetailsScreen() {
 
                 {/* Save Button */}
                 <TouchableOpacity
-                    className={`bg-[#1565C0] rounded-xl py-4 items-center ${updateMutation.isPending ? 'opacity-70' : ''}`}
+                    className={`bg-[#3b82f6] rounded-xl py-4 items-center ${updateMutation.isPending ? 'opacity-70' : ''}`}
                     onPress={handleSubmit(onSubmit)}
                     disabled={updateMutation.isPending}
                 >

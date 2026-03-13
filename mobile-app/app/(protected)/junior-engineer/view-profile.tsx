@@ -138,16 +138,6 @@ export default function JuniorEngineerViewProfileScreen() {
                     </View>
                 )}
 
-                {/* Under Verification Banner — when profile is complete but not yet active */}
-                {!isActive && (
-                    <View
-                        className="rounded-xl py-4 items-center flex-row justify-center gap-2"
-                        style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: BLUE, backgroundColor: '#1565C0' }}
-                    >
-                        <Ionicons name="time-outline" size={24} color={BLUE} />
-                        <AppText style={{ color: BLUE }} className="text-[15px] font-semibold">Your account is under verification</AppText>
-                    </View>
-                )}
             </ScrollView>
         </View>
     );

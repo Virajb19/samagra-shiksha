@@ -52,8 +52,8 @@ export default function SettingsScreen() {
                 style={{ elevation: 1 }}
                 onPress={() => router.push('/(protected)/edit-personal-details' as any)}
             >
-                <View className="w-12 h-12 rounded-full bg-[#1565C0] justify-center items-center">
-                    <Ionicons name="person-outline" size={24} color="#1565C0" />
+                <View className="w-12 h-12 rounded-full bg-[#dbeafe] justify-center items-center">
+                    <Ionicons name="person-outline" size={24} color="#3b82f6" />
                 </View>
                 <AppText weight='bold' className="flex-1 text-lg font-semibold text-[#1a1a2e] ml-4">Edit Profile</AppText>
                 <Ionicons name="chevron-forward" size={22} color="#9ca3af" />

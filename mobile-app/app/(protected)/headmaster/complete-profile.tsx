@@ -22,6 +22,7 @@ import {
     TextInput,
     Alert,
     ActivityIndicator,
+    Image,
     StatusBar,
     Platform,
 } from 'react-native';
@@ -37,7 +38,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { HMTeacherProfileSchema, HMTeacherProfileFormData } from '../../../src/lib/zod';
 import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
+import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 
+const BLUE = '#1565C0';
 
 export default function CompleteProfileScreen() {
     const { user, refreshUser } = useAuthStore();
@@ -60,6 +63,7 @@ export default function CompleteProfileScreen() {
     // Modal visibility state
     const [districtModalVisible, setDistrictModalVisible] = useState(false);
     const [schoolModalVisible, setSchoolModalVisible] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     // Fetch districts from Firestore
     const { data: districts = [], isLoading: loadingDistricts } = useQuery<District[]>({
@@ -102,9 +106,7 @@ export default function CompleteProfileScreen() {
         },
         onSuccess: async () => {
             await refreshUser();
-            Alert.alert('Success', 'Profile completed successfully! Your account is now under verification.', [
-                { text: 'OK', onPress: () => router.replace('/(protected)/headmaster/(tabs)/home') },
-            ]);
+            setShowSuccessModal(true);
         },
         onError: (error: any) => {
             const message = error.message || 'Failed to complete profile';
@@ -127,7 +129,7 @@ export default function CompleteProfileScreen() {
 
     return (
         <View style={styles.outerContainer}>
-            <StatusBar barStyle="light-content" backgroundColor="#1565C0" />
+            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
 
             {/* Navy Header */}
             <View style={styles.headerSection}>
@@ -148,9 +150,9 @@ export default function CompleteProfileScreen() {
 
                 {/* Warning Banner */}
                 <View style={styles.warningBanner}>
-                    <Ionicons name="warning" size={20} color="#856404" />
+                    <Image source={require('../../../assets/warning.png')} style={styles.warningIcon} resizeMode="contain" />
                     <AppText style={styles.warningText}>
-                        Important: You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
+                        <AppText weight="bold" style={styles.warningTextBold}>Important:</AppText> You can only create your profile once. Please ensure all information is correct before submitting as it cannot be edited later.
                     </AppText>
                 </View>
 
@@ -159,7 +161,7 @@ export default function CompleteProfileScreen() {
                     <AppText style={styles.label}>District *</AppText>
                     {loadingDistricts ? (
                         <View style={styles.pickerButton}>
-                            <ActivityIndicator size="small" color="#1565C0" />
+                            <ActivityIndicator size="small" color="#2c3e6b" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -195,7 +197,7 @@ export default function CompleteProfileScreen() {
                     <AppText style={styles.label}>School (Currently Employed In) *</AppText>
                     {loadingSchools && selectedDistrict ? (
                         <View style={styles.pickerButton}>
-                            <ActivityIndicator size="small" color="#1565C0" />
+                            <ActivityIndicator size="small" color="#2c3e6b" />
                         </View>
                     ) : (
                         <TouchableOpacity
@@ -314,6 +316,14 @@ export default function CompleteProfileScreen() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
+
+            <ProfileCompletionModal
+                visible={showSuccessModal}
+                onContinue={() => {
+                    setShowSuccessModal(false);
+                    router.replace('/(protected)/headmaster/(tabs)/home');
+                }}
+            />
         </View>
     );
 }
@@ -321,10 +331,10 @@ export default function CompleteProfileScreen() {
 const styles = StyleSheet.create({
     outerContainer: {
         flex: 1,
-        backgroundColor: '#1565C0',
+        backgroundColor: BLUE,
     },
     headerSection: {
-        backgroundColor: '#1565C0',
+        backgroundColor: BLUE,
         paddingTop: Platform.OS === 'ios' ? 20 : 10,
         paddingBottom: 24,
         paddingHorizontal: 20,
@@ -332,6 +342,7 @@ const styles = StyleSheet.create({
     headerContent: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 14,
     },
     headerTitle: {
         fontSize: 20,
@@ -424,8 +435,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     checkboxSelected: {
-        backgroundColor: '#1565C0',
-        borderColor: '#1565C0',
+        backgroundColor: BLUE,
+        borderColor: BLUE,
     },
     checkboxLabel: {
         fontSize: 15,
@@ -463,7 +474,7 @@ const styles = StyleSheet.create({
         color: '#6b7280',
     },
     submitButton: {
-        backgroundColor: '#1565C0',
+        backgroundColor: BLUE,
         borderRadius: 10,
         paddingVertical: 16,
         alignItems: 'center',
@@ -494,10 +505,19 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         gap: 8,
     },
+    warningIcon: {
+        width: 20,
+        height: 20,
+        marginTop: 1,
+    },
     warningText: {
         flex: 1,
         fontSize: 13,
         color: '#856404',
         lineHeight: 18,
+    },
+    warningTextBold: {
+        fontSize: 13,
+        color: '#856404',
     },
 });
