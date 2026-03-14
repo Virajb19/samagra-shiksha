@@ -44,7 +44,7 @@ import {
     type ICTFormPage2Data,
     type ICTFormPage3Data,
 } from '../../src/lib/zod';
-import { submitICTForm, getICTFormSubmissions, type ICTFormSubmission } from '../../src/services/firebase/ict-form.firestore';
+import { submitICTForm, getICTFormSubmission, type ICTFormSubmission } from '../../src/services/firebase/ict-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
@@ -276,53 +276,48 @@ function FormHeader() {
 }
 
 // ─── Submission Table ──────────────────────────
-function ICTFormDataTable({ submissions }: { submissions: ICTFormSubmission[] }) {
-    if (!submissions.length) return null;
+function ICTFormDataTable({ submission }: { submission: ICTFormSubmission }) {
 
     return (
         <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your ICT Submissions</AppText>
-            {submissions.map((sub, idx) => (
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Recent ICT Submission</AppText>
                 <View
-                    key={sub.id}
+                    key={submission.id}
                     className="bg-white rounded-2xl mb-3 p-4"
                     style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
                 >
                     <View className="flex-row items-center mb-2">
-                        <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
-                        </View>
                         <View className="flex-1">
-                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'ICT Submission'}</AppText>
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{submission.school_name || 'ICT Submission'}</AppText>
                             <AppText className="text-xs text-gray-500">
-                                {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(submission.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
 
                     <View className="border-t border-gray-100 pt-2 mt-1">
-                        <DataRow label="Smart TVs Provided" value={sub.have_smart_tvs} />
-                        <DataRow label="UPS Provided" value={sub.have_ups} />
-                        <DataRow label="Pendrives Provided" value={sub.have_pendrives} />
-                        <DataRow label="ICT Materials Working" value={sub.ict_materials_working} />
-                        <DataRow label="Smart TVs Wall Mounted" value={sub.smart_tvs_wall_mounted} />
-                        <DataRow label="Smart TVs Location" value={sub.smart_tvs_location} />
-                        <DataRow label="Smart Class in Routine" value={sub.smart_class_in_routine} />
-                        <DataRow label="Weekly Smart Class Days" value={sub.weekly_smart_class} />
-                        <DataRow label="Has Logbook" value={sub.has_logbook} />
-                        <DataRow label="Students Benefited" value={sub.students_benefited} />
-                        <DataRow label="Smart TVs Other Purposes" value={sub.smart_tvs_other_purposes} />
-                        <DataRow label="Smart Class Benefiting" value={sub.is_smart_class_benefiting} />
-                        {sub.benefit_comment ? <DataRow label="Benefit Comment" value={sub.benefit_comment} /> : null}
-                        <DataRow label="Teacher Impact" value={sub.noticed_impact} />
-                        <DataRow label="How Program Helped" value={sub.how_program_helped} />
-                        <DataRow label="Observations" value={sub.observations} />
-                        {sub.photos_of_materials.length > 0 && (
+                        <DataRow label="Smart TVs Provided" value={submission.have_smart_tvs} />
+                        <DataRow label="UPS Provided" value={submission.have_ups} />
+                        <DataRow label="Pendrives Provided" value={submission.have_pendrives} />
+                        <DataRow label="ICT Materials Working" value={submission.ict_materials_working} />
+                        <DataRow label="Smart TVs Wall Mounted" value={submission.smart_tvs_wall_mounted} />
+                        <DataRow label="Smart TVs Location" value={submission.smart_tvs_location} />
+                        <DataRow label="Smart Class in Routine" value={submission.smart_class_in_routine} />
+                        <DataRow label="Weekly Smart Class Days" value={submission.weekly_smart_class} />
+                        <DataRow label="Has Logbook" value={submission.has_logbook} />
+                        <DataRow label="Students Benefited" value={submission.students_benefited} />
+                        <DataRow label="Smart TVs Other Purposes" value={submission.smart_tvs_other_purposes} />
+                        <DataRow label="Smart Class Benefiting" value={submission.is_smart_class_benefiting} />
+                        {submission.benefit_comment ? <DataRow label="Benefit Comment" value={submission.benefit_comment} /> : null}
+                        <DataRow label="Teacher Impact" value={submission.noticed_impact} />
+                        <DataRow label="How Program Helped" value={submission.how_program_helped} />
+                        <DataRow label="Observations" value={submission.observations} />
+                        {submission.photos_of_materials.length > 0 && (
                             <View className="mt-2">
-                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Photos ({sub.photos_of_materials.length})</AppText>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Photos ({submission.photos_of_materials.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    {sub.photos_of_materials.map((url, i) => (
+                                    {submission.photos_of_materials.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                     ))}
                                 </ScrollView>
@@ -330,7 +325,6 @@ function ICTFormDataTable({ submissions }: { submissions: ICTFormSubmission[] })
                         )}
                     </View>
                 </View>
-            ))}
         </View>
     );
 }
@@ -353,7 +347,8 @@ export default function ICTFormScreen() {
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const [currentPage, setCurrentPage] = useState(1);
-    const [showTable, setShowTable] = useState(false);
+    const [showRecentSubmission, setShowRecentSubmission] = useState(false);
+    const [showSubmitSuccessBanner, setShowSubmitSuccessBanner] = useState(false);
     const [showAddPhotoSourceModal, setShowAddPhotoSourceModal] = useState(false);
 
     // Authorization check — only teachers with ICT responsibility can access
@@ -410,9 +405,9 @@ export default function ICTFormScreen() {
     });
 
     // ── Fetch existing submissions ──
-    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
-        queryKey: ['ict-form-submissions', user?.id],
-        queryFn: () => getICTFormSubmissions(user!.id),
+    const { data: recentSubmission, refetch: refetchRecentSubmission } = useQuery({
+        queryKey: ['ict-form-submission', user?.id],
+        queryFn: () => getICTFormSubmission(user!.id),
         enabled: !!user?.id,
     });
 
@@ -432,10 +427,12 @@ export default function ICTFormScreen() {
             });
         },
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['ict-form-submission'] });
             queryClient.invalidateQueries({ queryKey: ['ict-form-submissions'] });
             Toast.show({ type: 'success', text2: 'ICT form submitted successfully!', visibilityTime: 2000 });
-            refetchSubmissions();
-            setShowTable(true);
+            refetchRecentSubmission();
+            setShowSubmitSuccessBanner(true);
+            setShowRecentSubmission(true);
         },
         onError: (error: any) => {
             Toast.show({ type: 'error', text2: error?.message || 'Failed to submit ICT form', visibilityTime: 3000 });
@@ -524,25 +521,27 @@ export default function ICTFormScreen() {
     );
 
     // ── If showing table after successful submit ──
-    if (showTable) {
+    if (showRecentSubmission && recentSubmission) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
                     {/* Success message */}
-                    <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
-                        <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-                        <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
-                        <AppText className="text-sm text-green-600 mt-1 text-center">
-                            Your ICT Activities form has been submitted successfully.
-                        </AppText>
-                    </View>
+                    {showSubmitSuccessBanner && (
+                        <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
+                            <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+                            <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
+                            <AppText className="text-sm text-green-600 mt-1 text-center">
+                                Your ICT Activities form has been submitted successfully.
+                            </AppText>
+                        </View>
+                    )}
 
-                    <ICTFormDataTable submissions={submissions} />
+                    <ICTFormDataTable submission={recentSubmission} />
 
                     <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-4 flex-row justify-center gap-2"
+                        className="rounded-xl py-4 items-center mt-2 flex-row justify-center gap-2"
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
@@ -608,6 +607,22 @@ export default function ICTFormScreen() {
                     </React.Fragment>
                 ))}
             </View>
+
+            {recentSubmission && (
+                <View className="px-5 py-3 bg-white border-b border-gray-100">
+                    <TouchableOpacity
+                        className="rounded-xl py-3 items-center flex-row justify-center"
+                        style={{ backgroundColor: BLUE }}
+                        onPress={() => {
+                            setShowSubmitSuccessBanner(false);
+                            setShowRecentSubmission(true);
+                        }}
+                    >
+                        <Ionicons name="eye-outline" size={20} color="#fff" />
+                        <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Page Content */}
             {Platform.OS === 'ios' ? (

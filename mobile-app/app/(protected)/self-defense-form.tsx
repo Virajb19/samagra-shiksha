@@ -42,7 +42,7 @@ import {
 } from '../../src/lib/zod';
 import {
     submitSelfDefenseForm,
-    getSelfDefenseFormSubmissions,
+    getSelfDefenseFormSubmission,
     type SelfDefenseFormSubmission,
 } from '../../src/services/firebase/self-defense-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
@@ -68,46 +68,40 @@ function FormHeader() {
 
 // ─── Submission Table ──────────────────────────
 
-function SelfDefenseFormDataTable({ submissions }: { submissions: SelfDefenseFormSubmission[] }) {
-    if (!submissions.length) return null;
+function SelfDefenseFormDataTable({ submission }: { submission: SelfDefenseFormSubmission }) {
 
     return (
         <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Self Defense Submissions</AppText>
-            {submissions.map((sub, idx) => (
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Recent Self Defense Submission</AppText>
                 <View
-                    key={sub.id}
+                    key={submission.id}
                     className="bg-white rounded-2xl mb-3 p-4"
                     style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
                 >
                     <View className="flex-row items-center mb-2">
-                        <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
-                        </View>
                         <View className="flex-1">
-                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Self Defense Submission'}</AppText>
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{submission.school_name || 'Self Defense Submission'}</AppText>
                             <AppText className="text-xs text-gray-500">
-                                {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(submission.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
                     <View className="border-t border-gray-100 pt-2 mt-1">
-                        {sub.photo ? (
+                        {submission.photo ? (
                             <View className="mb-2">
                                 <AppText className="text-xs font-semibold text-gray-600 mb-1">Photo</AppText>
-                                <Image source={{ uri: sub.photo }} className="w-20 h-20 rounded-lg" />
+                                <Image source={{ uri: submission.photo }} className="w-20 h-20 rounded-lg" />
                             </View>
                         ) : null}
-                        <DataRow label="Classes/Week" value={sub.classes_per_week} />
-                        <DataRow label="Classes/Month" value={sub.classes_per_month} />
-                        <DataRow label="Girl Participants" value={sub.girl_participants} />
-                        <DataRow label="Girls Benefited" value={sub.girls_benefited} />
-                        <DataRow label="Instructor" value={sub.instructor_name} />
-                        <DataRow label="Contact" value={sub.contact_number} />
+                        <DataRow label="Classes/Week" value={submission.classes_per_week} />
+                        <DataRow label="Classes/Month" value={submission.classes_per_month} />
+                        <DataRow label="Girl Participants" value={submission.girl_participants} />
+                        <DataRow label="Girls Benefited" value={submission.girls_benefited} />
+                        <DataRow label="Instructor" value={submission.instructor_name} />
+                        <DataRow label="Contact" value={submission.contact_number} />
                     </View>
                 </View>
-            ))}
         </View>
     );
 }
@@ -129,6 +123,7 @@ export default function SelfDefenseFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
+    const [showSubmitSuccessBanner, setShowSubmitSuccessBanner] = React.useState(false);
 
     // Authorization check — only teachers with Self Defence responsibility can access
     const isAuthorized = user?.responsibilities?.includes('Self Defence') ?? false;
@@ -159,9 +154,9 @@ export default function SelfDefenseFormScreen() {
     const { control, watch, setValue, formState: { errors }, handleSubmit } = form;
     const photo = watch('photo');
 
-    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
-        queryKey: ['self-defense-form-submissions', user?.id],
-        queryFn: () => getSelfDefenseFormSubmissions(user!.id),
+    const { data: recentSubmission, refetch: refetchRecentSubmission } = useQuery({
+        queryKey: ['self-defense-form-submission', user?.id],
+        queryFn: () => getSelfDefenseFormSubmission(user!.id),
         enabled: !!user?.id,
     });
 
@@ -180,8 +175,10 @@ export default function SelfDefenseFormScreen() {
         },
         onSuccess: () => {
             Toast.show({ type: 'success', text1: 'Self Defense form submitted successfully!' });
-            refetchSubmissions();
+            refetchRecentSubmission();
+            queryClient.invalidateQueries({ queryKey: ['self-defense-form-submission'] });
             queryClient.invalidateQueries({ queryKey: ['self-defense-form-submissions'] });
+            setShowSubmitSuccessBanner(true);
             setShowTable(true);
         },
         onError: (error) => {
@@ -209,20 +206,22 @@ export default function SelfDefenseFormScreen() {
     };
 
     // ── Success / table view ──
-    if (showTable) {
+    if (showTable && recentSubmission) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
-                    <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
-                        <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                        <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
-                            Your Self Defense form has been submitted successfully.
-                        </AppText>
-                    </View>
+                    {showSubmitSuccessBanner && (
+                        <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
+                            <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
+                            <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
+                                Your Self Defense form has been submitted successfully.
+                            </AppText>
+                        </View>
+                    )}
 
-                    <SelfDefenseFormDataTable submissions={submissions} />
+                    <SelfDefenseFormDataTable submission={recentSubmission} />
 
                     <TouchableOpacity
                         className="rounded-xl py-4 items-center mt-2"
@@ -384,6 +383,20 @@ export default function SelfDefenseFormScreen() {
             {!errors.contactNumber && <View className="mb-5" />}
 
             {/* Submit Button */}
+            {recentSubmission && (
+                <TouchableOpacity
+                    className="rounded-xl py-4 items-center mt-2 flex-row justify-center"
+                    style={{ backgroundColor: BLUE }}
+                    onPress={() => {
+                        setShowSubmitSuccessBanner(false);
+                        setShowTable(true);
+                    }}
+                >
+                    <Ionicons name="eye-outline" size={20} color="#fff" />
+                    <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                </TouchableOpacity>
+            )}
+
             <TouchableOpacity
                 className={`rounded-xl py-4 items-center mt-2 ${submitMutation.isPending ? 'bg-gray-400' : ''}`}
                 style={!submitMutation.isPending ? { backgroundColor: BLUE } : undefined}

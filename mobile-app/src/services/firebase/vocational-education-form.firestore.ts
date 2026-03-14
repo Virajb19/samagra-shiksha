@@ -8,6 +8,7 @@
 import {
     collection,
     doc,
+    getDoc,
     setDoc,
     getDocs,
     query,
@@ -173,39 +174,54 @@ export async function getVocationalEducationFormSubmissions(
         orderBy('created_at', 'desc'),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((doc) => {
-        const d = doc.data();
-        return {
-            id: doc.id,
-            school_id: d.school_id ?? '',
-            school_name: d.school_name ?? '',
-            district: d.district ?? '',
-            udise: d.udise ?? '',
-            submitted_by: d.submitted_by ?? '',
-            submitted_by_name: d.submitted_by_name ?? '',
-            submitted_by_role: d.submitted_by_role ?? '',
-            trade: d.trade ?? '',
-            class_9: d.class_9 ?? { boys: '0', girls: '0' },
-            class_10: d.class_10 ?? { boys: '0', girls: '0' },
-            class_11: d.class_11 ?? { boys: '0', girls: '0' },
-            class_12: d.class_12 ?? { boys: '0', girls: '0' },
-            is_lab_setup: d.is_lab_setup ?? '',
-            lab_photo: d.lab_photo ?? '',
-            lab_not_setup_reason: d.lab_not_setup_reason ?? '',
-            is_guest_lecture_done: d.is_guest_lecture_done ?? '',
-            guest_lecture_photo: d.guest_lecture_photo ?? '',
-            guest_lecture_not_done_reason: d.guest_lecture_not_done_reason ?? '',
-            is_industrial_visit_done: d.is_industrial_visit_done ?? '',
-            industrial_visit_photo: d.industrial_visit_photo ?? '',
-            industrial_visit_not_done_reason: d.industrial_visit_not_done_reason ?? '',
-            is_internship_done: d.is_internship_done ?? '',
-            internship_report: d.internship_report ?? '',
-            internship_not_done_reason: d.internship_not_done_reason ?? '',
-            best_practices: d.best_practices ?? '',
-            best_practice_photos: d.best_practice_photos ?? [],
-            success_stories: d.success_stories ?? '',
-            success_story_photos: d.success_story_photos ?? [],
-            created_at: d.created_at?.toDate?.()?.toISOString?.() ?? new Date().toISOString(),
-        };
-    });
+    return snap.docs.map((submissionDoc) => mapVocationalSubmission(submissionDoc.id, submissionDoc.data()));
+}
+
+/**
+ * Get the latest Vocational Education submission for a specific user.
+ */
+export async function getVocationalEducationFormSubmission(
+    userId: string,
+): Promise<VocationalEducationFormSubmission | null> {
+    const docId = `${userId}_vocational_education`;
+    const submissionDoc = await getDoc(doc(db, 'vocational_education_form_data', docId));
+    if (!submissionDoc.exists()) {
+        return null;
+    }
+    return mapVocationalSubmission(submissionDoc.id, submissionDoc.data());
+}
+
+function mapVocationalSubmission(id: string, d: any): VocationalEducationFormSubmission {
+    return {
+        id,
+        school_id: d.school_id ?? '',
+        school_name: d.school_name ?? '',
+        district: d.district ?? '',
+        udise: d.udise ?? '',
+        submitted_by: d.submitted_by ?? '',
+        submitted_by_name: d.submitted_by_name ?? '',
+        submitted_by_role: d.submitted_by_role ?? '',
+        trade: d.trade ?? '',
+        class_9: d.class_9 ?? { boys: '0', girls: '0' },
+        class_10: d.class_10 ?? { boys: '0', girls: '0' },
+        class_11: d.class_11 ?? { boys: '0', girls: '0' },
+        class_12: d.class_12 ?? { boys: '0', girls: '0' },
+        is_lab_setup: d.is_lab_setup ?? '',
+        lab_photo: d.lab_photo ?? '',
+        lab_not_setup_reason: d.lab_not_setup_reason ?? '',
+        is_guest_lecture_done: d.is_guest_lecture_done ?? '',
+        guest_lecture_photo: d.guest_lecture_photo ?? '',
+        guest_lecture_not_done_reason: d.guest_lecture_not_done_reason ?? '',
+        is_industrial_visit_done: d.is_industrial_visit_done ?? '',
+        industrial_visit_photo: d.industrial_visit_photo ?? '',
+        industrial_visit_not_done_reason: d.industrial_visit_not_done_reason ?? '',
+        is_internship_done: d.is_internship_done ?? '',
+        internship_report: d.internship_report ?? '',
+        internship_not_done_reason: d.internship_not_done_reason ?? '',
+        best_practices: d.best_practices ?? '',
+        best_practice_photos: d.best_practice_photos ?? [],
+        success_stories: d.success_stories ?? '',
+        success_story_photos: d.success_story_photos ?? [],
+        created_at: d.created_at?.toDate?.()?.toISOString?.() ?? new Date().toISOString(),
+    };
 }

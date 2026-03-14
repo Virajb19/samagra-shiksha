@@ -41,7 +41,7 @@ import {
 } from '../../src/lib/zod';
 import {
     submitLibraryForm,
-    getLibraryFormSubmissions,
+    getLibraryFormSubmission,
     type LibraryFormSubmission,
 } from '../../src/services/firebase/library-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
@@ -161,62 +161,57 @@ function FormHeader() {
 }
 
 // ─── Submission Table ──────────────────────────
-function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmission[] }) {
-    if (!submissions.length) return null;
+function LibraryFormDataTable({ submission }: { submission: LibraryFormSubmission }) {
 
     return (
         <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Library Submissions</AppText>
-            {submissions.map((sub, idx) => (
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Recent Library Submission</AppText>
                 <View
-                    key={sub.id}
+                    key={submission.id}
                     className="bg-white rounded-2xl mb-3 p-4"
                     style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
                 >
                     <View className="flex-row items-center mb-2">
-                        <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
-                        </View>
                         <View className="flex-1">
-                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Library Submission'}</AppText>
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{submission.school_name || 'Library Submission'}</AppText>
                             <AppText className="text-xs text-gray-500">
-                                {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(submission.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
 
                     <View className="border-t border-gray-100 pt-2 mt-1">
-                        <DataRow label="Library Available" value={sub.is_library_available} />
-                        <DataRow label="Child Friendly" value={sub.is_child_friendly} />
-                        <DataRow label="Proper Furniture" value={sub.has_proper_furniture} />
-                        <DataRow label="Management Committee" value={sub.has_management_committee} />
-                        <DataRow label="Teacher In-charge" value={sub.library_teacher_name} />
-                        <DataRow label="Reading Corner" value={sub.has_reading_corner} />
-                        <DataRow label="Reading Corners" value={sub.number_of_reading_corners} />
-                        <DataRow label="Computers" value={sub.number_of_computers} />
-                        <DataRow label="Readers Club" value={sub.has_readers_club} />
-                        <DataRow label="Weekly Library Period" value={sub.has_weekly_library_period} />
-                        <DataRow label="Periods/Week" value={sub.library_periods_per_week} />
-                        <DataRow label="Books from Samagra" value={sub.received_books_from_samagra} />
-                        <DataRow label="Books Received" value={sub.number_of_books_received} />
-                        <DataRow label="Initiative" value={sub.innovative_initiative} />
-                        {sub.suggestions_feedback ? <DataRow label="Feedback" value={sub.suggestions_feedback} /> : null}
-                        {sub.student_photos.length > 0 && (
+                        <DataRow label="Library Available" value={submission.is_library_available} />
+                        <DataRow label="Child Friendly" value={submission.is_child_friendly} />
+                        <DataRow label="Proper Furniture" value={submission.has_proper_furniture} />
+                        <DataRow label="Management Committee" value={submission.has_management_committee} />
+                        <DataRow label="Teacher In-charge" value={submission.library_teacher_name} />
+                        <DataRow label="Reading Corner" value={submission.has_reading_corner} />
+                        <DataRow label="Reading Corners" value={submission.number_of_reading_corners} />
+                        <DataRow label="Computers" value={submission.number_of_computers} />
+                        <DataRow label="Readers Club" value={submission.has_readers_club} />
+                        <DataRow label="Weekly Library Period" value={submission.has_weekly_library_period} />
+                        <DataRow label="Periods/Week" value={submission.library_periods_per_week} />
+                        <DataRow label="Books from Samagra" value={submission.received_books_from_samagra} />
+                        <DataRow label="Books Received" value={submission.number_of_books_received} />
+                        <DataRow label="Initiative" value={submission.innovative_initiative} />
+                        {submission.suggestions_feedback ? <DataRow label="Feedback" value={submission.suggestions_feedback} /> : null}
+                        {submission.student_photos.length > 0 && (
                             <View className="mt-2">
-                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({sub.student_photos.length})</AppText>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({submission.student_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    {sub.student_photos.map((url, i) => (
+                                    {submission.student_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                     ))}
                                 </ScrollView>
                             </View>
                         )}
-                        {sub.logbook_photos.length > 0 && (
+                        {submission.logbook_photos.length > 0 && (
                             <View className="mt-2">
-                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({sub.logbook_photos.length})</AppText>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({submission.logbook_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    {sub.logbook_photos.map((url, i) => (
+                                    {submission.logbook_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                     ))}
                                 </ScrollView>
@@ -224,7 +219,6 @@ function LibraryFormDataTable({ submissions }: { submissions: LibraryFormSubmiss
                         )}
                     </View>
                 </View>
-            ))}
         </View>
     );
 }
@@ -246,6 +240,7 @@ export default function LibraryFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
+    const [showSubmitSuccessBanner, setShowSubmitSuccessBanner] = React.useState(false);
 
     // Authorization check — only teachers with Library responsibility can access
     const isAuthorized = user?.responsibilities?.includes('Library') ?? false;
@@ -289,9 +284,9 @@ export default function LibraryFormScreen() {
     const logbookPhotos = watch('logbookPhotos');
 
     // ── Fetch existing submissions ──
-    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
-        queryKey: ['library-form-submissions', user?.id],
-        queryFn: () => getLibraryFormSubmissions(user!.id),
+    const { data: recentSubmission, refetch: refetchRecentSubmission } = useQuery({
+        queryKey: ['library-form-submission', user?.id],
+        queryFn: () => getLibraryFormSubmission(user!.id),
         enabled: !!user?.id,
     });
 
@@ -310,9 +305,11 @@ export default function LibraryFormScreen() {
             });
         },
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['library-form-submission'] });
             queryClient.invalidateQueries({ queryKey: ['library-form-submissions'] });
             Toast.show({ type: 'success', text2: 'Library form submitted successfully!', visibilityTime: 2000 });
-            refetchSubmissions();
+            refetchRecentSubmission();
+            setShowSubmitSuccessBanner(true);
             setShowTable(true);
         },
         onError: (error: any) => {
@@ -377,25 +374,27 @@ export default function LibraryFormScreen() {
     }, [form]);
 
     // ── If showing table after successful submit ──
-    if (showTable) {
+    if (showTable && recentSubmission) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
                     {/* Success message */}
-                    <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
-                        <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-                        <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
-                        <AppText className="text-sm text-green-600 mt-1 text-center">
-                            Your Library form has been submitted successfully.
-                        </AppText>
-                    </View>
+                    {showSubmitSuccessBanner && (
+                        <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
+                            <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+                            <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
+                            <AppText className="text-sm text-green-600 mt-1 text-center">
+                                Your Library form has been submitted successfully.
+                            </AppText>
+                        </View>
+                    )}
 
-                    <LibraryFormDataTable submissions={submissions} />
+                    <LibraryFormDataTable submission={recentSubmission} />
 
                     <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-4"
+                        className="rounded-xl py-4 items-center mt-2"
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
@@ -693,6 +692,20 @@ export default function LibraryFormScreen() {
             />
 
             {/* Submit Button */}
+            {recentSubmission && (
+                <TouchableOpacity
+                    className="rounded-xl py-4 items-center mt-2 flex-row justify-center"
+                    style={{ backgroundColor: BLUE }}
+                    onPress={() => {
+                        setShowSubmitSuccessBanner(false);
+                        setShowTable(true);
+                    }}
+                >
+                    <Ionicons name="eye-outline" size={20} color="#fff" />
+                    <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                </TouchableOpacity>
+            )}
+
             <TouchableOpacity
                 className={`rounded-xl py-4 items-center mt-2 ${submitMutation.isPending ? 'bg-gray-400' : ''}`}
                 style={!submitMutation.isPending ? { backgroundColor: BLUE } : undefined}

@@ -8,6 +8,7 @@
 import {
     collection,
     doc,
+    getDoc,
     setDoc,
     getDocs,
     query,
@@ -117,28 +118,41 @@ export async function getScienceLabFormSubmissions(userId: string): Promise<Scie
         orderBy('created_at', 'desc'),
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => {
-        const d = doc.data();
-        let createdAt = '';
-        if (d.created_at?.toDate) {
-            createdAt = d.created_at.toDate().toISOString();
-        } else if (typeof d.created_at === 'string') {
-            createdAt = d.created_at;
-        }
-        return {
-            id: doc.id,
-            school_id: d.school_id ?? '',
-            school_name: d.school_name ?? '',
-            district: d.district ?? '',
-            udise: d.udise ?? '',
-            submitted_by: d.submitted_by ?? '',
-            submitted_by_name: d.submitted_by_name ?? '',
-            submitted_by_role: d.submitted_by_role ?? '',
-            kit_teacher_name: d.kit_teacher_name ?? '',
-            experiments_per_week: d.experiments_per_week ?? '',
-            student_photos: d.student_photos ?? [],
-            logbook_photos: d.logbook_photos ?? [],
-            created_at: createdAt,
-        } as ScienceLabFormSubmission;
-    });
+    return snapshot.docs.map((submissionDoc) => mapScienceLabSubmission(submissionDoc.id, submissionDoc.data()));
+}
+
+/**
+ * Get the latest Science Lab submission for a specific user.
+ */
+export async function getScienceLabFormSubmission(userId: string): Promise<ScienceLabFormSubmission | null> {
+    const docId = `${userId}_science_lab`;
+    const submissionDoc = await getDoc(doc(db, 'science_lab_form_data', docId));
+    if (!submissionDoc.exists()) {
+        return null;
+    }
+    return mapScienceLabSubmission(submissionDoc.id, submissionDoc.data());
+}
+
+function mapScienceLabSubmission(id: string, d: any): ScienceLabFormSubmission {
+    let createdAt = '';
+    if (d.created_at?.toDate) {
+        createdAt = d.created_at.toDate().toISOString();
+    } else if (typeof d.created_at === 'string') {
+        createdAt = d.created_at;
+    }
+    return {
+        id,
+        school_id: d.school_id ?? '',
+        school_name: d.school_name ?? '',
+        district: d.district ?? '',
+        udise: d.udise ?? '',
+        submitted_by: d.submitted_by ?? '',
+        submitted_by_name: d.submitted_by_name ?? '',
+        submitted_by_role: d.submitted_by_role ?? '',
+        kit_teacher_name: d.kit_teacher_name ?? '',
+        experiments_per_week: d.experiments_per_week ?? '',
+        student_photos: d.student_photos ?? [],
+        logbook_photos: d.logbook_photos ?? [],
+        created_at: createdAt,
+    };
 }

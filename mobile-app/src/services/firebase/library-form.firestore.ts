@@ -8,6 +8,7 @@
 import {
     collection,
     doc,
+    getDoc,
     setDoc,
     getDocs,
     query,
@@ -152,37 +153,50 @@ export async function getLibraryFormSubmissions(userId: string): Promise<Library
         orderBy('created_at', 'desc'),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((doc) => {
-        const d = doc.data();
-        return {
-            id: doc.id,
-            school_id: d.school_id ?? '',
-            school_name: d.school_name ?? '',
-            district: d.district ?? '',
-            udise: d.udise ?? '',
-            submitted_by: d.submitted_by ?? '',
-            submitted_by_name: d.submitted_by_name ?? '',
-            submitted_by_role: d.submitted_by_role ?? '',
-            is_library_available: d.is_library_available ?? '',
-            is_child_friendly: d.is_child_friendly ?? '',
-            has_proper_furniture: d.has_proper_furniture ?? '',
-            has_management_committee: d.has_management_committee ?? '',
-            library_teacher_name: d.library_teacher_name ?? '',
-            has_reading_corner: d.has_reading_corner ?? '',
-            number_of_reading_corners: d.number_of_reading_corners ?? '',
-            number_of_computers: d.number_of_computers ?? '',
-            has_readers_club: d.has_readers_club ?? '',
-            has_weekly_library_period: d.has_weekly_library_period ?? '',
-            library_periods_per_week: d.library_periods_per_week ?? '',
-            received_books_from_samagra: d.received_books_from_samagra ?? '',
-            number_of_books_received: d.number_of_books_received ?? '',
-            innovative_initiative: d.innovative_initiative ?? '',
-            suggestions_feedback: d.suggestions_feedback ?? '',
-            student_photos: d.student_photos ?? [],
-            logbook_photos: d.logbook_photos ?? [],
-            created_at: toIso(d.created_at),
-        };
-    });
+    return snap.docs.map((submissionDoc) => mapLibrarySubmission(submissionDoc.id, submissionDoc.data()));
+}
+
+/**
+ * Get the latest Library submission for a specific user.
+ */
+export async function getLibraryFormSubmission(userId: string): Promise<LibraryFormSubmission | null> {
+    const docId = `${userId}_library`;
+    const submissionDoc = await getDoc(doc(db, 'library_form_data', docId));
+    if (!submissionDoc.exists()) {
+        return null;
+    }
+    return mapLibrarySubmission(submissionDoc.id, submissionDoc.data());
+}
+
+function mapLibrarySubmission(id: string, d: any): LibraryFormSubmission {
+    return {
+        id,
+        school_id: d.school_id ?? '',
+        school_name: d.school_name ?? '',
+        district: d.district ?? '',
+        udise: d.udise ?? '',
+        submitted_by: d.submitted_by ?? '',
+        submitted_by_name: d.submitted_by_name ?? '',
+        submitted_by_role: d.submitted_by_role ?? '',
+        is_library_available: d.is_library_available ?? '',
+        is_child_friendly: d.is_child_friendly ?? '',
+        has_proper_furniture: d.has_proper_furniture ?? '',
+        has_management_committee: d.has_management_committee ?? '',
+        library_teacher_name: d.library_teacher_name ?? '',
+        has_reading_corner: d.has_reading_corner ?? '',
+        number_of_reading_corners: d.number_of_reading_corners ?? '',
+        number_of_computers: d.number_of_computers ?? '',
+        has_readers_club: d.has_readers_club ?? '',
+        has_weekly_library_period: d.has_weekly_library_period ?? '',
+        library_periods_per_week: d.library_periods_per_week ?? '',
+        received_books_from_samagra: d.received_books_from_samagra ?? '',
+        number_of_books_received: d.number_of_books_received ?? '',
+        innovative_initiative: d.innovative_initiative ?? '',
+        suggestions_feedback: d.suggestions_feedback ?? '',
+        student_photos: d.student_photos ?? [],
+        logbook_photos: d.logbook_photos ?? [],
+        created_at: toIso(d.created_at),
+    };
 }
 
 function toIso(val: any): string {

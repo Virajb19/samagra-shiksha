@@ -8,6 +8,7 @@
 import {
     collection,
     doc,
+    getDoc,
     setDoc,
     getDocs,
     query,
@@ -171,39 +172,52 @@ export async function getICTFormSubmissions(userId: string): Promise<ICTFormSubm
         orderBy('created_at', 'desc'),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((doc) => {
-        const d = doc.data();
-        return {
-            id: doc.id,
-            school_id: d.school_id ?? '',
-            school_name: d.school_name ?? '',
-            district: d.district ?? '',
-            udise: d.udise ?? '',
-            submitted_by: d.submitted_by ?? '',
-            submitted_by_name: d.submitted_by_name ?? '',
-            submitted_by_role: d.submitted_by_role ?? '',
-            have_smart_tvs: d.have_smart_tvs ?? '',
-            have_ups: d.have_ups ?? '',
-            have_pendrives: d.have_pendrives ?? '',
-            ict_materials_working: d.ict_materials_working ?? '',
-            smart_tvs_wall_mounted: d.smart_tvs_wall_mounted ?? '',
-            smart_tvs_location: d.smart_tvs_location ?? '',
-            photos_of_materials: d.photos_of_materials ?? [],
-            smart_class_in_routine: d.smart_class_in_routine ?? '',
-            school_routine: d.school_routine ?? '',
-            weekly_smart_class: d.weekly_smart_class ?? '',
-            has_logbook: d.has_logbook ?? '',
-            logbook: d.logbook ?? '',
-            students_benefited: d.students_benefited ?? '',
-            smart_tvs_other_purposes: d.smart_tvs_other_purposes ?? '',
-            is_smart_class_benefiting: d.is_smart_class_benefiting ?? '',
-            benefit_comment: d.benefit_comment ?? '',
-            noticed_impact: d.noticed_impact ?? '',
-            how_program_helped: d.how_program_helped ?? '',
-            observations: d.observations ?? '',
-            created_at: toIso(d.created_at),
-        };
-    });
+    return snap.docs.map((submissionDoc) => mapICTSubmission(submissionDoc.id, submissionDoc.data()));
+}
+
+/**
+ * Get the latest ICT submission for a specific user.
+ */
+export async function getICTFormSubmission(userId: string): Promise<ICTFormSubmission | null> {
+    const docId = `${userId}_ict`;
+    const submissionDoc = await getDoc(doc(db, 'ict_form_data', docId));
+    if (!submissionDoc.exists()) {
+        return null;
+    }
+    return mapICTSubmission(submissionDoc.id, submissionDoc.data());
+}
+
+function mapICTSubmission(id: string, d: any): ICTFormSubmission {
+    return {
+        id,
+        school_id: d.school_id ?? '',
+        school_name: d.school_name ?? '',
+        district: d.district ?? '',
+        udise: d.udise ?? '',
+        submitted_by: d.submitted_by ?? '',
+        submitted_by_name: d.submitted_by_name ?? '',
+        submitted_by_role: d.submitted_by_role ?? '',
+        have_smart_tvs: d.have_smart_tvs ?? '',
+        have_ups: d.have_ups ?? '',
+        have_pendrives: d.have_pendrives ?? '',
+        ict_materials_working: d.ict_materials_working ?? '',
+        smart_tvs_wall_mounted: d.smart_tvs_wall_mounted ?? '',
+        smart_tvs_location: d.smart_tvs_location ?? '',
+        photos_of_materials: d.photos_of_materials ?? [],
+        smart_class_in_routine: d.smart_class_in_routine ?? '',
+        school_routine: d.school_routine ?? '',
+        weekly_smart_class: d.weekly_smart_class ?? '',
+        has_logbook: d.has_logbook ?? '',
+        logbook: d.logbook ?? '',
+        students_benefited: d.students_benefited ?? '',
+        smart_tvs_other_purposes: d.smart_tvs_other_purposes ?? '',
+        is_smart_class_benefiting: d.is_smart_class_benefiting ?? '',
+        benefit_comment: d.benefit_comment ?? '',
+        noticed_impact: d.noticed_impact ?? '',
+        how_program_helped: d.how_program_helped ?? '',
+        observations: d.observations ?? '',
+        created_at: toIso(d.created_at),
+    };
 }
 
 function toIso(val: any): string {

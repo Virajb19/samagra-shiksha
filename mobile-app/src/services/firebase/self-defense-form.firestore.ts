@@ -8,6 +8,7 @@
 import {
     collection,
     doc,
+    getDoc,
     setDoc,
     getDocs,
     query,
@@ -96,31 +97,44 @@ export async function getSelfDefenseFormSubmissions(userId: string): Promise<Sel
         orderBy('created_at', 'desc'),
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => {
-        const d = doc.data();
-        let createdAt = '';
-        if (d.created_at?.toDate) {
-            createdAt = d.created_at.toDate().toISOString();
-        } else if (typeof d.created_at === 'string') {
-            createdAt = d.created_at;
-        }
-        return {
-            id: doc.id,
-            school_id: d.school_id ?? '',
-            school_name: d.school_name ?? '',
-            district: d.district ?? '',
-            udise: d.udise ?? '',
-            submitted_by: d.submitted_by ?? '',
-            submitted_by_name: d.submitted_by_name ?? '',
-            submitted_by_role: d.submitted_by_role ?? '',
-            photo: d.photo ?? '',
-            classes_per_week: d.classes_per_week ?? '',
-            classes_per_month: d.classes_per_month ?? '',
-            girl_participants: d.girl_participants ?? '',
-            girls_benefited: d.girls_benefited ?? '',
-            instructor_name: d.instructor_name ?? '',
-            contact_number: d.contact_number ?? '',
-            created_at: createdAt,
-        } as SelfDefenseFormSubmission;
-    });
+    return snapshot.docs.map((submissionDoc) => mapSelfDefenseSubmission(submissionDoc.id, submissionDoc.data()));
+}
+
+/**
+ * Get the latest Self Defense submission for a specific user.
+ */
+export async function getSelfDefenseFormSubmission(userId: string): Promise<SelfDefenseFormSubmission | null> {
+    const docId = `${userId}_self_defense`;
+    const submissionDoc = await getDoc(doc(db, 'self_defense_form_data', docId));
+    if (!submissionDoc.exists()) {
+        return null;
+    }
+    return mapSelfDefenseSubmission(submissionDoc.id, submissionDoc.data());
+}
+
+function mapSelfDefenseSubmission(id: string, d: any): SelfDefenseFormSubmission {
+    let createdAt = '';
+    if (d.created_at?.toDate) {
+        createdAt = d.created_at.toDate().toISOString();
+    } else if (typeof d.created_at === 'string') {
+        createdAt = d.created_at;
+    }
+    return {
+        id,
+        school_id: d.school_id ?? '',
+        school_name: d.school_name ?? '',
+        district: d.district ?? '',
+        udise: d.udise ?? '',
+        submitted_by: d.submitted_by ?? '',
+        submitted_by_name: d.submitted_by_name ?? '',
+        submitted_by_role: d.submitted_by_role ?? '',
+        photo: d.photo ?? '',
+        classes_per_week: d.classes_per_week ?? '',
+        classes_per_month: d.classes_per_month ?? '',
+        girl_participants: d.girl_participants ?? '',
+        girls_benefited: d.girls_benefited ?? '',
+        instructor_name: d.instructor_name ?? '',
+        contact_number: d.contact_number ?? '',
+        created_at: createdAt,
+    };
 }

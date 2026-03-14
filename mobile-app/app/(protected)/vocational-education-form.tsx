@@ -43,7 +43,7 @@ import {
 } from '../../src/lib/zod';
 import {
     submitVocationalEducationForm,
-    getVocationalEducationFormSubmissions,
+    getVocationalEducationFormSubmission,
     type VocationalEducationFormSubmission,
 } from '../../src/services/firebase/vocational-education-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
@@ -328,65 +328,60 @@ function DataRow({ label, value }: { label: string; value: string }) {
 }
 
 // ─── Submission Table ──────────────────────────
-function VocationalFormDataTable({ submissions }: { submissions: VocationalEducationFormSubmission[] }) {
-    if (!submissions.length) return null;
+function VocationalFormDataTable({ submission }: { submission: VocationalEducationFormSubmission }) {
 
     return (
         <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Vocational Education Submissions</AppText>
-            {submissions.map((sub, idx) => (
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Recent Vocational Education Submission</AppText>
                 <View
-                    key={sub.id}
+                    key={submission.id}
                     className="bg-white rounded-2xl mb-3 p-4"
                     style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
                 >
                     <View className="flex-row items-center mb-2">
-                        <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
-                        </View>
                         <View className="flex-1">
-                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.trade} — {sub.school_name || 'Submission'}</AppText>
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{submission.trade} - {submission.school_name || 'Submission'}</AppText>
                             <AppText className="text-xs text-gray-500">
-                                {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(submission.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
                     <View className="border-t border-gray-100 pt-2 mt-1">
-                        <DataRow label="Trade" value={sub.trade} />
-                        <DataRow label="Class 9 (B/G)" value={`${sub.class_9.boys} / ${sub.class_9.girls}`} />
-                        <DataRow label="Class 10 (B/G)" value={`${sub.class_10.boys} / ${sub.class_10.girls}`} />
-                        <DataRow label="Class 11 (B/G)" value={`${sub.class_11.boys} / ${sub.class_11.girls}`} />
-                        <DataRow label="Class 12 (B/G)" value={`${sub.class_12.boys} / ${sub.class_12.girls}`} />
-                        <DataRow label="Lab Setup" value={sub.is_lab_setup} />
-                        {sub.is_lab_setup === 'No' && <DataRow label="Lab Not Setup Reason" value={sub.lab_not_setup_reason} />}
-                        <DataRow label="Guest Lecture" value={sub.is_guest_lecture_done} />
-                        {sub.is_guest_lecture_done === 'No' && <DataRow label="Guest Lecture Reason" value={sub.guest_lecture_not_done_reason} />}
-                        <DataRow label="Industrial Visit" value={sub.is_industrial_visit_done} />
-                        {sub.is_industrial_visit_done === 'No' && <DataRow label="Visit Reason" value={sub.industrial_visit_not_done_reason} />}
-                        <DataRow label="Internship" value={sub.is_internship_done} />
-                        {sub.is_internship_done === 'Yes' && <DataRow label="Internship Report" value={sub.internship_report} />}
-                        {sub.is_internship_done === 'No' && <DataRow label="Internship Reason" value={sub.internship_not_done_reason} />}
-                        <DataRow label="Best Practices" value={sub.best_practices} />
-                        <DataRow label="Success Stories" value={sub.success_stories} />
+                        <DataRow label="Trade" value={submission.trade} />
+                        <DataRow label="Class 9 (B/G)" value={`${submission.class_9.boys} / ${submission.class_9.girls}`} />
+                        <DataRow label="Class 10 (B/G)" value={`${submission.class_10.boys} / ${submission.class_10.girls}`} />
+                        <DataRow label="Class 11 (B/G)" value={`${submission.class_11.boys} / ${submission.class_11.girls}`} />
+                        <DataRow label="Class 12 (B/G)" value={`${submission.class_12.boys} / ${submission.class_12.girls}`} />
+                        <DataRow label="Lab Setup" value={submission.is_lab_setup} />
+                        {submission.is_lab_setup === 'No' && <DataRow label="Lab Not Setup Reason" value={submission.lab_not_setup_reason} />}
+                        <DataRow label="Guest Lecture" value={submission.is_guest_lecture_done} />
+                        {submission.is_guest_lecture_done === 'No' && <DataRow label="Guest Lecture Reason" value={submission.guest_lecture_not_done_reason} />}
+                        <DataRow label="Industrial Visit" value={submission.is_industrial_visit_done} />
+                        {submission.is_industrial_visit_done === 'No' && <DataRow label="Visit Reason" value={submission.industrial_visit_not_done_reason} />}
+                        <DataRow label="Internship" value={submission.is_internship_done} />
+                        {submission.is_internship_done === 'Yes' && <DataRow label="Internship Report" value={submission.internship_report} />}
+                        {submission.is_internship_done === 'No' && <DataRow label="Internship Reason" value={submission.internship_not_done_reason} />}
+                        <DataRow label="Best Practices" value={submission.best_practices} />
+                        <DataRow label="Success Stories" value={submission.success_stories} />
 
-                        {(sub.best_practice_photos.length > 0 || sub.success_story_photos.length > 0) && (
+                        {(submission.best_practice_photos.length > 0 || submission.success_story_photos.length > 0) && (
                             <View className="mt-2">
-                                {sub.best_practice_photos.length > 0 && (
+                                {submission.best_practice_photos.length > 0 && (
                                     <View className="mb-2">
-                                        <AppText className="text-xs font-semibold text-gray-600 mb-1">Best Practice Photos ({sub.best_practice_photos.length})</AppText>
+                                        <AppText className="text-xs font-semibold text-gray-600 mb-1">Best Practice Photos ({submission.best_practice_photos.length})</AppText>
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                            {sub.best_practice_photos.map((url, i) => (
+                                            {submission.best_practice_photos.map((url, i) => (
                                                 <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                             ))}
                                         </ScrollView>
                                     </View>
                                 )}
-                                {sub.success_story_photos.length > 0 && (
+                                {submission.success_story_photos.length > 0 && (
                                     <View>
-                                        <AppText className="text-xs font-semibold text-gray-600 mb-1">Success Story Photos ({sub.success_story_photos.length})</AppText>
+                                        <AppText className="text-xs font-semibold text-gray-600 mb-1">Success Story Photos ({submission.success_story_photos.length})</AppText>
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                            {sub.success_story_photos.map((url, i) => (
+                                            {submission.success_story_photos.map((url, i) => (
                                                 <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                             ))}
                                         </ScrollView>
@@ -396,7 +391,6 @@ function VocationalFormDataTable({ submissions }: { submissions: VocationalEduca
                         )}
                     </View>
                 </View>
-            ))}
         </View>
     );
 }
@@ -410,6 +404,7 @@ export default function VocationalEducationFormScreen() {
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const [showTable, setShowTable] = useState(false);
+    const [showSubmitSuccessBanner, setShowSubmitSuccessBanner] = useState(false);
     const [showAddPhotoSourceModal, setShowAddPhotoSourceModal] = useState(false);
     const [pendingPhotoTarget, setPendingPhotoTarget] = useState<
         'bestPracticePhotos' | 'successStoryPhotos' | 'labPhoto' | 'guestLecturePhoto' | 'industrialVisitPhoto' | null
@@ -465,9 +460,9 @@ export default function VocationalEducationFormScreen() {
     const successStoryPhotos = watch('successStoryPhotos');
 
     // Fetch existing submissions
-    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
-        queryKey: ['vocational-education-form-submissions', user?.id],
-        queryFn: () => getVocationalEducationFormSubmissions(user!.id),
+    const { data: recentSubmission, refetch: refetchRecentSubmission } = useQuery({
+        queryKey: ['vocational-education-form-submission', user?.id],
+        queryFn: () => getVocationalEducationFormSubmission(user!.id),
         enabled: !!user?.id,
     });
 
@@ -486,9 +481,11 @@ export default function VocationalEducationFormScreen() {
             });
         },
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['vocational-education-form-submission'] });
             queryClient.invalidateQueries({ queryKey: ['vocational-education-form-submissions'] });
             Toast.show({ type: 'success', text2: 'Vocational Education form submitted successfully!', visibilityTime: 2000 });
-            refetchSubmissions();
+            refetchRecentSubmission();
+            setShowSubmitSuccessBanner(true);
             setShowTable(true);
         },
         onError: (error: any) => {
@@ -504,11 +501,6 @@ export default function VocationalEducationFormScreen() {
 
     const onSubmit = (data: VocationalEducationFormData) => {
         submitMutation.mutate(data);
-    };
-
-    const handleNewSubmission = () => {
-        reset();
-        setShowTable(false);
     };
 
     const openPhotoSourceModal = useCallback((target: 'bestPracticePhotos' | 'successStoryPhotos' | 'labPhoto' | 'guestLecturePhoto' | 'industrialVisitPhoto') => {
@@ -585,35 +577,30 @@ export default function VocationalEducationFormScreen() {
     }, [openPhotoSourceModal]);
 
     // If showing table after successful submit
-    if (showTable) {
+    if (showTable && recentSubmission) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
-                    <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
-                        <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
-                        <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
-                        <AppText className="text-sm text-green-600 mt-1 text-center">
-                            Your Vocational Education form has been submitted successfully.
-                        </AppText>
-                    </View>
+                    {showSubmitSuccessBanner && (
+                        <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
+                            <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+                            <AppText className="text-lg font-bold text-green-700 mt-2">Form Submitted!</AppText>
+                            <AppText className="text-sm text-green-600 mt-1 text-center">
+                                Your Vocational Education form has been submitted successfully.
+                            </AppText>
+                        </View>
+                    )}
 
-                    <VocationalFormDataTable submissions={submissions} />
+                    <VocationalFormDataTable submission={recentSubmission} />
 
                     <TouchableOpacity
                         className="rounded-xl py-4 items-center mt-2"
                         style={{ backgroundColor: BLUE }}
-                        onPress={handleNewSubmission}
-                    >
-                        <AppText className="text-base font-bold text-white">Submit Another Entry</AppText>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-3 border border-gray-300"
                         onPress={() => router.back()}
                     >
-                        <AppText className="text-base font-bold text-gray-700">Back to Activity Forms</AppText>
+                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -968,6 +955,20 @@ export default function VocationalEducationFormScreen() {
             />
 
             {/* Submit Button */}
+            {recentSubmission && (
+                <TouchableOpacity
+                    className="rounded-xl py-4 items-center mt-2 flex-row justify-center"
+                    style={{ backgroundColor: BLUE }}
+                    onPress={() => {
+                        setShowSubmitSuccessBanner(false);
+                        setShowTable(true);
+                    }}
+                >
+                    <Ionicons name="eye-outline" size={20} color="#fff" />
+                    <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                </TouchableOpacity>
+            )}
+
             <TouchableOpacity
                 className="rounded-xl py-4 items-center mt-4"
                 style={{ backgroundColor: BLUE, opacity: submitMutation.isPending ? 0.6 : 1 }}

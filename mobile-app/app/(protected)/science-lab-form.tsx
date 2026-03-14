@@ -39,7 +39,7 @@ import {
 } from '../../src/lib/zod';
 import {
     submitScienceLabForm,
-    getScienceLabFormSubmissions,
+    getScienceLabFormSubmission,
     type ScienceLabFormSubmission,
 } from '../../src/services/firebase/science-lab-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
@@ -124,48 +124,43 @@ function FormHeader() {
 
 // ─── Submission Table ──────────────────────────
 
-function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormSubmission[] }) {
-    if (!submissions.length) return null;
+function ScienceLabFormDataTable({ submission }: { submission: ScienceLabFormSubmission }) {
 
     return (
         <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Science Lab Submissions</AppText>
-            {submissions.map((sub, idx) => (
+            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Recent Science Lab Submission</AppText>
                 <View
-                    key={sub.id}
+                    key={submission.id}
                     className="bg-white rounded-2xl mb-3 p-4"
                     style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
                 >
                     <View className="flex-row items-center mb-2">
-                        <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
-                        </View>
                         <View className="flex-1">
-                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.school_name || 'Science Lab Submission'}</AppText>
+                            <AppText className="text-base font-bold text-[#1a1a1a]">{submission.school_name || 'Science Lab Submission'}</AppText>
                             <AppText className="text-xs text-gray-500">
-                                {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                {new Date(submission.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </AppText>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
                     <View className="border-t border-gray-100 pt-2 mt-1">
-                        <DataRow label="Kit Teacher" value={sub.kit_teacher_name} />
-                        <DataRow label="Experiments/Week" value={sub.experiments_per_week} />
-                        {sub.student_photos.length > 0 && (
+                        <DataRow label="Kit Teacher" value={submission.kit_teacher_name} />
+                        <DataRow label="Experiments/Week" value={submission.experiments_per_week} />
+                        {submission.student_photos.length > 0 && (
                             <View className="mt-2">
-                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({sub.student_photos.length})</AppText>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({submission.student_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    {sub.student_photos.map((url, i) => (
+                                    {submission.student_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                     ))}
                                 </ScrollView>
                             </View>
                         )}
-                        {sub.logbook_photos.length > 0 && (
+                        {submission.logbook_photos.length > 0 && (
                             <View className="mt-2">
-                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({sub.logbook_photos.length})</AppText>
+                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Logbook Photos ({submission.logbook_photos.length})</AppText>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                    {sub.logbook_photos.map((url, i) => (
+                                    {submission.logbook_photos.map((url, i) => (
                                         <Image key={i} source={{ uri: url }} className="w-16 h-16 rounded-lg mr-2" />
                                     ))}
                                 </ScrollView>
@@ -173,7 +168,6 @@ function ScienceLabFormDataTable({ submissions }: { submissions: ScienceLabFormS
                         )}
                     </View>
                 </View>
-            ))}
         </View>
     );
 }
@@ -195,6 +189,7 @@ export default function ScienceLabFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
+    const [showSubmitSuccessBanner, setShowSubmitSuccessBanner] = React.useState(false);
 
     // Authorization check — only teachers with Science Lab responsibility can access
     const isAuthorized = user?.responsibilities?.includes('Science Lab') ?? false;
@@ -223,9 +218,9 @@ export default function ScienceLabFormScreen() {
     const studentPhotos = watch('studentPhotos');
     const logbookPhotos = watch('logbookPhotos');
 
-    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
-        queryKey: ['science-lab-form-submissions', user?.id],
-        queryFn: () => getScienceLabFormSubmissions(user!.id),
+    const { data: recentSubmission, refetch: refetchRecentSubmission } = useQuery({
+        queryKey: ['science-lab-form-submission', user?.id],
+        queryFn: () => getScienceLabFormSubmission(user!.id),
         enabled: !!user?.id,
     });
 
@@ -244,8 +239,10 @@ export default function ScienceLabFormScreen() {
         },
         onSuccess: () => {
             Toast.show({ type: 'success', text1: 'Science Lab form submitted successfully!' });
-            refetchSubmissions();
+            refetchRecentSubmission();
+            queryClient.invalidateQueries({ queryKey: ['science-lab-form-submission'] });
             queryClient.invalidateQueries({ queryKey: ['science-lab-form-submissions'] });
+            setShowSubmitSuccessBanner(true);
             setShowTable(true);
         },
         onError: (error) => {
@@ -285,20 +282,22 @@ export default function ScienceLabFormScreen() {
     };
 
     // ── Success / table view ──
-    if (showTable) {
+    if (showTable && recentSubmission) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
-                    <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
-                        <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                        <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
-                            Your Science Lab form has been submitted successfully.
-                        </AppText>
-                    </View>
+                    {showSubmitSuccessBanner && (
+                        <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
+                            <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
+                            <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
+                                Your Science Lab form has been submitted successfully.
+                            </AppText>
+                        </View>
+                    )}
 
-                    <ScienceLabFormDataTable submissions={submissions} />
+                    <ScienceLabFormDataTable submission={recentSubmission} />
 
                     <TouchableOpacity
                         className="rounded-xl py-4 items-center mt-2"
@@ -377,6 +376,20 @@ export default function ScienceLabFormScreen() {
             />
 
             {/* Submit Button */}
+            {recentSubmission && (
+                <TouchableOpacity
+                    className="rounded-xl py-4 items-center mt-2 flex-row justify-center"
+                    style={{ backgroundColor: BLUE }}
+                    onPress={() => {
+                        setShowSubmitSuccessBanner(false);
+                        setShowTable(true);
+                    }}
+                >
+                    <Ionicons name="eye-outline" size={20} color="#fff" />
+                    <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                </TouchableOpacity>
+            )}
+
             <TouchableOpacity
                 className={`rounded-xl py-4 items-center mt-2 ${submitMutation.isPending ? 'bg-gray-400' : ''}`}
                 style={!submitMutation.isPending ? { backgroundColor: BLUE } : undefined}
