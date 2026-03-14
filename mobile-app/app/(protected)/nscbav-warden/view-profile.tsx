@@ -24,6 +24,7 @@ import { getDistricts } from '../../../src/services/firebase/master-data.firesto
 import { useAuthStore } from '../../../src/lib/store';
 import { District } from '../../../src/types';
 import { VerifiedBanner } from '../../../src/components/VerifiedBanner';
+import ProfileLockedBanner from '../../../src/components/ProfileLockedBanner';
 
 const BLUE = '#1565C0';
 
@@ -99,6 +100,8 @@ export default function NSCBAVWardenViewProfileScreen() {
     return (
         <View className="flex-1 bg-[#eaf0fb]" style={{ paddingTop: insets.top }}>
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+                <ProfileLockedBanner />
+
                 {/* My Profile Heading */}
                 <AppText className="text-2xl font-bold text-[#1a1a2e] mb-4">My Profile</AppText>
 

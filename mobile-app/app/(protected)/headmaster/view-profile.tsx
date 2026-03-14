@@ -21,6 +21,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../../src/lib/store';
 import { VerifiedBanner } from '../../../src/components/VerifiedBanner';
+import ProfileLockedBanner from '../../../src/components/ProfileLockedBanner';
 
 const NAVY = '#2c3e6b';
 
@@ -29,7 +30,6 @@ interface FacultyProfile {
     highest_qualification: string;
     years_of_experience: number;
     designation: string;
-    is_profile_locked: boolean;
     school: {
         id: string;
         name: string;
@@ -105,28 +105,12 @@ export default function ViewProfileScreen() {
     return (
         <View className="flex-1 bg-[#eaf0fb]" style={{ paddingTop: insets.top }}>
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-                {/* My Profile Heading + Edit Button */}
-                <View className="flex-row items-center justify-between mb-4">
-                    <AppText className="text-2xl font-bold text-[#1a1a2e]">My Profile</AppText>
-                    {!profile.is_profile_locked && (
-                        <TouchableOpacity
-                            className="bg-[#2c3e6b] px-4 py-2 rounded-lg"
-                            onPress={() => router.push('/headmaster/complete-profile')}
-                        >
-                            <AppText className="text-white text-sm font-medium">Edit Details</AppText>
-                        </TouchableOpacity>
-                    )}
-                </View>
+                <ProfileLockedBanner />
 
-                {/* Profile Locked Badge */}
-                {profile.is_profile_locked && (
-                    <View className="flex-row items-center bg-[#e8ecf4] border border-[#c5cee0] rounded-[10px] p-3 mb-4 gap-2">
-                        <Ionicons name="lock-closed" size={16} color={NAVY} />
-                        <AppText className="text-[13px] text-[#2c3e6b] font-medium">
-                            Profile is locked and cannot be edited
-                        </AppText>
-                    </View>
-                )}
+                {/* My Profile Heading */}
+                <View className="mb-4">
+                    <AppText className="text-2xl font-bold text-[#1a1a2e]">My Profile</AppText>
+                </View>
 
                 {/* Personal Information */}
                 <View className="mb-5">

@@ -194,16 +194,10 @@ export default function ColleaguesScreen() {
     return (
         <View className="flex-1 bg-[#f0f2f8]">
             {/* Header */}
-            <View className="bg-[#2c3e6b] px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12 }}>
-                <TouchableOpacity
-                    className="p-2 mr-2"
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#ffffff" />
-                </TouchableOpacity>
+            <View className="px-4 pb-10 flex-row items-start" style={{ paddingTop: insets.top + 12, backgroundColor: BLUE }}>
                 <View className="flex-1">
                     <AppText className="text-[32px] font-bold text-white mb-1">View Colleagues</AppText>
-                    <AppText className="text-sm text-white/70">{schoolName}</AppText>
+                    <AppText className="text-sm text-white/70 truncate">{schoolName}</AppText>
                 </View>
             </View>
 

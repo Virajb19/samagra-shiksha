@@ -99,6 +99,7 @@ export default function TeacherHomeTabScreen() {
                     <HomeActionCard
                         title="Activities Forms"
                         iconName="document-text-outline"
+                        iconSource={require('../../../../assets/assets_form.png')}
                         onPress={() => {
                             if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; }
                             router.push('/(protected)/activity-forms' as any);

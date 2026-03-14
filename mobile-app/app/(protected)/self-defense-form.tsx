@@ -50,41 +50,18 @@ import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
+const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
+const PLACEHOLDER_TEXT_COLOR = '#9ca3af';
 
 // ─── Header ──────────────────────────
 
-function FormHeader({ onBack }: { onBack: () => void }) {
+function FormHeader() {
     return (
-        <View style={{ backgroundColor: BLUE, paddingTop: 14, paddingBottom: 24, paddingHorizontal: 18 }}>
-            <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                    <Image
-                        source={{ uri: 'https://samagrashiksha.nagaland.gov.in/assets/img/logo-removebg.png' }}
-                        style={{ width: 40, height: 40, marginRight: 10 }}
-                        resizeMode="contain"
-                    />
-                    <View>
-                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
-                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
-                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
-                    </View>
-                </View>
-                <Image
-                    source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Emblem_of_Nagaland.svg/200px-Emblem_of_Nagaland.svg.png' }}
-                    style={{ width: 42, height: 42 }}
-                    resizeMode="contain"
-                />
-            </View>
-            <AppText className="text-white text-[28px] font-extrabold mb-1">Self Defense</AppText>
-            <AppText className="text-white/80 text-xs">
+        <View className="px-5 pt-5 pb-4 bg-white">
+            <AppText className="text-2xl font-bold text-[#1a1a1a] mb-1">Self Defense</AppText>
+            <AppText className="text-sm text-gray-500">
                 Please make sure all the required fields are properly filled.
             </AppText>
-            <TouchableOpacity
-                onPress={onBack}
-                style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
-            >
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
         </View>
     );
 }
@@ -159,8 +136,8 @@ export default function SelfDefenseFormScreen() {
     if (!isAuthorized) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Self Defence" />
             </View>
         );
@@ -235,8 +212,8 @@ export default function SelfDefenseFormScreen() {
     if (showTable) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
                     <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
                         <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
@@ -296,8 +273,9 @@ export default function SelfDefenseFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="0"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="numeric"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -315,8 +293,9 @@ export default function SelfDefenseFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="0"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="numeric"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -334,8 +313,9 @@ export default function SelfDefenseFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="0"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="numeric"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -353,8 +333,9 @@ export default function SelfDefenseFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="0"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="numeric"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -372,7 +353,8 @@ export default function SelfDefenseFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Enter Intructor's Name"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -390,8 +372,9 @@ export default function SelfDefenseFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Enter Contact Number"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="phone-pad"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -418,14 +401,14 @@ export default function SelfDefenseFormScreen() {
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-            <FormHeader onBack={() => router.back()} />
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <FormHeader />
 
             {Platform.OS === 'ios' ? (
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                     <ScrollView
                         className="flex-1 bg-white"
-                        contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+                        contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                         keyboardShouldPersistTaps="handled"
                     >
                         {renderFormContent()}
@@ -434,7 +417,7 @@ export default function SelfDefenseFormScreen() {
             ) : (
                 <ScrollView
                     className="flex-1 bg-white"
-                    contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {renderFormContent()}

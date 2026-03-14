@@ -31,6 +31,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import Toast from 'react-native-toast-message';
 
 import {
@@ -47,8 +48,13 @@ import { submitICTForm, getICTFormSubmissions, type ICTFormSubmission } from '..
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
+import AnimatedTickOption from '../../src/components/AnimatedTickOption';
+import AddPhotoSourceModal from '../../src/components/AddPhotoSourceModal';
+import FileTooLargeModal from '../../src/components/FileTooLargeModal';
 
 const BLUE = '#1565C0';
+const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
+const PLACEHOLDER_TEXT_COLOR = '#9ca3af';
 
 // ─── Yes / No Radio Component ──────────────────────────
 function YesNoField({
@@ -65,29 +71,18 @@ function YesNoField({
     return (
         <View className="mb-5">
             <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
-            <View className="flex-row items-center gap-6">
-                <TouchableOpacity className="flex-row items-center" onPress={() => onChange('Yes')}>
-                    <View
-                        className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                        style={{ borderColor: value === 'Yes' ? BLUE : '#d1d5db' }}
-                    >
-                        {value === 'Yes' && (
-                            <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                        )}
-                    </View>
-                    <AppText className="text-[15px] text-[#1a1a1a]">Yes</AppText>
-                </TouchableOpacity>
-                <TouchableOpacity className="flex-row items-center" onPress={() => onChange('No')}>
-                    <View
-                        className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                        style={{ borderColor: value === 'No' ? BLUE : '#d1d5db' }}
-                    >
-                        {value === 'No' && (
-                            <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                        )}
-                    </View>
-                    <AppText className="text-[15px] text-[#1a1a1a]">No</AppText>
-                </TouchableOpacity>
+            <View className="flex-row items-center mt-1">
+                {(['Yes', 'No'] as const).map((opt) => (
+                    <AnimatedTickOption
+                        key={opt}
+                        label={opt}
+                        selected={value === opt}
+                        onPress={() => onChange(opt)}
+                        activeColor={BLUE}
+                        containerStyle={{ marginRight: 24, paddingVertical: 2 }}
+                        labelStyle={{ fontFamily: 'Lato-Regular' }}
+                    />
+                ))}
             </View>
             {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
@@ -111,19 +106,17 @@ function RadioField({
     return (
         <View className="mb-5">
             <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
-            <View className="flex-row items-center gap-6">
+            <View className="flex-row items-center mt-1 flex-wrap">
                 {options.map((opt) => (
-                    <TouchableOpacity key={opt} className="flex-row items-center" onPress={() => onChange(opt)}>
-                        <View
-                            className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                            style={{ borderColor: value === opt ? BLUE : '#d1d5db' }}
-                        >
-                            {value === opt && (
-                                <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                            )}
-                        </View>
-                        <AppText className="text-[15px] text-[#1a1a1a]">{opt}</AppText>
-                    </TouchableOpacity>
+                    <AnimatedTickOption
+                        key={opt}
+                        label={opt}
+                        selected={value === opt}
+                        onPress={() => onChange(opt)}
+                        activeColor={BLUE}
+                        containerStyle={{ marginRight: 24, paddingVertical: 2 }}
+                        labelStyle={{ fontFamily: 'Lato-Regular' }}
+                    />
                 ))}
             </View>
             {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
@@ -133,7 +126,7 @@ function RadioField({
 
 // ─── PDF Upload Component ──────────────────────────
 const MAX_PDF_SIZE_MB = 5;
-const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1024 * 1024;
+const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1000 * 1000;
 
 function PdfUploadField({
     label,
@@ -148,6 +141,10 @@ function PdfUploadField({
     onChange: (uri: string) => void;
     error?: string;
 }) {
+    const [showFileTooLargeModal, setShowFileTooLargeModal] = useState(false);
+    const [selectedFileSizeMB, setSelectedFileSizeMB] = useState('0.0');
+    const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+
     const pickPdf = async () => {
         try {
             const DocumentPicker = require('expo-document-picker');
@@ -157,15 +154,23 @@ function PdfUploadField({
             });
             if (!result.canceled && result.assets?.[0]) {
                 const asset = result.assets[0];
-                // Check file size (5 MB limit)
-                if (asset.size && asset.size > MAX_PDF_SIZE_BYTES) {
-                    const sizeMB = (asset.size / (1024 * 1024)).toFixed(1);
-                    Alert.alert(
-                        'File Too Large',
-                        `Selected file is ${sizeMB} MB. Maximum allowed size is ${MAX_PDF_SIZE_MB} MB. Please choose a smaller file.`
-                    );
+                let sizeBytes = asset.size ?? 0;
+
+                if (!sizeBytes) {
+                    const fileInfo = await FileSystem.getInfoAsync(asset.uri);
+                    if (fileInfo.exists && 'size' in fileInfo && typeof fileInfo.size === 'number') {
+                        sizeBytes = fileInfo.size;
+                    }
+                }
+
+                // Strict 5 MB decimal limit (5,000,000 bytes)
+                if (sizeBytes > MAX_PDF_SIZE_BYTES) {
+                    setSelectedFileSizeMB((sizeBytes / (1000 * 1000)).toFixed(2));
+                    setShowFileTooLargeModal(true);
                     return;
                 }
+
+                setSelectedFileName(asset.name ?? null);
                 onChange(asset.uri);
             }
         } catch (e: any) {
@@ -174,30 +179,40 @@ function PdfUploadField({
         }
     };
 
-    const fileName = value ? value.split('/').pop() : null;
+    const fallbackFileName = value ? decodeURIComponent(value.split('/').pop()?.split('?')[0] || '') : null;
+    const fileName = selectedFileName || fallbackFileName;
+    const isUploaded = !!value;
 
     return (
         <View className="mb-5">
             <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">{label}</AppText>
             <TouchableOpacity
-                className="border border-gray-200 rounded-xl px-4 py-4 flex-row items-center bg-[#fafafa]"
+                className="border rounded-xl px-4 py-4 flex-row items-center"
+                style={{ borderColor: isUploaded ? '#22c55e' : '#e5e7eb', backgroundColor: isUploaded ? '#f0fdf4' : '#fafafa' }}
                 onPress={pickPdf}
             >
-                <Ionicons name="document-outline" size={24} color={BLUE} style={{ marginRight: 12 }} />
-                <AppText className="flex-1 text-[14px] text-gray-500" numberOfLines={1}>
+                <Ionicons name="document-outline" size={24} color={isUploaded ? '#16a34a' : BLUE} style={{ marginRight: 12 }} />
+                <AppText className={`flex-1 text-[14px] ${isUploaded ? 'text-green-700' : 'text-gray-500'}`} numberOfLines={1}>
                     {fileName || placeholder}
                 </AppText>
             </TouchableOpacity>
             {value && (
-                <View className="flex-row items-center mt-2 bg-blue-50 rounded-lg px-3 py-2">
-                    <Ionicons name="document-text" size={20} color={BLUE} style={{ marginRight: 8 }} />
-                    <AppText className="flex-1 text-xs text-[#1a1a1a] font-medium" numberOfLines={1}>{fileName}</AppText>
-                    <TouchableOpacity onPress={() => onChange('')}>
+                <View className="flex-row items-center mt-2 bg-green-50 rounded-lg px-3 py-2">
+                    <Ionicons name="document-text" size={20} color="#16a34a" style={{ marginRight: 8 }} />
+                    <AppText className="flex-1 text-xs text-green-800 font-medium" numberOfLines={1}>{fileName}</AppText>
+                    <TouchableOpacity onPress={() => { setSelectedFileName(null); onChange(''); }}>
                         <Ionicons name="close-circle" size={20} color="#ef4444" />
                     </TouchableOpacity>
                 </View>
             )}
             {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
+
+            <FileTooLargeModal
+                visible={showFileTooLargeModal}
+                onClose={() => setShowFileTooLargeModal(false)}
+                fileSizeMB={selectedFileSizeMB}
+                maxSizeMB={MAX_PDF_SIZE_MB}
+            />
         </View>
     );
 }
@@ -239,7 +254,7 @@ function ImagePickerGrid({
                         style={{ width: 96, height: 96, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#93c5fd', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff6ff' }}
                         onPress={onAdd}
                     >
-                        <Ionicons name="add" size={36} color={BLUE} />
+                        <Image source={require('../../assets/add.png')} style={{ width: 36, height: 36 }} resizeMode="contain" />
                     </TouchableOpacity>
                 )}
             </ScrollView>
@@ -249,38 +264,13 @@ function ImagePickerGrid({
 }
 
 // ─── Header ──────────────────────────
-function FormHeader({ onBack }: { onBack: () => void }) {
+function FormHeader() {
     return (
-        <View style={{ backgroundColor: BLUE, paddingTop: 14, paddingBottom: 24, paddingHorizontal: 18 }}>
-            <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                    <Image
-                        source={{ uri: 'https://samagrashiksha.nagaland.gov.in/assets/img/logo-removebg.png' }}
-                        style={{ width: 40, height: 40, marginRight: 10 }}
-                        resizeMode="contain"
-                    />
-                    <View>
-                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
-                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
-                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
-                    </View>
-                </View>
-                <Image
-                    source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Emblem_of_Nagaland.svg/200px-Emblem_of_Nagaland.svg.png' }}
-                    style={{ width: 42, height: 42 }}
-                    resizeMode="contain"
-                />
-            </View>
-            <AppText className="text-white text-[28px] font-extrabold mb-1">ICT Activities</AppText>
-            <AppText className="text-white/80 text-xs">
+        <View className="px-5 pt-5 pb-4 bg-white">
+            <AppText className="text-2xl font-bold text-[#1a1a1a] mb-1">ICT Activities</AppText>
+            <AppText className="text-sm text-gray-500">
                 Please make sure all the required fields are properly filled.
             </AppText>
-            <TouchableOpacity
-                onPress={onBack}
-                style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
-            >
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
         </View>
     );
 }
@@ -364,6 +354,7 @@ export default function ICTFormScreen() {
     const { user } = useAuthStore();
     const [currentPage, setCurrentPage] = useState(1);
     const [showTable, setShowTable] = useState(false);
+    const [showAddPhotoSourceModal, setShowAddPhotoSourceModal] = useState(false);
 
     // Authorization check — only teachers with ICT responsibility can access
     const isAuthorized = user?.responsibilities?.includes('ICT') ?? false;
@@ -371,8 +362,8 @@ export default function ICTFormScreen() {
     if (!isAuthorized) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="ICT" />
             </View>
         );
@@ -491,43 +482,37 @@ export default function ICTFormScreen() {
 
     // ── Image picker for Page 1 ──
     const addPhoto = useCallback(async () => {
-        Alert.alert('Add Photo', 'Choose how to add a photo', [
-            {
-                text: 'Take Photo',
-                onPress: async () => {
-                    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                    if (status !== 'granted') {
-                        Alert.alert('Permission Required', 'Please grant camera permissions.');
-                        return;
-                    }
-                    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
-                    if (!result.canceled && result.assets[0]) {
-                        const current = page1Form.getValues('ictMaterialPhotos');
-                        page1Form.setValue('ictMaterialPhotos', [...current, result.assets[0].uri], { shouldValidate: true });
-                    }
-                },
-            },
-            {
-                text: 'Choose from Gallery',
-                onPress: async () => {
-                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    if (status !== 'granted') {
-                        Alert.alert('Permission Required', 'Please grant camera roll permissions.');
-                        return;
-                    }
-                    const result = await ImagePicker.launchImageLibraryAsync({
-                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                        allowsEditing: true,
-                        quality: 0.8,
-                    });
-                    if (!result.canceled && result.assets[0]) {
-                        const current = page1Form.getValues('ictMaterialPhotos');
-                        page1Form.setValue('ictMaterialPhotos', [...current, result.assets[0].uri], { shouldValidate: true });
-                    }
-                },
-            },
-            { text: 'Cancel', style: 'cancel' },
-        ]);
+        setShowAddPhotoSourceModal(true);
+    }, []);
+
+    const pickPhotoFromCamera = useCallback(async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Please grant camera permissions.');
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
+        if (!result.canceled && result.assets[0]) {
+            const current = page1Form.getValues('ictMaterialPhotos');
+            page1Form.setValue('ictMaterialPhotos', [...current, result.assets[0].uri], { shouldValidate: true });
+        }
+    }, [page1Form]);
+
+    const pickPhotoFromGallery = useCallback(async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Please grant camera roll permissions.');
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+        });
+        if (!result.canceled && result.assets[0]) {
+            const current = page1Form.getValues('ictMaterialPhotos');
+            page1Form.setValue('ictMaterialPhotos', [...current, result.assets[0].uri], { shouldValidate: true });
+        }
     }, [page1Form]);
 
     const removePhoto = useCallback(
@@ -542,8 +527,8 @@ export default function ICTFormScreen() {
     if (showTable) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
                     {/* Success message */}
                     <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
@@ -557,10 +542,11 @@ export default function ICTFormScreen() {
                     <ICTFormDataTable submissions={submissions} />
 
                     <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-4"
+                        className="rounded-xl py-4 items-center mt-4 flex-row justify-center gap-2"
                         style={{ backgroundColor: BLUE }}
                         onPress={() => router.back()}
                     >
+                        <Ionicons name="arrow-back" size={20} color="#fff" />
                         <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
                     </TouchableOpacity>
                 </ScrollView>
@@ -598,8 +584,8 @@ export default function ICTFormScreen() {
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-            <FormHeader onBack={() => router.back()} />
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <FormHeader />
 
             {/* Progress Indicator */}
             <View className="flex-row items-center justify-center py-3 bg-white border-b border-gray-100">
@@ -626,15 +612,22 @@ export default function ICTFormScreen() {
             {/* Page Content */}
             {Platform.OS === 'ios' ? (
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-                    <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 20, paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+                    <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 20, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                         {renderPageContent()}
                     </ScrollView>
                 </KeyboardAvoidingView>
             ) : (
-                <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 20, paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+                <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 20, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
                     {renderPageContent()}
                 </ScrollView>
             )}
+
+            <AddPhotoSourceModal
+                visible={showAddPhotoSourceModal}
+                onClose={() => setShowAddPhotoSourceModal(false)}
+                onPickCamera={pickPhotoFromCamera}
+                onPickGallery={pickPhotoFromGallery}
+            />
         </View>
     );
 }
@@ -811,11 +804,12 @@ function Page2({
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         keyboardType="numeric"
                         placeholder="0"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -899,11 +893,12 @@ function Page3({
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         keyboardType="numeric"
                         placeholder="0"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -944,11 +939,11 @@ function Page3({
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px] mb-5"
-                        style={{ textAlignVertical: 'top' }}
+                        style={[INPUT_TEXT_STYLE, { textAlignVertical: 'top' }]}
                         value={value}
                         onChangeText={onChange}
                         placeholder="Kindly comment in detail"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                     />
@@ -964,11 +959,11 @@ function Page3({
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px] mb-5"
-                        style={{ textAlignVertical: 'top' }}
+                        style={[INPUT_TEXT_STYLE, { textAlignVertical: 'top' }]}
                         value={value}
                         onChangeText={onChange}
                         placeholder="Kindly comment in detail"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                     />
@@ -987,11 +982,11 @@ function Page3({
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px] mb-5"
-                        style={{ textAlignVertical: 'top' }}
+                        style={[INPUT_TEXT_STYLE, { textAlignVertical: 'top' }]}
                         value={value}
                         onChangeText={onChange}
                         placeholder="Kindly comment in detail"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                     />
@@ -1010,11 +1005,11 @@ function Page3({
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px] mb-5"
-                        style={{ textAlignVertical: 'top' }}
+                        style={[INPUT_TEXT_STYLE, { textAlignVertical: 'top' }]}
                         value={value}
                         onChangeText={onChange}
                         placeholder="Kindly comment in detail"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                     />

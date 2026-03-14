@@ -49,8 +49,12 @@ import {
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
+import AnimatedTickOption from '../../src/components/AnimatedTickOption';
+import AddPhotoSourceModal from '../../src/components/AddPhotoSourceModal';
 
 const BLUE = '#1565C0';
+const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
+const PLACEHOLDER_TEXT_COLOR = '#9ca3af';
 
 // ─── Yes / No Radio Component ──────────────────────────
 function YesNoField({
@@ -67,29 +71,18 @@ function YesNoField({
     return (
         <View className="mb-5">
             <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
-            <View className="flex-row items-center gap-6">
-                <TouchableOpacity className="flex-row items-center" onPress={() => onChange('Yes')}>
-                    <View
-                        className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                        style={{ borderColor: value === 'Yes' ? BLUE : '#d1d5db' }}
-                    >
-                        {value === 'Yes' && (
-                            <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                        )}
-                    </View>
-                    <AppText className="text-[15px] text-[#1a1a1a]">Yes</AppText>
-                </TouchableOpacity>
-                <TouchableOpacity className="flex-row items-center" onPress={() => onChange('No')}>
-                    <View
-                        className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                        style={{ borderColor: value === 'No' ? BLUE : '#d1d5db' }}
-                    >
-                        {value === 'No' && (
-                            <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                        )}
-                    </View>
-                    <AppText className="text-[15px] text-[#1a1a1a]">No</AppText>
-                </TouchableOpacity>
+            <View className="flex-row items-center mt-1">
+                {(['Yes', 'No'] as const).map((opt) => (
+                    <AnimatedTickOption
+                        key={opt}
+                        label={opt}
+                        selected={value === opt}
+                        onPress={() => onChange(opt)}
+                        activeColor={BLUE}
+                        containerStyle={{ marginRight: 24, paddingVertical: 2 }}
+                        labelStyle={{ fontFamily: 'Lato-Regular' }}
+                    />
+                ))}
             </View>
             {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
@@ -190,10 +183,12 @@ function ClassAccordion({
                             <AppText className="text-sm font-semibold text-[#1a1a1a] mb-1">Boys *</AppText>
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px]"
+                                style={INPUT_TEXT_STYLE}
                                 keyboardType="numeric"
                                 value={boysValue}
                                 onChangeText={onBoysChange}
                                 placeholder="0"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                             />
                             {boysError && <AppText className="text-xs text-red-500 mt-1">{boysError}</AppText>}
                         </View>
@@ -201,10 +196,12 @@ function ClassAccordion({
                             <AppText className="text-sm font-semibold text-[#1a1a1a] mb-1">Girls *</AppText>
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px]"
+                                style={INPUT_TEXT_STYLE}
                                 keyboardType="numeric"
                                 value={girlsValue}
                                 onChangeText={onGirlsChange}
                                 placeholder="0"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                             />
                             {girlsError && <AppText className="text-xs text-red-500 mt-1">{girlsError}</AppText>}
                         </View>
@@ -257,7 +254,7 @@ function ImagePickerGrid({
                         style={{ width: 96, height: 96, borderRadius: 12, borderWidth: 2, borderStyle: 'dashed', borderColor: '#93c5fd', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff6ff' }}
                         onPress={onAdd}
                     >
-                        <Ionicons name="add" size={36} color={BLUE} />
+                        <Image source={require('../../assets/add.png')} style={{ width: 36, height: 36 }} resizeMode="contain" />
                     </TouchableOpacity>
                 )}
             </ScrollView>
@@ -309,38 +306,13 @@ function SingleImagePicker({
 }
 
 // ─── Header ──────────────────────────
-function FormHeader({ onBack }: { onBack: () => void }) {
+function FormHeader() {
     return (
-        <View style={{ backgroundColor: BLUE, paddingTop: 14, paddingBottom: 24, paddingHorizontal: 18 }}>
-            <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                    <Image
-                        source={{ uri: 'https://samagrashiksha.nagaland.gov.in/assets/img/logo-removebg.png' }}
-                        style={{ width: 40, height: 40, marginRight: 10 }}
-                        resizeMode="contain"
-                    />
-                    <View>
-                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
-                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
-                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
-                    </View>
-                </View>
-                <Image
-                    source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Emblem_of_Nagaland.svg/200px-Emblem_of_Nagaland.svg.png' }}
-                    style={{ width: 42, height: 42 }}
-                    resizeMode="contain"
-                />
-            </View>
-            <AppText className="text-white text-[28px] font-extrabold mb-1">Vocational Education</AppText>
-            <AppText className="text-white/80 text-xs">
+        <View className="px-5 pt-5 pb-4 bg-white">
+            <AppText className="text-2xl font-bold text-[#1a1a1a] mb-1">Vocational Education</AppText>
+            <AppText className="text-sm text-gray-500">
                 Please make sure all the required fields are properly filled.
             </AppText>
-            <TouchableOpacity
-                onPress={onBack}
-                style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
-            >
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
         </View>
     );
 }
@@ -429,36 +401,6 @@ function VocationalFormDataTable({ submissions }: { submissions: VocationalEduca
     );
 }
 
-// ─── Shared Image Picker Helper ──────────────────────────
-function useImagePick() {
-    const pickImage = useCallback(async (): Promise<string | null> => {
-        return new Promise((resolve) => {
-            Alert.alert('Add Photo', 'Choose how to add a photo', [
-                {
-                    text: 'Take Photo',
-                    onPress: async () => {
-                        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                        if (status !== 'granted') { Alert.alert('Permission Required', 'Please grant camera permissions.'); resolve(null); return; }
-                        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
-                        resolve(!result.canceled && result.assets[0] ? result.assets[0].uri : null);
-                    },
-                },
-                {
-                    text: 'Choose from Gallery',
-                    onPress: async () => {
-                        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                        if (status !== 'granted') { Alert.alert('Permission Required', 'Please grant camera roll permissions.'); resolve(null); return; }
-                        const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, quality: 0.8 });
-                        resolve(!result.canceled && result.assets[0] ? result.assets[0].uri : null);
-                    },
-                },
-                { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
-            ]);
-        });
-    }, []);
-    return pickImage;
-}
-
 // ═══════════════════════════════════════════════
 // Main Screen
 // ═══════════════════════════════════════════════
@@ -468,7 +410,10 @@ export default function VocationalEducationFormScreen() {
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const [showTable, setShowTable] = useState(false);
-    const pickImage = useImagePick();
+    const [showAddPhotoSourceModal, setShowAddPhotoSourceModal] = useState(false);
+    const [pendingPhotoTarget, setPendingPhotoTarget] = useState<
+        'bestPracticePhotos' | 'successStoryPhotos' | 'labPhoto' | 'guestLecturePhoto' | 'industrialVisitPhoto' | null
+    >(null);
 
     // Authorization check — only teachers with Vocational Education responsibility can access
     const isAuthorized = user?.responsibilities?.includes('Vocational Education') ?? false;
@@ -476,8 +421,8 @@ export default function VocationalEducationFormScreen() {
     if (!isAuthorized) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Vocational Education" />
             </View>
         );
@@ -566,27 +511,68 @@ export default function VocationalEducationFormScreen() {
         setShowTable(false);
     };
 
-    // Image picker helpers for multi-photo fields
-    const addBestPracticePhoto = useCallback(async () => {
-        const uri = await pickImage();
-        if (uri) {
+    const openPhotoSourceModal = useCallback((target: 'bestPracticePhotos' | 'successStoryPhotos' | 'labPhoto' | 'guestLecturePhoto' | 'industrialVisitPhoto') => {
+        setPendingPhotoTarget(target);
+        setShowAddPhotoSourceModal(true);
+    }, []);
+
+    const handlePickedPhoto = useCallback((uri: string) => {
+        if (pendingPhotoTarget === 'bestPracticePhotos') {
             const current = form.getValues('bestPracticePhotos');
             form.setValue('bestPracticePhotos', [...current, uri], { shouldValidate: true });
+            return;
         }
-    }, [form, pickImage]);
+        if (pendingPhotoTarget === 'successStoryPhotos') {
+            const current = form.getValues('successStoryPhotos');
+            form.setValue('successStoryPhotos', [...current, uri], { shouldValidate: true });
+            return;
+        }
+        if (pendingPhotoTarget === 'labPhoto' || pendingPhotoTarget === 'guestLecturePhoto' || pendingPhotoTarget === 'industrialVisitPhoto') {
+            form.setValue(pendingPhotoTarget, uri, { shouldValidate: true });
+        }
+    }, [form, pendingPhotoTarget]);
+
+    const pickPhotoFromCamera = useCallback(async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Please grant camera permissions.');
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
+        if (!result.canceled && result.assets[0]) {
+            handlePickedPhoto(result.assets[0].uri);
+        }
+    }, [handlePickedPhoto]);
+
+    const pickPhotoFromGallery = useCallback(async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Please grant camera roll permissions.');
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+        });
+        if (!result.canceled && result.assets[0]) {
+            handlePickedPhoto(result.assets[0].uri);
+        }
+    }, [handlePickedPhoto]);
+
+    // Image picker helpers for multi-photo fields
+    const addBestPracticePhoto = useCallback(() => {
+        openPhotoSourceModal('bestPracticePhotos');
+    }, [openPhotoSourceModal]);
 
     const removeBestPracticePhoto = useCallback((index: number) => {
         const current = form.getValues('bestPracticePhotos');
         form.setValue('bestPracticePhotos', current.filter((_, i) => i !== index), { shouldValidate: true });
     }, [form]);
 
-    const addSuccessStoryPhoto = useCallback(async () => {
-        const uri = await pickImage();
-        if (uri) {
-            const current = form.getValues('successStoryPhotos');
-            form.setValue('successStoryPhotos', [...current, uri], { shouldValidate: true });
-        }
-    }, [form, pickImage]);
+    const addSuccessStoryPhoto = useCallback(() => {
+        openPhotoSourceModal('successStoryPhotos');
+    }, [openPhotoSourceModal]);
 
     const removeSuccessStoryPhoto = useCallback((index: number) => {
         const current = form.getValues('successStoryPhotos');
@@ -594,17 +580,16 @@ export default function VocationalEducationFormScreen() {
     }, [form]);
 
     // Single image picker helpers
-    const pickSingleImage = useCallback(async (fieldName: 'labPhoto' | 'guestLecturePhoto' | 'industrialVisitPhoto') => {
-        const uri = await pickImage();
-        if (uri) form.setValue(fieldName, uri, { shouldValidate: true });
-    }, [form, pickImage]);
+    const pickSingleImage = useCallback((fieldName: 'labPhoto' | 'guestLecturePhoto' | 'industrialVisitPhoto') => {
+        openPhotoSourceModal(fieldName);
+    }, [openPhotoSourceModal]);
 
     // If showing table after successful submit
     if (showTable) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
                     <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
                         <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
@@ -746,9 +731,11 @@ export default function VocationalEducationFormScreen() {
                         render={({ field: { value, onChange } }) => (
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                                style={INPUT_TEXT_STYLE}
                                 multiline
                                 textAlignVertical="top"
                                 placeholder="Enter The Reason (in brief)"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                                 value={value}
                                 onChangeText={onChange}
                             />
@@ -791,9 +778,11 @@ export default function VocationalEducationFormScreen() {
                         render={({ field: { value, onChange } }) => (
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                                style={INPUT_TEXT_STYLE}
                                 multiline
                                 textAlignVertical="top"
                                 placeholder="Enter The Reason (in brief)"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                                 value={value}
                                 onChangeText={onChange}
                             />
@@ -836,9 +825,11 @@ export default function VocationalEducationFormScreen() {
                         render={({ field: { value, onChange } }) => (
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                                style={INPUT_TEXT_STYLE}
                                 multiline
                                 textAlignVertical="top"
                                 placeholder="Enter The Reason (in brief)"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                                 value={value}
                                 onChangeText={onChange}
                             />
@@ -872,9 +863,11 @@ export default function VocationalEducationFormScreen() {
                         render={({ field: { value, onChange } }) => (
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                                style={INPUT_TEXT_STYLE}
                                 multiline
                                 textAlignVertical="top"
                                 placeholder="Enter Internship Report (max 100 words)"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                                 value={value}
                                 onChangeText={onChange}
                             />
@@ -894,9 +887,11 @@ export default function VocationalEducationFormScreen() {
                         render={({ field: { value, onChange } }) => (
                             <TextInput
                                 className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                                style={INPUT_TEXT_STYLE}
                                 multiline
                                 textAlignVertical="top"
                                 placeholder="Enter The Reason (in brief)"
+                                placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                                 value={value}
                                 onChangeText={onChange}
                             />
@@ -917,9 +912,11 @@ export default function VocationalEducationFormScreen() {
                     render={({ field: { value, onChange } }) => (
                         <TextInput
                             className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                            style={INPUT_TEXT_STYLE}
                             multiline
                             textAlignVertical="top"
                             placeholder="Enter Best Practices (max 100 words)"
+                            placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                             value={value}
                             onChangeText={onChange}
                         />
@@ -947,9 +944,11 @@ export default function VocationalEducationFormScreen() {
                     render={({ field: { value, onChange } }) => (
                         <TextInput
                             className="border border-gray-200 rounded-xl px-4 py-3 bg-[#fafafa] text-[14px] min-h-[100px]"
+                            style={INPUT_TEXT_STYLE}
                             multiline
                             textAlignVertical="top"
                             placeholder="Enter Success Stories (max 100 words)"
+                            placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                             value={value}
                             onChangeText={onChange}
                         />
@@ -989,14 +988,14 @@ export default function VocationalEducationFormScreen() {
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-            <FormHeader onBack={() => router.back()} />
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <FormHeader />
 
             {Platform.OS === 'ios' ? (
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                     <ScrollView
                         className="flex-1 bg-white"
-                        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+                        contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                         keyboardShouldPersistTaps="handled"
                     >
                         {formContent}
@@ -1005,12 +1004,22 @@ export default function VocationalEducationFormScreen() {
             ) : (
                 <ScrollView
                     className="flex-1 bg-white"
-                    contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {formContent}
                 </ScrollView>
             )}
+
+            <AddPhotoSourceModal
+                visible={showAddPhotoSourceModal}
+                onClose={() => {
+                    setShowAddPhotoSourceModal(false);
+                    setPendingPhotoTarget(null);
+                }}
+                onPickCamera={pickPhotoFromCamera}
+                onPickGallery={pickPhotoFromGallery}
+            />
         </View>
     );
 }

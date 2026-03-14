@@ -47,8 +47,12 @@ import {
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
+import AnimatedTickOption from '../../src/components/AnimatedTickOption';
+import AddPhotoSourceModal from '../../src/components/AddPhotoSourceModal';
 
 const BLUE = '#1565C0';
+const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
+const PLACEHOLDER_TEXT_COLOR = '#9ca3af';
 
 // ─── Yes / No Radio Component ──────────────────────────
 function YesNoField({
@@ -65,29 +69,18 @@ function YesNoField({
     return (
         <View className="mb-5">
             <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2.5">{label}</AppText>
-            <View className="flex-row items-center gap-6">
-                <TouchableOpacity className="flex-row items-center" onPress={() => onChange('Yes')}>
-                    <View
-                        className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                        style={{ borderColor: value === 'Yes' ? BLUE : '#d1d5db' }}
-                    >
-                        {value === 'Yes' && (
-                            <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                        )}
-                    </View>
-                    <AppText className="text-[15px] text-[#1a1a1a]">Yes</AppText>
-                </TouchableOpacity>
-                <TouchableOpacity className="flex-row items-center" onPress={() => onChange('No')}>
-                    <View
-                        className="w-7 h-7 rounded-full border-2 items-center justify-center mr-2"
-                        style={{ borderColor: value === 'No' ? BLUE : '#d1d5db' }}
-                    >
-                        {value === 'No' && (
-                            <View className="w-4 h-4 rounded-full" style={{ backgroundColor: BLUE }} />
-                        )}
-                    </View>
-                    <AppText className="text-[15px] text-[#1a1a1a]">No</AppText>
-                </TouchableOpacity>
+            <View className="flex-row items-center mt-1">
+                {(['Yes', 'No'] as const).map((opt) => (
+                    <AnimatedTickOption
+                        key={opt}
+                        label={opt}
+                        selected={value === opt}
+                        onPress={() => onChange(opt)}
+                        activeColor={BLUE}
+                        containerStyle={{ marginRight: 24, paddingVertical: 2 }}
+                        labelStyle={{ fontFamily: 'Lato-Regular' }}
+                    />
+                ))}
             </View>
             {error && <AppText className="text-xs text-red-500 mt-1">{error}</AppText>}
         </View>
@@ -146,7 +139,7 @@ function ImagePickerGrid({
                         }}
                         onPress={onAdd}
                     >
-                        <Ionicons name="add" size={36} color={BLUE} />
+                        <Image source={require('../../assets/add.png')} style={{ width: 36, height: 36 }} resizeMode="contain" />
                     </TouchableOpacity>
                 )}
             </ScrollView>
@@ -156,38 +149,13 @@ function ImagePickerGrid({
 }
 
 // ─── Header ──────────────────────────
-function FormHeader({ onBack }: { onBack: () => void }) {
+function FormHeader() {
     return (
-        <View style={{ backgroundColor: BLUE, paddingTop: 14, paddingBottom: 24, paddingHorizontal: 18 }}>
-            <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                    <Image
-                        source={{ uri: 'https://samagrashiksha.nagaland.gov.in/assets/img/logo-removebg.png' }}
-                        style={{ width: 40, height: 40, marginRight: 10 }}
-                        resizeMode="contain"
-                    />
-                    <View>
-                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
-                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
-                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
-                    </View>
-                </View>
-                <Image
-                    source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Emblem_of_Nagaland.svg/200px-Emblem_of_Nagaland.svg.png' }}
-                    style={{ width: 42, height: 42 }}
-                    resizeMode="contain"
-                />
-            </View>
-            <AppText className="text-white text-[28px] font-extrabold mb-1">Library</AppText>
-            <AppText className="text-white/80 text-xs">
+        <View className="px-5 pt-5 pb-4 bg-white">
+            <AppText className="text-2xl font-bold text-[#1a1a1a] mb-1">Library</AppText>
+            <AppText className="text-sm text-gray-500">
                 Please make sure all the required fields are properly filled.
             </AppText>
-            <TouchableOpacity
-                onPress={onBack}
-                style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
-            >
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
         </View>
     );
 }
@@ -285,8 +253,8 @@ export default function LibraryFormScreen() {
     if (!isAuthorized) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="Library" />
             </View>
         );
@@ -353,6 +321,8 @@ export default function LibraryFormScreen() {
     });
 
     const [showTable, setShowTable] = React.useState(false);
+    const [showAddPhotoSourceModal, setShowAddPhotoSourceModal] = React.useState(false);
+    const [pendingPhotoField, setPendingPhotoField] = React.useState<'studentPhotos' | 'logbookPhotos' | null>(null);
 
     const onFormError = (formErrors: any) => {
         const firstError = Object.values(formErrors)[0] as any;
@@ -365,44 +335,41 @@ export default function LibraryFormScreen() {
 
     // ── Image picker helpers ──
     const pickImage = useCallback(async (field: 'studentPhotos' | 'logbookPhotos') => {
-        Alert.alert('Add Photo', 'Choose how to add a photo', [
-            {
-                text: 'Take Photo',
-                onPress: async () => {
-                    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                    if (status !== 'granted') {
-                        Alert.alert('Permission Required', 'Please grant camera permissions.');
-                        return;
-                    }
-                    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
-                    if (!result.canceled && result.assets[0]) {
-                        const current = form.getValues(field);
-                        form.setValue(field, [...current, result.assets[0].uri], { shouldValidate: true });
-                    }
-                },
-            },
-            {
-                text: 'Choose from Gallery',
-                onPress: async () => {
-                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    if (status !== 'granted') {
-                        Alert.alert('Permission Required', 'Please grant camera roll permissions.');
-                        return;
-                    }
-                    const result = await ImagePicker.launchImageLibraryAsync({
-                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                        allowsEditing: true,
-                        quality: 0.8,
-                    });
-                    if (!result.canceled && result.assets[0]) {
-                        const current = form.getValues(field);
-                        form.setValue(field, [...current, result.assets[0].uri], { shouldValidate: true });
-                    }
-                },
-            },
-            { text: 'Cancel', style: 'cancel' },
-        ]);
-    }, [form]);
+        setPendingPhotoField(field);
+        setShowAddPhotoSourceModal(true);
+    }, []);
+
+    const pickPhotoFromCamera = useCallback(async () => {
+        if (!pendingPhotoField) return;
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Please grant camera permissions.');
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.8 });
+        if (!result.canceled && result.assets[0]) {
+            const current = form.getValues(pendingPhotoField);
+            form.setValue(pendingPhotoField, [...current, result.assets[0].uri], { shouldValidate: true });
+        }
+    }, [form, pendingPhotoField]);
+
+    const pickPhotoFromGallery = useCallback(async () => {
+        if (!pendingPhotoField) return;
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Please grant camera roll permissions.');
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+        });
+        if (!result.canceled && result.assets[0]) {
+            const current = form.getValues(pendingPhotoField);
+            form.setValue(pendingPhotoField, [...current, result.assets[0].uri], { shouldValidate: true });
+        }
+    }, [form, pendingPhotoField]);
 
     const removeImage = useCallback((field: 'studentPhotos' | 'logbookPhotos', index: number) => {
         const current = form.getValues(field);
@@ -413,8 +380,8 @@ export default function LibraryFormScreen() {
     if (showTable) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 32 }}>
                     {/* Success message */}
                     <View className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 items-center">
@@ -505,10 +472,11 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         placeholder="Library Teacher In-charge's full name"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -539,11 +507,12 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         keyboardType="numeric"
                         placeholder="0"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -561,11 +530,12 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         keyboardType="numeric"
                         placeholder="0"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -610,11 +580,12 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         keyboardType="numeric"
                         placeholder="0"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -645,11 +616,12 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] mb-1"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                         keyboardType="numeric"
                         placeholder="0"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                     />
                 )}
             />
@@ -667,11 +639,11 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px] mb-5"
-                        style={{ textAlignVertical: 'top' }}
+                        style={[INPUT_TEXT_STYLE, { textAlignVertical: 'top' }]}
                         value={value}
                         onChangeText={onChange}
                         placeholder="Explain in-brief"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                     />
@@ -691,11 +663,11 @@ export default function LibraryFormScreen() {
                 render={({ field: { value, onChange } }) => (
                     <TextInput
                         className="border border-gray-200 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] min-h-[100px] mb-5"
-                        style={{ textAlignVertical: 'top' }}
+                        style={[INPUT_TEXT_STYLE, { textAlignVertical: 'top' }]}
                         value={value}
                         onChangeText={onChange}
                         placeholder="(Optional)"
-                        placeholderTextColor="#b0b0b0"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                     />
@@ -738,15 +710,15 @@ export default function LibraryFormScreen() {
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-            <FormHeader onBack={() => router.back()} />
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <FormHeader />
 
             {/* Form Content */}
             {Platform.OS === 'ios' ? (
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                     <ScrollView
                         className="flex-1 bg-white"
-                        contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+                        contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                         keyboardShouldPersistTaps="handled"
                     >
                         {renderFormContent()}
@@ -755,12 +727,22 @@ export default function LibraryFormScreen() {
             ) : (
                 <ScrollView
                     className="flex-1 bg-white"
-                    contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {renderFormContent()}
                 </ScrollView>
             )}
+
+            <AddPhotoSourceModal
+                visible={showAddPhotoSourceModal}
+                onClose={() => {
+                    setShowAddPhotoSourceModal(false);
+                    setPendingPhotoField(null);
+                }}
+                onPickCamera={pickPhotoFromCamera}
+                onPickGallery={pickPhotoFromGallery}
+            />
         </View>
     );
 }

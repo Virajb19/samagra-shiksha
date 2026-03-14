@@ -30,7 +30,7 @@ export default function AddPhotoSourceModal({
 
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-            <Pressable className="flex-1 justify-center items-center px-6 bg-black/25" onPress={onClose}>
+            <Pressable className="flex-1 justify-center items-center px-6 bg-black/40" onPress={onClose}>
                 <Pressable className="w-full max-w-[360px] rounded-2xl bg-white p-5" onPress={(e) => e.stopPropagation()}>
                     <AppText className="text-lg font-bold text-[#1a1a1a] text-center">Add Photo</AppText>
                     <AppText className="text-sm text-gray-500 text-center mt-1">Choose image source</AppText>

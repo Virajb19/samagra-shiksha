@@ -55,7 +55,7 @@ service firebase.storage {
     // Any authenticated user can read/write (userId in path is Firestore doc ID, not Auth UID)
     match /ict-form-files/{userId}/{allPaths=**} {
       allow read: if isAuth();
-      allow create, update: if isAuth() && request.resource.size < 5 * 1024 * 1024;
+      allow create, update: if isAuth() && request.resource.size <= 5 * 1000 * 1000;
       allow delete: if isAuth();
     }
 
