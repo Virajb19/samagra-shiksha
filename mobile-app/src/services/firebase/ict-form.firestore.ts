@@ -70,32 +70,35 @@ async function uploadFormFiles(
     schoolRoutineUrl: string;
     logbookUrl: string;
 }> {
-    // Upload material photos
-    const photoUrls: string[] = [];
-    for (const photoUri of formData.ictMaterialPhotos) {
-        const result = await uploadICTFormFile(photoUri, userId, 'photos');
-        if (result.success && result.fileUrl) {
-            photoUrls.push(result.fileUrl);
-        }
-    }
+    const photoUploadPromises = formData.ictMaterialPhotos.map((photoUri) =>
+        uploadICTFormFile(photoUri, userId, 'photos'),
+    );
 
-    // Upload school routine PDF
-    let schoolRoutineUrl = '';
-    if (formData.schoolRoutinePdf) {
-        const result = await uploadICTFormFile(formData.schoolRoutinePdf, userId, 'pdfs');
-        if (result.success && result.fileUrl) {
-            schoolRoutineUrl = result.fileUrl;
-        }
-    }
+    const schoolRoutinePromise = formData.schoolRoutinePdf
+        ? uploadICTFormFile(formData.schoolRoutinePdf, userId, 'pdfs')
+        : Promise.resolve({ success: false, fileUrl: '' as string | undefined });
 
-    // Upload logbook PDF
-    let logbookUrl = '';
-    if (formData.logbookPdf) {
-        const result = await uploadICTFormFile(formData.logbookPdf, userId, 'pdfs');
-        if (result.success && result.fileUrl) {
-            logbookUrl = result.fileUrl;
-        }
-    }
+    const logbookPromise = formData.logbookPdf
+        ? uploadICTFormFile(formData.logbookPdf, userId, 'pdfs')
+        : Promise.resolve({ success: false, fileUrl: '' as string | undefined });
+
+    const [photoResults, schoolRoutineResult, logbookResult] = await Promise.all([
+        Promise.all(photoUploadPromises),
+        schoolRoutinePromise,
+        logbookPromise,
+    ]);
+
+    const photoUrls = photoResults
+        .filter((result) => result.success && !!result.fileUrl)
+        .map((result) => result.fileUrl as string);
+
+    const schoolRoutineUrl = schoolRoutineResult.success && schoolRoutineResult.fileUrl
+        ? schoolRoutineResult.fileUrl
+        : '';
+
+    const logbookUrl = logbookResult.success && logbookResult.fileUrl
+        ? logbookResult.fileUrl
+        : '';
 
     return { photoUrls, schoolRoutineUrl, logbookUrl };
 }

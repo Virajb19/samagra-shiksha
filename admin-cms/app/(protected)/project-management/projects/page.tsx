@@ -140,6 +140,8 @@ export default function ProjectsPage() {
     );
   }, [projectSchools, schoolSearch]);
 
+  const visibleSchools = useMemo(() => filteredSchools.slice(0, 50), [filteredSchools]);
+
   const onSubmit = async (values: ProjectFormValues) => {
     if (isSubmittingRef.current || !selectedSchool) return;
     isSubmittingRef.current = true;
@@ -254,13 +256,18 @@ export default function ProjectsPage() {
                         </div>
                         <div className="max-h-64 overflow-y-auto">
                           {filteredSchools.length > 0 ? (
-                            filteredSchools.map((s) => (
+                            visibleSchools.map((s) => (
                               <SelectItem key={s.id} value={s.id}>
                                 {s.name} ({s.udise_code})
                               </SelectItem>
                             ))
                           ) : (
                             <div className="py-4 text-center text-sm text-slate-400">No schools found</div>
+                          )}
+                          {filteredSchools.length > 50 && (
+                            <div className="px-3 py-2 text-xs text-slate-400 text-center">
+                              Showing 50 of {filteredSchools.length} - type to search
+                            </div>
                           )}
                         </div>
                       </SelectContent>

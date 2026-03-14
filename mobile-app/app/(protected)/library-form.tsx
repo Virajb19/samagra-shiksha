@@ -21,6 +21,7 @@ import {
     TouchableOpacity,
     TextInput,
     Image,
+    Linking,
     Alert,
     ActivityIndicator,
     StatusBar,
@@ -148,6 +149,41 @@ function ImagePickerGrid({
     );
 }
 
+function PdfFilesSection({ submission }: { submission: Record<string, unknown> }) {
+    const pdfEntries = Object.entries(submission)
+        .filter(([_, value]) => typeof value === 'string' && /^https?:\/\//i.test(value) && value.toLowerCase().includes('.pdf'))
+        .map(([key, value]) => ({
+            label: key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+            url: value as string,
+        }));
+
+    if (!pdfEntries.length) return null;
+
+    const openPdf = async (url: string) => {
+        const supported = await Linking.canOpenURL(url);
+        if (!supported) {
+            Alert.alert('Unable to open file', 'No app found to open this file.');
+            return;
+        }
+        await Linking.openURL(url);
+    };
+
+    return (
+        <View className="mt-3">
+            <AppText className="text-xs font-semibold text-gray-600 mb-2">Uploaded PDFs</AppText>
+            {pdfEntries.map((file) => (
+                <View key={file.label} className="flex-row items-center justify-between py-2 border-t border-gray-100">
+                    <AppText className="text-xs text-[#1a1a1a] flex-1 mr-2">{file.label}</AppText>
+                    <TouchableOpacity className="flex-row items-center" onPress={() => openPdf(file.url)}>
+                        <Ionicons name="eye-outline" size={16} color={BLUE} />
+                        <AppText className="text-xs font-bold ml-1" style={{ color: BLUE }}>View file</AppText>
+                    </TouchableOpacity>
+                </View>
+            ))}
+        </View>
+    );
+}
+
 // ─── Header ──────────────────────────
 function FormHeader() {
     return (
@@ -180,6 +216,7 @@ function LibraryFormDataTable({ submission }: { submission: LibraryFormSubmissio
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
+                                    <PdfFilesSection submission={submission as unknown as Record<string, unknown>} />
 
                     <View className="border-t border-gray-100 pt-2 mt-1">
                         <DataRow label="Library Available" value={submission.is_library_available} />
@@ -358,7 +395,7 @@ export default function LibraryFormScreen() {
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.8,
         });

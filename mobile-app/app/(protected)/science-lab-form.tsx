@@ -24,6 +24,7 @@ import {
     StatusBar,
     Platform,
     KeyboardAvoidingView,
+    Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -146,6 +147,7 @@ function ScienceLabFormDataTable({ submission }: { submission: ScienceLabFormSub
                     <View className="border-t border-gray-100 pt-2 mt-1">
                         <DataRow label="Kit Teacher" value={submission.kit_teacher_name} />
                         <DataRow label="Experiments/Week" value={submission.experiments_per_week} />
+                        <PdfFilesSection submission={submission as unknown as Record<string, unknown>} />
                         {submission.student_photos.length > 0 && (
                             <View className="mt-2">
                                 <AppText className="text-xs font-semibold text-gray-600 mb-1">Student Photos ({submission.student_photos.length})</AppText>
@@ -177,6 +179,41 @@ function DataRow({ label, value }: { label: string; value: string }) {
         <View className="flex-row py-1.5">
             <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
             <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
+        </View>
+    );
+}
+
+function PdfFilesSection({ submission }: { submission: Record<string, unknown> }) {
+    const pdfEntries = Object.entries(submission)
+        .filter(([_, value]) => typeof value === 'string' && /^https?:\/\//i.test(value) && value.toLowerCase().includes('.pdf'))
+        .map(([key, value]) => ({
+            label: key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+            url: value as string,
+        }));
+
+    if (!pdfEntries.length) return null;
+
+    const openPdf = async (url: string) => {
+        const supported = await Linking.canOpenURL(url);
+        if (!supported) {
+            Alert.alert('Unable to open file', 'No app found to open this file.');
+            return;
+        }
+        await Linking.openURL(url);
+    };
+
+    return (
+        <View className="mt-3">
+            <AppText className="text-xs font-semibold text-gray-600 mb-2">Uploaded PDFs</AppText>
+            {pdfEntries.map((file) => (
+                <View key={file.label} className="flex-row items-center justify-between py-2 border-t border-gray-100">
+                    <AppText className="text-xs text-[#1a1a1a] flex-1 mr-2">{file.label}</AppText>
+                    <TouchableOpacity className="flex-row items-center" onPress={() => openPdf(file.url)}>
+                        <Ionicons name="eye-outline" size={16} color={BLUE} />
+                        <AppText className="text-xs font-bold ml-1" style={{ color: BLUE }}>View file</AppText>
+                    </TouchableOpacity>
+                </View>
+            ))}
         </View>
     );
 }
