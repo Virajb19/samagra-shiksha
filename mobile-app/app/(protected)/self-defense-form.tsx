@@ -49,6 +49,7 @@ import {
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
+import BackToActivityFormsButton from '../../src/components/BackToActivityFormsButton';
 
 const BLUE = '#1565C0';
 const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
@@ -261,13 +262,7 @@ export default function SelfDefenseFormScreen() {
 
                     <SelfDefenseFormDataTable submission={recentSubmission} />
 
-                    <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-2"
-                        style={{ backgroundColor: BLUE }}
-                        onPress={() => router.back()}
-                    >
-                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
-                    </TouchableOpacity>
+                    <BackToActivityFormsButton onPress={() => router.back()} />
                 </ScrollView>
             </View>
         );

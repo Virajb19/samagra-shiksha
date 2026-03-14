@@ -52,6 +52,7 @@ import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 import AnimatedTickOption from '../../src/components/AnimatedTickOption';
 import AddPhotoSourceModal from '../../src/components/AddPhotoSourceModal';
 import FileTooLargeModal from '../../src/components/FileTooLargeModal';
+import BackToActivityFormsButton from '../../src/components/BackToActivityFormsButton';
 
 const BLUE = '#1565C0';
 const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
@@ -578,14 +579,7 @@ export default function ICTFormScreen() {
 
                     <ICTFormDataTable submission={recentSubmission} />
 
-                    <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-2 flex-row justify-center gap-2"
-                        style={{ backgroundColor: BLUE }}
-                        onPress={() => router.back()}
-                    >
-                        <Ionicons name="arrow-back" size={20} color="#fff" />
-                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
-                    </TouchableOpacity>
+                    <BackToActivityFormsButton onPress={() => router.back()} className="rounded-xl py-4 items-center mt-2" />
                 </ScrollView>
             </View>
         );
