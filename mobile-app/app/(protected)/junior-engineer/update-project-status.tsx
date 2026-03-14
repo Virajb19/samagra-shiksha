@@ -226,7 +226,6 @@ export default function UpdateProjectStatusScreen() {
         onSuccess: () => {
             Toast.show({
                 type: 'success',
-                text1: 'Update Submitted',
                 text2: 'Project status updated successfully.',
             });
             queryClient.invalidateQueries({ queryKey: ['project-updates', projectId] });
@@ -281,7 +280,8 @@ export default function UpdateProjectStatusScreen() {
                     paddingBottom: 20,
                     borderBottomLeftRadius: 24,
                     borderBottomRightRadius: 24,
-                }}
+              }}
+                className='mt-2 rounded-xl mx-2'
             >
                 <View className="flex-row justify-between items-start">
                     <View className="flex-1 mr-3">
@@ -626,27 +626,7 @@ export default function UpdateProjectStatusScreen() {
     );
 
     return (
-        <>
-            {/* Page title */}
-            <View
-                className="flex-row items-center px-4 py-3.5"
-                style={{ backgroundColor: BLUE }}
-            >
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="mr-3"
-                    style={{
-                        width: 36, height: 36, borderRadius: 10,
-                        backgroundColor: 'rgba(255,255,255,0.15)',
-                        alignItems: 'center', justifyContent: 'center',
-                    }}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="arrow-back" size={22} color="#fff" />
-                </TouchableOpacity>
-                <AppText className="text-white text-lg font-bold">Update Project Status</AppText>
-            </View>
-
+        <>            
             <View className="flex-1 bg-white">
                 {Platform.OS === 'ios' ? (
                     <KeyboardAvoidingView behavior="padding" className="flex-1">
