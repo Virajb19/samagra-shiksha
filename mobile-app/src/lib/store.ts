@@ -1,196 +1,236 @@
-import { create } from 'zustand';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { onSnapshot, doc } from 'firebase/firestore';
-import { User } from '../types';
-import { login as authLogin, logout as authLogout, LoginCredentials } from '../services/auth.service';
-import { getUserById, getUserByEmail, mapUserDoc } from '../services/firebase/users.firestore';
-import { getFirebaseAuth, getFirebaseDb } from './firebase';
-import { getUserData, storeUserData, clearAuthData } from '../utils/storage';
+import { create } from "zustand";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { onSnapshot, doc } from "firebase/firestore";
+import { User } from "../types";
+import {
+  login as authLogin,
+  logout as authLogout,
+  LoginCredentials,
+} from "../services/auth.service";
+import {
+  getUserById,
+  getUserByEmail,
+  mapUserDoc,
+} from "../services/firebase/users.firestore";
+import { getFirebaseAuth, getFirebaseDb } from "./firebase";
+import { getUserData, storeUserData, clearAuthData } from "../utils/storage";
 
 // ── Types ────────────────────────────────────────────────────
 
 interface LoginParams {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
 interface LoginResult {
-    success: boolean;
-    error?: string;
-    isInactive?: boolean;
+  success: boolean;
+  error?: string;
+  isInactive?: boolean;
 }
 
 interface AuthState {
-    /** Current authenticated user (Firestore profile) */
-    user: User | null;
-    /** Whether user is authenticated */
-    isAuthenticated: boolean;
-    /** Whether auth state is being loaded/checked */
-    isLoading: boolean;
-    /** Whether the store has been initialized (listener attached) */
-    isHydrated: boolean;
+  /** Current authenticated user (Firestore profile) */
+  user: User | null;
+  /** Whether user is authenticated */
+  isAuthenticated: boolean;
+  /** Whether auth state is being loaded/checked */
+  isLoading: boolean;
+  /** Whether the store has been initialized (listener attached) */
+  isHydrated: boolean;
 
-    /** Initialize the auth listener — call once in root layout */
-    init: () => () => void;
-    /** Login with email + password */
-    login: (params: LoginParams) => Promise<LoginResult>;
-    /** Logout — sign out of Firebase Auth and clear local cache */
-    logout: () => Promise<void>;
-    /** Re-fetch user data from Firestore */
-    refreshUser: () => Promise<void>;
+  /** Initialize the auth listener — call once in root layout */
+  init: () => () => void;
+  /** Login with email + password */
+  login: (params: LoginParams) => Promise<LoginResult>;
+  /** Logout — sign out of Firebase Auth and clear local cache */
+  logout: () => Promise<void>;
+  /** Re-fetch user data from Firestore */
+  refreshUser: () => Promise<void>;
+}
+
+// ── Module-level listener holder so logout can detach immediately ─────────────
+let activeUserDocUnsub: (() => void) | null = null;
+
+function detachActiveUserListener() {
+  if (activeUserDocUnsub) {
+    activeUserDocUnsub();
+    activeUserDocUnsub = null;
+  }
 }
 
 // ── Store ────────────────────────────────────────────────────
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-    isHydrated: false,
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  isHydrated: false,
 
-    /**
-     * Subscribe to Firebase Auth state changes + real-time user doc.
-     * Returns the combined unsubscribe function for cleanup.
-     */
-    init: () => {
-        if (get().isHydrated) {
-            return () => { };
-        }
+  /**
+   * Subscribe to Firebase Auth state changes + real-time user doc.
+   * Returns the combined unsubscribe function for cleanup.
+   */
+  init: () => {
+    if (get().isHydrated) {
+      return () => {};
+    }
 
-        const auth = getFirebaseAuth();
-        const db = getFirebaseDb();
-        let userDocUnsub: (() => void) | null = null;
-        const attachUserListener = (userDocId: string) => {
-            userDocUnsub = onSnapshot(
-                doc(db, 'users', userDocId),
-                async (snap) => {
-                    if (snap.exists()) {
-                        const updated = mapUserDoc(snap);
-                        console.log('[AuthStore] Real-time update:', { is_active: updated.is_active, has_completed_profile: updated.has_completed_profile });
-                        set({ user: updated, isAuthenticated: true });
-                        await storeUserData(updated);
-                    }
-                },
-                (error) => {
-                    console.error('[AuthStore] onSnapshot error:', error);
-                }
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDb();
+
+    const attachUserListener = (userDocId: string) => {
+      // Ensure we never keep multiple listeners alive
+      detachActiveUserListener();
+
+      activeUserDocUnsub = onSnapshot(
+        doc(db, "users", userDocId),
+        async (snap) => {
+          if (snap.exists()) {
+            const updated = mapUserDoc(snap);
+            console.log("[AuthStore] Real-time update:", {
+              is_active: updated.is_active,
+              has_completed_profile: updated.has_completed_profile,
+            });
+            set({ user: updated, isAuthenticated: true });
+            await storeUserData(updated);
+          }
+        },
+        (error) => {
+          console.error("[AuthStore] onSnapshot error:", error);
+        },
+      );
+    };
+
+    // Immediately hydrate from cached user data (survives app kill)
+    (async () => {
+      const cached = await getUserData();
+      if (cached && !get().isAuthenticated) {
+        console.log("[AuthStore] Hydrating from cache:", cached.name);
+        set({ user: cached, isAuthenticated: true, isLoading: false });
+      }
+    })();
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (firebaseUser: FirebaseUser | null) => {
+        try {
+          // Clean up previous user doc listener
+          detachActiveUserListener();
+
+          if (firebaseUser) {
+            console.log(
+              "[AuthStore] Firebase user detected:",
+              firebaseUser.uid,
             );
-        };
 
-        // Immediately hydrate from cached user data (survives app kill)
-        (async () => {
+            // Show cached user instantly for fast UI
             const cached = await getUserData();
-            if (cached && !get().isAuthenticated) {
-                console.log('[AuthStore] Hydrating from cache:', cached.name);
-                set({ user: cached, isAuthenticated: true, isLoading: false });
-            }
-        })();
-
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-            try {
-                // Clean up previous user doc listener
-                if (userDocUnsub) {
-                    userDocUnsub();
-                    userDocUnsub = null;
-                }
-
-                if (firebaseUser) {
-                    console.log('[AuthStore] Firebase user detected:', firebaseUser.uid);
-
-                    // Show cached user instantly for fast UI
-                    const cached = await getUserData();
-                    if (cached) {
-                        set({ user: cached, isAuthenticated: true });
-                    }
-
-                    // Fetch latest profile from Firestore
-                    // Try by uid first, fallback to email (seed creates separate doc IDs)
-                    let profile = await getUserById(firebaseUser.uid);
-                    if (!profile && firebaseUser.email) {
-                        profile = await getUserByEmail(firebaseUser.email);
-                    }
-
-                    if (profile) {
-                        set({ user: profile, isAuthenticated: true });
-                        await storeUserData(profile);
-                        // Real-time listener on the CORRECT Firestore doc (by profile.id, not auth uid)
-                        attachUserListener(profile.id);
-                    } else if (cached) {
-                        // No Firestore profile fetch succeeded, but we have cached profile.
-                        // Keep user logged in and still attach real-time listener from cached id.
-                        console.log('[AuthStore] Using cached profile (Firestore fetch failed), attaching snapshot from cache');
-                        attachUserListener(cached.id);
-                    } else {
-                        console.warn('[AuthStore] No Firestore profile found, logging out');
-                        set({ user: null, isAuthenticated: false });
-                    }
-                } else {
-                    console.log('[AuthStore] No Firebase session');
-                    set({ user: null, isAuthenticated: false });
-                }
-            } catch (err) {
-                console.error('[AuthStore] onAuthStateChanged error:', err);
-                set({ user: null, isAuthenticated: false });
-            } finally {
-                set({ isLoading: false, isHydrated: true });
-            }
-        });
-
-        set({ isHydrated: true });
-        return () => {
-            unsubscribe();
-            if (userDocUnsub) userDocUnsub();
-        };
-    },
-
-    login: async (params: LoginParams): Promise<LoginResult> => {
-        try {
-            const credentials: LoginCredentials = {
-                email: params.email,
-                password: params.password,
-            };
-
-            const result = await authLogin(credentials);
-
-            if (result.success && result.user) {
-                await storeUserData(result.user);
-                set({ user: result.user, isAuthenticated: true });
-                return { success: true };
+            if (cached) {
+              set({ user: cached, isAuthenticated: true });
             }
 
-            return { success: false, error: result.error, isInactive: result.isInactive };
-        } catch (error) {
-            console.error('[AuthStore] Login error:', error);
-            return { success: false, error: 'An unexpected error occurred.' };
-        }
-    },
+            // Fetch latest profile from Firestore
+            // Try by uid first, fallback to email (seed creates separate doc IDs)
+            let profile = await getUserById(firebaseUser.uid);
+            if (!profile && firebaseUser.email) {
+              profile = await getUserByEmail(firebaseUser.email);
+            }
 
-    logout: async () => {
-        try {
-            console.log('[AuthStore] Logging out...');
-            await authLogout();
-            await clearAuthData();
-            set({ user: null, isAuthenticated: false });
-            console.log('[AuthStore] Logged out successfully');
-        } catch (error) {
-            console.error('[AuthStore] Logout error:', error);
-        }
-    },
-
-    refreshUser: async () => {
-        try {
-            const auth = getFirebaseAuth();
-            const firebaseUser = auth.currentUser;
-            if (!firebaseUser) return;
-
-            const profile = await getUserById(firebaseUser.uid);
             if (profile) {
-                set({ user: profile, isAuthenticated: true });
-                await storeUserData(profile);
-                console.log('[AuthStore] User data refreshed from Firestore');
+              set({ user: profile, isAuthenticated: true });
+              await storeUserData(profile);
+              // Real-time listener on the CORRECT Firestore doc (by profile.id, not auth uid)
+              attachUserListener(profile.id);
+            } else if (cached) {
+              // No Firestore profile fetch succeeded, but we have cached profile.
+              // Keep user logged in and still attach real-time listener from cached id.
+              console.log(
+                "[AuthStore] Using cached profile (Firestore fetch failed), attaching snapshot from cache",
+              );
+              attachUserListener(cached.id);
+            } else {
+              console.warn(
+                "[AuthStore] No Firestore profile found, logging out",
+              );
+              set({ user: null, isAuthenticated: false });
             }
-        } catch (error) {
-            console.error('[AuthStore] Failed to refresh user:', error);
+          } else {
+            console.log("[AuthStore] No Firebase session");
+            set({ user: null, isAuthenticated: false });
+          }
+        } catch (err) {
+          console.error("[AuthStore] onAuthStateChanged error:", err);
+          set({ user: null, isAuthenticated: false });
+        } finally {
+          set({ isLoading: false, isHydrated: true });
         }
-    },
+      },
+    );
+
+    set({ isHydrated: true });
+    return () => {
+      unsubscribe();
+      detachActiveUserListener();
+    };
+  },
+
+  login: async (params: LoginParams): Promise<LoginResult> => {
+    try {
+      const credentials: LoginCredentials = {
+        email: params.email,
+        password: params.password,
+      };
+
+      const result = await authLogin(credentials);
+
+      if (result.success && result.user) {
+        await storeUserData(result.user);
+        set({ user: result.user, isAuthenticated: true });
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        error: result.error,
+        isInactive: result.isInactive,
+      };
+    } catch (error) {
+      console.error("[AuthStore] Login error:", error);
+      return { success: false, error: "An unexpected error occurred." };
+    }
+  },
+
+  logout: async () => {
+    try {
+      console.log("[AuthStore] Logging out...");
+
+      // Detach Firestore user snapshot immediately to avoid permission errors
+      // during the auth state transition.
+      detachActiveUserListener();
+
+      await authLogout();
+      await clearAuthData();
+      set({ user: null, isAuthenticated: false });
+      console.log("[AuthStore] Logged out successfully");
+    } catch (error) {
+      console.error("[AuthStore] Logout error:", error);
+    }
+  },
+
+  refreshUser: async () => {
+    try {
+      const auth = getFirebaseAuth();
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) return;
+
+      const profile = await getUserById(firebaseUser.uid);
+      if (profile) {
+        set({ user: profile, isAuthenticated: true });
+        await storeUserData(profile);
+        console.log("[AuthStore] User data refreshed from Firestore");
+      }
+    } catch (error) {
+      console.error("[AuthStore] Failed to refresh user:", error);
+    }
+  },
 }));

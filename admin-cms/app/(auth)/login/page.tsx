@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/store";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from 'nextjs-toploader/app';
+import { useRouter } from "nextjs-toploader/app";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
 import { loginSchema, LoginSchema } from "@/lib/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,33 +29,39 @@ export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const [serverError, setServerError] = useState("");
 
-  const router = useRouter()
+  const router = useRouter();
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      phone: "", email: "", password: ""
+      phone: "",
+      email: "",
+      password: "",
     },
-  })
+  });
 
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const reason = searchParams.get("reason")
+    const reason = searchParams.get("reason");
     if (reason == "auth") {
-      toast.error('You need to signin first', { duration: 4000, closeButton: true, position: 'top-center' });
-      router.replace('/login')
+      toast.error("You need to signin first", {
+        duration: 4000,
+        closeButton: true,
+        position: "top-center",
+      });
+      router.replace("/login");
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const onSubmit = async (data: LoginSchema) => {
     setServerError("");
 
     try {
       await login(data.email, data.password, data.phone);
-      showSuccessToast("Login successful! Welcome Back.", 4000, 'top-center');
+      showSuccessToast("Login successful! Welcome Back.", 4000, "top-center");
       form.reset({ email: "", password: "", phone: "" });
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: any) {
       let message = "Login failed. Please check your credentials.";
 
@@ -59,9 +72,13 @@ export default function LoginPage() {
       }
 
       setServerError(message);
-      toast.error(message, { position: 'top-center', duration: 6000, closeButton: false });
-    } 
-  }
+      toast.error(message, {
+        position: "top-center",
+        duration: 6000,
+        closeButton: false,
+      });
+    }
+  };
 
   return (
     <div className="h-screen bg-gradient-to-br from-teal-700 via-cyan-800 to-blue-900 flex items-center justify-center px-6 py-8 relative overflow-hidden">
@@ -74,7 +91,6 @@ export default function LoginPage() {
 
       {/* Main content — two separate cards side by side */}
       <div className="relative flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8 w-full h-full max-w-none">
-
         {/* ─── Left: Login Card ──────────────────────────────────────── */}
         <motion.div
           className="w-full lg:w-[600px] my-10 flex-shrink-0 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8 sm:p-10 lg:p-14 shadow-2xl shadow-black/40 flex flex-col justify-center"
@@ -92,7 +108,9 @@ export default function LoginPage() {
               <Shield className="w-7 h-7 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-4xl font-bold text-white leading-tight">Secure Track</h1>
+              <h1 className="text-4xl font-bold text-white leading-tight">
+                Secure Track
+              </h1>
               <p className="text-sm text-slate-400">Administration Portal</p>
             </div>
           </div>
@@ -110,7 +128,9 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-base font-medium">Email</FormLabel>
+                    <FormLabel className="text-slate-300 text-base font-medium">
+                      Email
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
@@ -132,7 +152,9 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-base font-medium">Password</FormLabel>
+                    <FormLabel className="text-slate-300 text-base font-medium">
+                      Password
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
@@ -154,7 +176,9 @@ export default function LoginPage() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-base font-medium">Phone Number</FormLabel>
+                    <FormLabel className="text-slate-300 text-base font-medium">
+                      Phone Number
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
@@ -190,7 +214,7 @@ export default function LoginPage() {
               >
                 {form.formState.isSubmitting ? (
                   <>
-                    <div className='size-5 border-2 border-t-[3px] border-white/20 border-t-white rounded-full animate-spin' />
+                    <div className="size-5 border-2 border-t-[3px] border-white/20 border-t-white rounded-full animate-spin" />
                     Authenticating...
                   </>
                 ) : (
@@ -229,20 +253,21 @@ export default function LoginPage() {
           {/* Diagonal shimmer — using framer-motion for reliability */}
           <motion.div
             className="absolute inset-0 pointer-events-none"
-            style={{ overflow: 'hidden' }}
+            style={{ overflow: "hidden" }}
           >
             <motion.div
               className="absolute top-0 h-full w-[60%]"
               style={{
-                background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
+                background:
+                  "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)",
               }}
-              initial={{ left: '-60%' }}
-              animate={{ left: '160%' }}
+              initial={{ left: "-60%" }}
+              animate={{ left: "160%" }}
               transition={{
                 duration: 2,
                 repeat: Infinity,
                 repeatDelay: 2,
-                ease: 'easeInOut',
+                ease: "easeInOut",
               }}
             />
           </motion.div>
@@ -258,7 +283,8 @@ export default function LoginPage() {
                 Board of Secondary Education
               </h3>
               <p className="text-white/60 text-sm leading-relaxed">
-                Nagaland Board of School Education<br />
+                Nagaland Board of School Education
+                <br />
                 Secure Tracking & Administration System
               </p>
             </motion.div>

@@ -281,7 +281,7 @@ export default function UpdateProjectStatusScreen() {
                     borderBottomLeftRadius: 24,
                     borderBottomRightRadius: 24,
               }}
-                className='mt-2 rounded-xl mx-2'
+              className='mt-2 rounded-xl mx-2'
             >
                 <View className="flex-row justify-between items-start">
                     <View className="flex-1 mr-3">
