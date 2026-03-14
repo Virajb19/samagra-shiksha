@@ -2,7 +2,7 @@
  * KGBV Warden Complete Profile Screen
  * 
  * Form for KGBV wardens to complete their profile with:
- * - KGBV Type (TYPE_1 / TYPE_2 / TYPE_3 / TYPE_4)
+ * - KGBV Type (TYPE_I / TYPE_II / TYPE_III / TYPE_IV)
  * - KGBV Location (residential_location)
  * - District
  * - Date of Joining
@@ -48,10 +48,10 @@ import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 const BLUE = '#1565C0';
 
 const KGBV_TYPES: { id: KGBVType; name: string }[] = [
-    { id: 'TYPE_1', name: 'Type 1' },
-    { id: 'TYPE_2', name: 'Type 2' },
-    { id: 'TYPE_3', name: 'Type 3' },
-    { id: 'TYPE_4', name: 'Type 4' },
+    { id: 'TYPE_I', name: 'Type I' },
+    { id: 'TYPE_II', name: 'Type II' },
+    { id: 'TYPE_III', name: 'Type III' },
+    { id: 'TYPE_IV', name: 'Type IV' },
 ];
 
 

@@ -67,7 +67,8 @@ export interface Faculty {
 /**
  * KGBV type enum.
  */
-export type KGBVType = 'TYPE_1' | 'TYPE_2' | 'TYPE_3' | 'TYPE_4';
+export type KGBVType = 'TYPE_I' | 'TYPE_II' | 'TYPE_III' | 'TYPE_IV';
+
 
 /**
  * Responsibility options for HM/Teacher/JE.

@@ -8,6 +8,7 @@ const bool = z.boolean();
 const FirestoreTimestampLike = z.union([
   z.date(),
   z.object({ seconds: z.number(), nanoseconds: z.number() }),
+  z.object({ _seconds: z.number(), _nanoseconds: z.number() }),
 ]);
 
 const dateTimeLike = z.union([isoDateTime, FirestoreTimestampLike]);
@@ -58,7 +59,12 @@ export const ExamTrackerEventTypeSchema = z.enum([
 export const SubjectCategorySchema = z.enum(["CORE", "VOCATIONAL"]);
 export const ExamClassSchema = z.enum(["CLASS_10", "CLASS_12"]);
 
-export const KGBVTypeSchema = z.enum(["TYPE_I", "TYPE_II", "TYPE_III", "TYPE_IV"]);
+export const KGBVTypeSchema = z.enum([
+  "TYPE_I",
+  "TYPE_II",
+  "TYPE_III",
+  "TYPE_IV",
+]);
 
 export const UserDocSchema = z.object({
   id: uuid,
@@ -550,7 +556,7 @@ export const KGBVFormDataDocSchema = z.object({
   // Warden info
   ebrc: z.string().min(1),
   district: z.string().min(1),
-  kgbv_type: z.string().min(1),
+  kgbv_type: KGBVTypeSchema,
   submitted_by: uuid,
   submitted_by_name: z.string().min(1),
   submitted_by_role: z.string().min(1),

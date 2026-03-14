@@ -66,6 +66,14 @@ function toIso(value: unknown): string {
     return new Date(((value as { seconds: number }).seconds ?? 0) * 1000).toISOString();
   }
 
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "_seconds" in value
+  ) {
+    return new Date(((value as { _seconds: number })._seconds ?? 0) * 1000).toISOString();
+  }
+
   return new Date(0).toISOString();
 }
 

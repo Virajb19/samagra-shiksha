@@ -27,10 +27,10 @@ import { District } from '../../../src/types';
 const BLUE = '#1565C0';
 
 const KGBV_TYPE_LABELS: Record<string, string> = {
-    TYPE_1: 'Type 1',
-    TYPE_2: 'Type 2',
-    TYPE_3: 'Type 3',
-    TYPE_4: 'Type 4',
+    TYPE_I: 'Type I',
+    TYPE_II: 'Type II',
+    TYPE_III: 'Type III',
+    TYPE_IV: 'Type IV',
 };
 
 function InfoRow({ icon, label, value, loading = false }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; loading?: boolean }) {

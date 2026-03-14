@@ -142,10 +142,10 @@ export type IEResourcePersonProfileFormData = z.infer<
  * KGBV Type enum
  */
 export const KGBVTypeEnum = z.enum([
-  "TYPE_1",
-  "TYPE_2",
-  "TYPE_3",
-  "TYPE_4",
+  "TYPE_I",
+  "TYPE_II",
+  "TYPE_III",
+  "TYPE_IV",
 ]);
 
 /**
