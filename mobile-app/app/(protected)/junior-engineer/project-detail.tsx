@@ -45,6 +45,7 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
   return (
     <TouchableOpacity
       onPress={() => setExpanded(!expanded)}
+      disabled={expanded}
       activeOpacity={0.9}
       className="bg-white rounded-xl mb-3 overflow-hidden"
       style={{

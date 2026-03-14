@@ -114,7 +114,7 @@ export async function login(credentials: LoginCredentials): Promise<LoginResult>
         // Map Firebase Auth error codes to user-friendly messages
         const code = error?.code ?? '';
         if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-            return { success: false, error: 'Invalid email or password.' };
+            return { success: false, error: 'Incorrect  email or password.' };
         }
         if (code === 'auth/too-many-requests') {
             return { success: false, error: 'Too many login attempts. Please try again later.' };

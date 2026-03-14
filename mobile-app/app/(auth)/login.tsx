@@ -6,7 +6,6 @@
  * SECURITY:
  * - All non-admin users can login
  * - Admin users are blocked (must use admin portal)
- * - Inactive users (not approved by admin) are blocked
  * - Clear error messages for all failure cases
  * 
  * Uses react-hook-form with zod validation.
@@ -32,6 +31,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema, LoginFormData } from '../../src/lib/zod';
 import { useMutation } from '@tanstack/react-query';
+import { AlertCircle } from "lucide-react-native";
 
 const SKY_BLUE_DARK = '#0284C7';
 const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular', fontSize: 17 } as const;
@@ -61,7 +61,8 @@ export default function LoginScreen() {
             });
 
             if (!result.success) {
-                throw new Error(result.error || 'Login failed. Please try again.');
+                console.error(result.error);
+                throw new Error(result.error || 'Login failed. Please check your credentials.');
             }
 
             return result;
@@ -202,7 +203,8 @@ export default function LoginScreen() {
 
                         {/* Server Error Message */}
                         {error && (
-                            <View className="bg-red-500/[0.08] rounded-[10px] p-3 mb-5 border border-red-500/25">
+                             <View className="flex-row items-center bg-red-500/[0.08] rounded-[10px] p-3 mb-5 border border-red-500/25 gap-2">
+                                <AlertCircle size={18} color="#dc2626" />
                                 <AppText className="text-[#dc2626] text-[15px] text-center">{error}</AppText>
                             </View>
                         )}
