@@ -64,6 +64,7 @@ const ICT_COLUMNS = [
     { key: 'students_benefited', label: 'No. of Students Benefited' },
     { key: 'noticed_impact', label: 'Have noticed any impact?' },
     { key: 'is_smart_class_benefiting', label: 'Is Smart Class Benefiting?' },
+    { key: 'benefit_comment', label: 'Benefit Comment' },
     { key: 'how_program_helped', label: 'How program helped teachers?' },
     { key: 'observations', label: 'Observations' },
     { key: 'photos_of_materials', label: 'Photos of Materials' },

@@ -49,6 +49,7 @@ export interface ICTFormDataRow {
     students_benefited: string;
     noticed_impact: string;
     is_smart_class_benefiting: string;
+    benefit_comment: string;
     how_program_helped: string;
     observations: string;
     created_at: string;
@@ -103,6 +104,7 @@ function toRow(docId: string, d: DocumentData): ICTFormDataRow {
         students_benefited: d.students_benefited ?? '',
         noticed_impact: d.noticed_impact ?? '',
         is_smart_class_benefiting: d.is_smart_class_benefiting ?? '',
+        benefit_comment: d.benefit_comment ?? d.benefitComment ?? '',
         how_program_helped: d.how_program_helped ?? '',
         observations: d.observations ?? '',
         created_at: toIso(d.created_at),
