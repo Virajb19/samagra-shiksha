@@ -23,6 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getDistricts } from '../../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../../src/lib/store';
 import { District } from '../../../src/types';
+import { VerifiedBanner } from '../../../src/components/VerifiedBanner';
 
 const BLUE = '#1565C0';
 
@@ -50,6 +51,7 @@ export default function IEViewProfileScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { user } = useAuthStore();
+    const isActive = user?.is_active ?? false;
 
     const { data: districts = [], isLoading: loadingDistricts } = useQuery<District[]>({
         queryKey: ['districts'],
@@ -66,12 +68,6 @@ export default function IEViewProfileScreen() {
         } catch {
             return doj;
         }
-    };
-
-    const formatAadhaar = (aadhaar: string | undefined) => {
-        if (!aadhaar) return '-';
-        if (aadhaar.length === 12) return `XXXX XXXX ${aadhaar.slice(8)}`;
-        return aadhaar;
     };
 
     if (!user) {
@@ -152,9 +148,12 @@ export default function IEViewProfileScreen() {
                 <View className="mb-5">
                     <AppText className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Identity</AppText>
                     <View className="bg-white rounded-2xl p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4 }}>
-                        <InfoRow icon="finger-print-outline" label="Aadhaar Number" value={formatAadhaar(user.aadhaar_number)} />
+                        <InfoRow icon="finger-print-outline" label="Aadhaar Number" value={user.aadhaar_number || '-'} />
                     </View>
                 </View>
+
+                {/* Verified Banner */}
+                {isActive && <VerifiedBanner />}
             </ScrollView>
         </View>
     );

@@ -23,6 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getDistricts } from '../../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../../src/lib/store';
 import { District } from '../../../src/types';
+import { VerifiedBanner } from '../../../src/components/VerifiedBanner';
 
 const BLUE = '#1565C0';
 
@@ -159,15 +160,7 @@ export default function KGBVWardenViewProfileScreen() {
                 </View>
 
                 {/* Verified Banner */}
-                {isActive && (
-                    <View
-                        className="rounded-xl py-4 items-center flex-row justify-center gap-2"
-                        style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#34d399', backgroundColor: '#ecfdf5' }}
-                    >
-                        <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-                        <AppText className="text-[15px] font-semibold text-emerald-500">Your account is verified</AppText>
-                    </View>
-                )}
+                {isActive && <VerifiedBanner />}
 
             </ScrollView>
         </View>

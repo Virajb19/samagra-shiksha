@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../lib/store';
 import { AppText } from '@/components/AppText';
 import { ProfileHeaderCard } from '@/components/ProfileHeaderCard';
+import { useMutation } from '@tanstack/react-query';
 
 /** Human-readable role labels for the settings profile card. */
 const ROLE_LABELS: Record<string, string> = {
@@ -23,9 +24,18 @@ export default function SettingsScreen() {
 
     const roleLabel = ROLE_LABELS[user?.role ?? ''] || user?.role || 'User';
 
+    const logoutMutation = useMutation({
+        mutationFn: async () => {
+            await logout();
+        },
+        onError: (err: any) => {
+            console.error('Logout failed:', err);
+        } 
+   });
+
     const handleLogout = async () => {
         setShowLogoutDialog(false);
-        await logout();
+        await logoutMutation.mutateAsync();
     };
 
     const handleShareApp = async () => {

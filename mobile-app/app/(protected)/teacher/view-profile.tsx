@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { useAuthStore } from '../../../src/lib/store';
+import { VerifiedBanner } from '../../../src/components/VerifiedBanner';
 
 const NAVY = '#2c3e6b';
 
@@ -47,6 +48,7 @@ export default function ViewProfileScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { user } = useAuthStore();
+    const isActive = user?.is_active ?? false;
 
     const {
         data: profileData,
@@ -225,6 +227,9 @@ export default function ViewProfileScreen() {
                         </View>
                     </View>
                 </View>
+
+                {/* Verified Banner */}
+                {isActive && <VerifiedBanner />}
             </ScrollView>
         </View>
     );
