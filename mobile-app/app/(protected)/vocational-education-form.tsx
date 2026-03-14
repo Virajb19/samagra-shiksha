@@ -244,7 +244,7 @@ function ImagePickerGrid({
                     <View key={idx} style={{ position: 'relative' }}>
                         <Image source={{ uri }} style={{ width: 96, height: 96, borderRadius: 12 }} />
                         <TouchableOpacity
-                            style={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ef4444', width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
+                            style={{ position: 'absolute', top: 6, right: 6, backgroundColor: '#ef4444', width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
                             onPress={() => onRemove(idx)}
                         >
                             <Ionicons name="close" size={14} color="white" />
@@ -286,7 +286,7 @@ function SingleImagePicker({
                 <View style={{ position: 'relative', alignSelf: 'flex-start' }}>
                     <Image source={{ uri: value }} style={{ width: 160, height: 120, borderRadius: 12 }} />
                     <TouchableOpacity
-                        style={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#ef4444', width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
+                        style={{ position: 'absolute', top: 6, right: 6, backgroundColor: '#ef4444', width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' }}
                         onPress={onRemove}
                     >
                         <Ionicons name="close" size={14} color="white" />

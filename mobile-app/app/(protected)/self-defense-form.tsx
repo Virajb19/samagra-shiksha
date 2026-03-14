@@ -273,26 +273,46 @@ export default function SelfDefenseFormScreen() {
         <View>
             {/* Photo Upload */}
             <AppText className="text-[15px] font-bold text-[#1a1a1a] mb-2">Photo *</AppText>
-            <TouchableOpacity
-                onPress={pickPhoto}
-                style={{
-                    width: '100%', height: 160, borderRadius: 12,
-                    borderWidth: 2, borderStyle: photo ? 'solid' : 'dashed',
-                    borderColor: photo ? '#e5e7eb' : '#93c5fd',
-                    alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: photo ? '#fff' : '#eff6ff',
-                    overflow: 'hidden', marginBottom: 4,
-                }}
-            >
+            <View style={{ position: 'relative', marginBottom: 4 }}>
+                <TouchableOpacity
+                    onPress={pickPhoto}
+                    style={{
+                        width: '100%', height: 160, borderRadius: 12,
+                        borderWidth: 2, borderStyle: photo ? 'solid' : 'dashed',
+                        borderColor: photo ? '#e5e7eb' : '#93c5fd',
+                        alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: photo ? '#fff' : '#eff6ff',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {photo ? (
+                        <Image source={{ uri: photo }} style={{ width: '100%', height: '100%', borderRadius: 10 }} resizeMode="cover" />
+                    ) : (
+                        <View className="items-center">
+                            <Ionicons name="image-outline" size={48} color="#93c5fd" />
+                            <AppText className="text-sm text-gray-400 mt-2">Tap to upload photo</AppText>
+                        </View>
+                    )}
+                </TouchableOpacity>
                 {photo ? (
-                    <Image source={{ uri: photo }} style={{ width: '100%', height: '100%', borderRadius: 10 }} resizeMode="cover" />
-                ) : (
-                    <View className="items-center">
-                        <Ionicons name="image-outline" size={48} color="#93c5fd" />
-                        <AppText className="text-sm text-gray-400 mt-2">Tap to upload photo</AppText>
-                    </View>
-                )}
-            </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            backgroundColor: '#ef4444',
+                            width: 24,
+                            height: 24,
+                            borderRadius: 12,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        onPress={() => setValue('photo', '', { shouldValidate: true })}
+                    >
+                        <Ionicons name="close" size={14} color="white" />
+                    </TouchableOpacity>
+                ) : null}
+            </View>
             {errors.photo && <AppText className="text-xs text-red-500 mb-4">{errors.photo.message}</AppText>}
             {!errors.photo && <View className="mb-5" />}
 
