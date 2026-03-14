@@ -50,8 +50,6 @@ export interface User {
     is_active: boolean;
 
     created_at: string;
-    coordinator_subject?: string;
-    coordinator_class_group?: string;
     faculty?: Faculty;
 
     // Role-specific fields

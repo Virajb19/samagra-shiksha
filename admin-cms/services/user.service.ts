@@ -45,8 +45,6 @@ export const useCreateUser = () => {
       password: string;
       role: string;
       gender?: string;
-      coordinator_subject?: string;
-      coordinator_class_group?: string;
     }) => usersApi.createUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"], exact: false });
@@ -84,8 +82,6 @@ export const useUpdateUser = () => {
         phone?: string;
         gender?: string;
         role?: string;
-        coordinator_subject?: string;
-        coordinator_class_group?: string;
       };
     }) => usersApi.updateUser(userId, data),
     onSuccess: () => {

@@ -88,8 +88,6 @@ function toUser(docId: string, data: z.output<typeof UserReadSchema>): User {
     profile_image_url: data.profile_image_url ?? undefined,
     is_active: data.is_active,
     created_at: toIso(data.created_at),
-    coordinator_subject: data.coordinator_subject ?? undefined,
-    coordinator_class_group: data.coordinator_class_group ?? undefined,
 
     // Role-specific fields
     district_id: data.district_id ?? undefined,

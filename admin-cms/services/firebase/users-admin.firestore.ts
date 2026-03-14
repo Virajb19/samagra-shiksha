@@ -26,8 +26,6 @@ type CreateUserInput = {
   password: string;
   role: string;
   gender?: string;
-  coordinator_subject?: string;
-  coordinator_class_group?: string;
 };
 
 async function getUserById(userId: string): Promise<User> {
@@ -49,8 +47,6 @@ async function getUserById(userId: string): Promise<User> {
     profile_image_url: data.profile_image_url as string | undefined,
     is_active: (data.is_active as boolean) ?? true,
     created_at: new Date().toISOString(),
-    coordinator_subject: data.coordinator_subject as string | undefined,
-    coordinator_class_group: data.coordinator_class_group as string | undefined,
 
     // Role-specific fields
     district_id: data.district_id as string | undefined,
@@ -84,8 +80,6 @@ export const firebaseUsersAdminApi = {
       password: data.password,
       role: data.role,
       gender: data.gender,
-      coordinator_subject: data.coordinator_subject,
-      coordinator_class_group: data.coordinator_class_group,
     });
 
     const payload = result.data as { uid?: string; userId?: string };
@@ -152,8 +146,6 @@ export const firebaseUsersAdminApi = {
     phone?: string;
     gender?: string;
     role?: string;
-    coordinator_subject?: string;
-    coordinator_class_group?: string;
   }): Promise<User> {
     await waitForAuthReady();
     const db = getFirebaseFirestore();

@@ -179,7 +179,8 @@ export const KGBVProfileSchema = z.object({
     .regex(/^\d{12}$/, "Aadhaar number must contain only digits"),
 });
 
-export type KGBVProfileFormData = z.infer<typeof KGBVProfileSchema>;
+export type KGBVProfileFormData = z.input<typeof KGBVProfileSchema>;
+export type KGBVProfileSubmitData = z.output<typeof KGBVProfileSchema>;
 
 /**
  * NSCBAV Warden Complete Profile schema

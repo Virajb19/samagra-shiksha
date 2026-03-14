@@ -23,6 +23,8 @@ import AccessBlockedModal from '@/components/AccessBlockedModal';
 import HomeActionCard from '@/components/HomeActionCard';
 import StatusBanner from '@/components/StatusBanner';
 
+const FORM_ICON = require('../../../../assets/assets_form.png');
+
 export default function KGBVWardenHomeTabScreen() {
     const { user } = useAuthStore();
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -85,6 +87,7 @@ export default function KGBVWardenHomeTabScreen() {
                     <HomeActionCard
                         title="Activities Forms"
                         iconName="document-text-outline"
+                        iconSource={FORM_ICON}
                         onPress={() => {
                             if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; }
                             router.push('/(protected)/activity-forms' as any);

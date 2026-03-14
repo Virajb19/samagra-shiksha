@@ -39,7 +39,7 @@ import { getDistricts } from '../../../src/services/firebase/master-data.firesto
 import { completeKGBVWardenProfile } from '../../../src/services/firebase/profile.firestore';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { KGBVProfileSchema, KGBVProfileFormData } from '../../../src/lib/zod';
+import { KGBVProfileSchema, KGBVProfileFormData, KGBVProfileSubmitData } from '../../../src/lib/zod';
 import CalendarPickerModal from '../../../src/components/CalendarPickerModal';
 import SelectModal from '../../../src/components/SelectModal';
 import Toast from 'react-native-toast-message';
@@ -60,7 +60,7 @@ export default function KGBVCompleteProfileScreen() {
     const isActive = user?.is_active ?? false;
 
     // React Hook Form
-    const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<KGBVProfileFormData>({
+    const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<KGBVProfileFormData, any, KGBVProfileSubmitData>({
         resolver: zodResolver(KGBVProfileSchema),
         defaultValues: {
             kgbvType: undefined,
@@ -74,7 +74,7 @@ export default function KGBVCompleteProfileScreen() {
         },
     });
 
-    const kgbvType = watch('kgbvType');
+    const kgbvType = watch('kgbvType') as KGBVType | undefined;
     const selectedDistrict = watch('districtId');
 
     // Modal visibility
@@ -95,7 +95,7 @@ export default function KGBVCompleteProfileScreen() {
 
     // Submit profile mutation
     const submitMutation = useMutation({
-        mutationFn: async (data: KGBVProfileFormData) => {
+        mutationFn: async (data: KGBVProfileSubmitData) => {
             if (!user) throw new Error('Not authenticated');
             return completeKGBVWardenProfile({
                 userId: user.id,
@@ -119,7 +119,7 @@ export default function KGBVCompleteProfileScreen() {
         },
     });
 
-    const onSubmit = (data: KGBVProfileFormData) => {
+    const onSubmit = (data: KGBVProfileSubmitData) => {
         submitMutation.mutate(data);
     };
 

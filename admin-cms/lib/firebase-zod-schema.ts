@@ -77,8 +77,6 @@ export const UserDocSchema = z.object({
   profile_image_url: z.string().nullable().optional(),
   is_active: bool.default(true),
   push_token: z.string().nullable().optional(),
-  coordinator_subject: z.string().nullable().optional(),
-  coordinator_class_group: z.string().nullable().optional(),
 
   created_at: dateTimeLike,
 
