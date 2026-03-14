@@ -99,7 +99,7 @@ function toRow(docId: string, d: DocumentData): IEHomeVisitRow {
 
 const PAGE_SIZE = 20;
 
-function buildConstraints(district?: string, date?: string): QueryConstraint[] {
+function buildConstraints(district?: string, date?: string, search?: string): QueryConstraint[] {
     const constraints: QueryConstraint[] = [];
     if (district && district !== 'all') {
         constraints.push(where('district', '==', district));
@@ -110,7 +110,17 @@ function buildConstraints(district?: string, date?: string): QueryConstraint[] {
         constraints.push(where('created_at', '>=', Timestamp.fromDate(dayStart)));
         constraints.push(where('created_at', '<=', Timestamp.fromDate(dayEnd)));
     }
-    constraints.push(orderBy('created_at', 'desc'));
+
+    const s = search?.trim();
+    if (s) {
+        constraints.push(where('submitted_by_name', '>=', s));
+        constraints.push(where('submitted_by_name', '<=', `${s}\uf8ff`));
+        constraints.push(orderBy('submitted_by_name', 'asc'));
+        constraints.push(orderBy('created_at', 'desc'));
+    } else {
+        constraints.push(orderBy('created_at', 'desc'));
+    }
+
     return constraints;
 }
 
@@ -124,13 +134,14 @@ export const ieHomeVisitDataFirestore = {
         cursor?: string,
         district?: string,
         date?: string,
+        search?: string,
     ): Promise<IEHomeVisitResponse> {
         await devDelay('read', 'fetching IE home visit data');
         await waitForAuthReady();
         const db = getFirebaseFirestore();
         const colRef = collection(db, 'ie_home_visit_data');
 
-        const baseConstraints = buildConstraints(district, date);
+        const baseConstraints = buildConstraints(district, date, search);
 
         // Total count
         const countSnap = await getCountFromServer(query(colRef, ...baseConstraints));
@@ -168,12 +179,13 @@ export const ieHomeVisitDataFirestore = {
     async fetchAll(
         district?: string,
         date?: string,
+        search?: string,
     ): Promise<IEHomeVisitRow[]> {
         await waitForAuthReady();
         const db = getFirebaseFirestore();
         const colRef = collection(db, 'ie_home_visit_data');
 
-        const constraints = buildConstraints(district, date);
+        const constraints = buildConstraints(district, date, search);
         const snap = await getDocs(query(colRef, ...constraints));
         return snap.docs.map((d) => toRow(d.id, d.data()));
     },

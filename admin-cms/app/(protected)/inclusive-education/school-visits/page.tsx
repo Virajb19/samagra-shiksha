@@ -167,7 +167,11 @@ export default function SchoolVisitsPage() {
 
     const [districtFilter, setDistrictFilter] = useState<string>('all');
     const [schoolFilter, setSchoolFilter] = useState<string>('all');
+    const [dateFilter, setDateFilter] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const activeDate = dateFilter || undefined;
+    const activeSearch = searchQuery.trim() || undefined;
 
     const { data: districts = [] } = useQuery({ queryKey: ['districts'], queryFn: masterDataFirestore.getDistricts });
 
@@ -181,12 +185,14 @@ export default function SchoolVisitsPage() {
         hasNextPage,
         fetchNextPage,
     } = useInfiniteQuery<IESchoolVisitResponse>({
-        queryKey: ['ieSchoolVisits', districtFilter, schoolFilter],
+        queryKey: ['ieSchoolVisits', districtFilter, schoolFilter, activeDate, activeSearch],
         queryFn: ({ pageParam }) =>
             ieSchoolVisitDataFirestore.fetchPage(
                 pageParam as string | undefined,
                 districtFilter !== 'all' ? districtFilter : undefined,
                 schoolFilter !== 'all' ? schoolFilter : undefined,
+                activeDate,
+                activeSearch,
             ),
         getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
         initialPageParam: undefined as string | undefined,
@@ -197,18 +203,7 @@ export default function SchoolVisitsPage() {
     const allRows = useMemo(() => data?.pages.flatMap(p => p.data) ?? [], [data]);
     const total = data?.pages[0]?.total ?? 0;
 
-    // Client-side search filter
-    const filteredRows = useMemo(() => {
-        if (!searchQuery.trim()) return allRows;
-        const q = searchQuery.toLowerCase();
-        return allRows.filter(
-            (r) =>
-                r.school.toLowerCase().includes(q) ||
-                r.name_of_cwsn.toLowerCase().includes(q) ||
-                r.submitted_by_name.toLowerCase().includes(q) ||
-                r.activities_topics.toLowerCase().includes(q),
-        );
-    }, [allRows, searchQuery]);
+    const filteredRows = allRows;
 
     // Schools derived from loaded data
     const schools = useMemo(() => {
@@ -217,13 +212,15 @@ export default function SchoolVisitsPage() {
         return Array.from(set).sort();
     }, [allRows]);
 
-    const hasFilters = districtFilter !== 'all' || schoolFilter !== 'all' || searchQuery.trim() !== '';
+    const hasFilters = districtFilter !== 'all' || schoolFilter !== 'all' || !!dateFilter || searchQuery.trim() !== '';
 
     // XLSX export
     const handleDownloadXlsx = async () => {
         const all = await ieSchoolVisitDataFirestore.fetchAll(
             districtFilter !== 'all' ? districtFilter : undefined,
             schoolFilter !== 'all' ? schoolFilter : undefined,
+            activeDate,
+            activeSearch,
         );
         downloadXlsx(all, XLSX_COLUMNS, 'ie_school_visits');
     };
@@ -251,7 +248,7 @@ export default function SchoolVisitsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         <DownloadXlsxButton onDownload={handleDownloadXlsx} disabled={total === 0} />
-                        <RefreshTableButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter]} isFetching={isFetching && !isFetchingNextPage} />
+                        <RefreshTableButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter, activeDate, activeSearch]} isFetching={isFetching && !isFetchingNextPage} />
                     </div>
                 </div>
             </motion.div>
@@ -288,12 +285,20 @@ export default function SchoolVisitsPage() {
                             </SelectContent>
                         </Select>
                     </div>
+                    <div className="w-56">
+                        <input
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-full h-12 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                        />
+                    </div>
                     {/* Search */}
                     <div className="relative w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Search name, school..."
+                            placeholder="Search submitted by (prefix)..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full h-12 pl-10 pr-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all placeholder:text-slate-400"
@@ -301,7 +306,7 @@ export default function SchoolVisitsPage() {
                     </div>
                     <ClearFiltersButton
                         hasActiveFilters={hasFilters}
-                        onClear={() => { setDistrictFilter('all'); setSchoolFilter('all'); setSearchQuery(''); }}
+                        onClear={() => { setDistrictFilter('all'); setSchoolFilter('all'); setDateFilter(''); setSearchQuery(''); }}
                     />
                 </div>
             </motion.div>
@@ -325,7 +330,7 @@ export default function SchoolVisitsPage() {
                     <div className="text-center py-16 bg-white dark:bg-transparent">
                         <GraduationCap className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
                         <div className="text-slate-600 dark:text-slate-400 text-lg mb-2">Failed to load school visit data</div>
-                        <RetryButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter]} />
+                        <RetryButton queryKey={['ieSchoolVisits', districtFilter, schoolFilter, activeDate, activeSearch]} />
                     </div>
                 ) : filteredRows.length === 0 && !isLoading ? (
                     <div className="text-center py-16 bg-white dark:bg-transparent">

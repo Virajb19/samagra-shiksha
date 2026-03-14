@@ -105,7 +105,7 @@ function toRow(docId: string, d: DocumentData): IESchoolVisitRow {
 
 const PAGE_SIZE = 20;
 
-function buildConstraints(district?: string, school?: string, date?: string): QueryConstraint[] {
+function buildConstraints(district?: string, school?: string, date?: string, search?: string): QueryConstraint[] {
     const constraints: QueryConstraint[] = [];
     if (district && district !== 'all') {
         constraints.push(where('district', '==', district));
@@ -119,7 +119,17 @@ function buildConstraints(district?: string, school?: string, date?: string): Qu
         constraints.push(where('created_at', '>=', Timestamp.fromDate(dayStart)));
         constraints.push(where('created_at', '<=', Timestamp.fromDate(dayEnd)));
     }
-    constraints.push(orderBy('created_at', 'desc'));
+
+    const s = search?.trim();
+    if (s) {
+        constraints.push(where('submitted_by_name', '>=', s));
+        constraints.push(where('submitted_by_name', '<=', `${s}\uf8ff`));
+        constraints.push(orderBy('submitted_by_name', 'asc'));
+        constraints.push(orderBy('created_at', 'desc'));
+    } else {
+        constraints.push(orderBy('created_at', 'desc'));
+    }
+
     return constraints;
 }
 
@@ -134,13 +144,14 @@ export const ieSchoolVisitDataFirestore = {
         district?: string,
         school?: string,
         date?: string,
+        search?: string,
     ): Promise<IESchoolVisitResponse> {
         await devDelay('read', 'fetching IE school visit data');
         await waitForAuthReady();
         const db = getFirebaseFirestore();
         const colRef = collection(db, 'ie_school_visit_data');
 
-        const baseConstraints = buildConstraints(district, school, date);
+        const baseConstraints = buildConstraints(district, school, date, search);
 
         // Total count
         const countSnap = await getCountFromServer(query(colRef, ...baseConstraints));
@@ -179,12 +190,13 @@ export const ieSchoolVisitDataFirestore = {
         district?: string,
         school?: string,
         date?: string,
+        search?: string,
     ): Promise<IESchoolVisitRow[]> {
         await waitForAuthReady();
         const db = getFirebaseFirestore();
         const colRef = collection(db, 'ie_school_visit_data');
 
-        const constraints = buildConstraints(district, school, date);
+        const constraints = buildConstraints(district, school, date, search);
         const snap = await getDocs(query(colRef, ...constraints));
         return snap.docs.map((d) => toRow(d.id, d.data()));
     },

@@ -162,7 +162,11 @@ function PhotoCell({ photos }: { photos: string[] }) {
 export default function HomeVisitsPage() {
 
     const [districtFilter, setDistrictFilter] = useState<string>('all');
+    const [dateFilter, setDateFilter] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const activeDate = dateFilter || undefined;
+    const activeSearch = searchQuery.trim() || undefined;
 
     const { data: districts = [] } = useQuery({ queryKey: ['districts'], queryFn: masterDataFirestore.getDistricts });
 
@@ -175,11 +179,13 @@ export default function HomeVisitsPage() {
         hasNextPage,
         fetchNextPage,
     } = useInfiniteQuery<IEHomeVisitResponse>({
-        queryKey: ['ieHomeVisits', districtFilter],
+        queryKey: ['ieHomeVisits', districtFilter, activeDate, activeSearch],
         queryFn: ({ pageParam }) =>
             ieHomeVisitDataFirestore.fetchPage(
                 pageParam as string | undefined,
                 districtFilter !== 'all' ? districtFilter : undefined,
+                activeDate,
+                activeSearch,
             ),
         getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
         initialPageParam: undefined as string | undefined,
@@ -190,25 +196,16 @@ export default function HomeVisitsPage() {
     const allRows = useMemo(() => data?.pages.flatMap(p => p.data) ?? [], [data]);
     const total = data?.pages[0]?.total ?? 0;
 
-    // Client-side search filter
-    const filteredRows = useMemo(() => {
-        if (!searchQuery.trim()) return allRows;
-        const q = searchQuery.toLowerCase();
-        return allRows.filter(
-            (r) =>
-                r.ebrc.toLowerCase().includes(q) ||
-                r.name_of_cwsn.toLowerCase().includes(q) ||
-                r.submitted_by_name.toLowerCase().includes(q) ||
-                r.activities_topics.toLowerCase().includes(q),
-        );
-    }, [allRows, searchQuery]);
+    const filteredRows = allRows;
 
-    const hasFilters = districtFilter !== 'all' || searchQuery.trim() !== '';
+    const hasFilters = districtFilter !== 'all' || !!dateFilter || searchQuery.trim() !== '';
 
     // XLSX export
     const handleDownloadXlsx = async () => {
         const all = await ieHomeVisitDataFirestore.fetchAll(
             districtFilter !== 'all' ? districtFilter : undefined,
+            activeDate,
+            activeSearch,
         );
         downloadXlsx(all, XLSX_COLUMNS, 'ie_home_visits');
     };
@@ -236,7 +233,7 @@ export default function HomeVisitsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         <DownloadXlsxButton onDownload={handleDownloadXlsx} disabled={total === 0} />
-                        <RefreshTableButton queryKey={['ieHomeVisits', districtFilter]} isFetching={isFetching && !isFetchingNextPage} />
+                        <RefreshTableButton queryKey={['ieHomeVisits', districtFilter, activeDate, activeSearch]} isFetching={isFetching && !isFetchingNextPage} />
                     </div>
                 </div>
             </motion.div>
@@ -260,12 +257,20 @@ export default function HomeVisitsPage() {
                             </SelectContent>
                         </Select>
                     </div>
+                    <div className="w-56">
+                        <input
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-full h-12 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all"
+                        />
+                    </div>
                     {/* Search */}
                     <div className="relative w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Search name, EBRC..."
+                            placeholder="Search submitted by (prefix)..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full h-12 pl-10 pr-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all placeholder:text-slate-400"
@@ -273,7 +278,7 @@ export default function HomeVisitsPage() {
                     </div>
                     <ClearFiltersButton
                         hasActiveFilters={hasFilters}
-                        onClear={() => { setDistrictFilter('all'); setSearchQuery(''); }}
+                        onClear={() => { setDistrictFilter('all'); setDateFilter(''); setSearchQuery(''); }}
                     />
                 </div>
             </motion.div>
@@ -297,7 +302,7 @@ export default function HomeVisitsPage() {
                     <div className="text-center py-16 bg-white dark:bg-transparent">
                         <Home className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
                         <div className="text-slate-600 dark:text-slate-400 text-lg mb-2">Failed to load home visit data</div>
-                        <RetryButton queryKey={['ieHomeVisits', districtFilter]} />
+                        <RetryButton queryKey={['ieHomeVisits', districtFilter, activeDate, activeSearch]} />
                     </div>
                 ) : filteredRows.length === 0 && !isLoading ? (
                     <div className="text-center py-16 bg-white dark:bg-transparent">
