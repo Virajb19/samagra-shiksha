@@ -154,6 +154,15 @@ export default function CircularsScreen({
         );
     }
 
+    if (isLoading && allCirculars.length === 0) {
+        return (
+            <View className="flex-1 bg-[#f0f4f8] items-center justify-center">
+                <ActivityIndicator size="large" color={BLUE} />
+                <AppText className="text-sm text-gray-500 mt-3 font-lato">Loading circulars...</AppText>
+            </View>
+        );
+    }
+
     const formatIssuedDate = (value: CircularItem['issue_date']) => {
         if (!value) return 'N/A';
         const raw = value as any;
@@ -267,14 +276,10 @@ export default function CircularsScreen({
                 </View>
             )}
             ListEmptyComponent={
-                isLoading ? (
-                    <ActivityIndicator size="large" color={BLUE} style={{ marginTop: 40 }} />
-                ) : (
-                    <View className="items-center mt-10">
-                        <Ionicons name="document-text-outline" size={48} color="#d1d5db" />
-                        <AppText weight='bold' className="text-gray-400 mt-3">{emptyText}</AppText>
-                    </View>
-                )
+                <View className="items-center mt-10">
+                    <Ionicons name="document-text-outline" size={48} color="#d1d5db" />
+                    <AppText weight='bold' className="text-gray-400 mt-3">{emptyText}</AppText>
+                </View>
             }
             ListFooterComponent={
                 isFetchingNextPage ? (
