@@ -725,20 +725,6 @@ export default function LibraryFormScreen() {
             />
 
             {/* Submit Button */}
-            {recentSubmission && (
-                <TouchableOpacity
-                    className="rounded-xl py-4 items-center mt-2 flex-row justify-center"
-                    style={{ backgroundColor: BLUE }}
-                    onPress={() => {
-                        setShowSubmitSuccessBanner(false);
-                        setShowTable(true);
-                    }}
-                >
-                    <Ionicons name="eye-outline" size={20} color="#fff" />
-                    <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
-                </TouchableOpacity>
-            )}
-
             <TouchableOpacity
                 className={`rounded-xl py-4 items-center mt-2 ${submitMutation.isPending ? 'bg-gray-400' : ''}`}
                 style={!submitMutation.isPending ? { backgroundColor: BLUE } : undefined}
@@ -758,6 +744,22 @@ export default function LibraryFormScreen() {
         <View className="flex-1 bg-[#f0f4f8]">
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
             <FormHeader />
+
+            {recentSubmission && (
+                <View className="px-5 py-3 bg-white border-b border-gray-100">
+                    <TouchableOpacity
+                        className="rounded-xl py-3 items-center flex-row justify-center"
+                        style={{ backgroundColor: BLUE }}
+                        onPress={() => {
+                            setShowSubmitSuccessBanner(false);
+                            setShowTable(true);
+                        }}
+                    >
+                        <Ionicons name="eye-outline" size={20} color="#fff" />
+                        <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Form Content */}
             {Platform.OS === 'ios' ? (
