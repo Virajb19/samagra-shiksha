@@ -9,16 +9,23 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useIsMutating } from '@tanstack/react-query';
 import { Circle } from 'react-native-animated-spinkit';
+import { AppText } from './AppText';
 
 export function GlobalLoader() {
     const isMutating = useIsMutating();
+    const isTeacherFormUploadMutating = useIsMutating({ mutationKey: ['teacher-form-upload'] });
 
     if (isMutating === 0) return null;
 
     return (
         <View style={styles.overlay} pointerEvents="box-none">
             <View style={styles.backdrop} pointerEvents="auto" />
-            <Circle size={100} color="#ffffff" />
+            <View style={styles.content}>
+                <Circle size={100} color="#ffffff" />
+                {isTeacherFormUploadMutating > 0 && (
+                    <AppText style={styles.message}>Please wait, this might take some time.</AppText>
+                )}
+            </View>
         </View>
     );
 }
@@ -30,6 +37,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         zIndex: 9999,
         elevation: 9999,
+    },
+    content: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        maxWidth: 260,
+        paddingHorizontal: 16,
+    },
+    message: {
+        color: '#ffffff',
+        textAlign: 'center',
+        marginTop: 18,
+        fontSize: 16,
+        lineHeight: 22,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,

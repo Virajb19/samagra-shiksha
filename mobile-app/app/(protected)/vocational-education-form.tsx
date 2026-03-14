@@ -505,6 +505,7 @@ export default function VocationalEducationFormScreen() {
 
     // Submit mutation
     const submitMutation = useMutation({
+        mutationKey: ['teacher-form-upload'],
         mutationFn: async (data: VocationalEducationFormData) => {
             const faculty = await getFacultyByUserId(user!.id);
             return submitVocationalEducationForm(data, {

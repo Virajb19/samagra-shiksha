@@ -198,6 +198,7 @@ export default function SelfDefenseFormScreen() {
     });
 
     const submitMutation = useMutation({
+        mutationKey: ['teacher-form-upload'],
         mutationFn: async (data: SelfDefenseFormData) => {
             const faculty = await getFacultyByUserId(user!.id);
             return submitSelfDefenseForm(data, {
