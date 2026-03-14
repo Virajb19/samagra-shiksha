@@ -20,7 +20,6 @@ import React, { useCallback, useState } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
-    Text,
     ScrollView,
     TouchableOpacity,
     TextInput,
@@ -34,7 +33,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 
@@ -45,108 +44,24 @@ import {
 } from '../../src/lib/zod';
 import {
     submitKGBVForm,
-    getKGBVFormSubmissions,
-    type KGBVFormSubmission,
 } from '../../src/services/firebase/kgbv-form.firestore';
 import { getDistricts } from '../../src/services/firebase/master-data.firestore';
 import { useAuthStore } from '../../src/lib/store';
 import { NotAuthorizedDialog } from '../../src/components/NotAuthorizedDialog';
 
 const BLUE = '#1565C0';
+const INPUT_TEXT_STYLE = { fontFamily: 'Lato-Regular' } as const;
+const PLACEHOLDER_TEXT_COLOR = '#9ca3af';
 
 // ─── Header ──────────────────────────
 
-function FormHeader({ onBack }: { onBack: () => void }) {
+function FormHeader() {
     return (
-        <View style={{ backgroundColor: BLUE, paddingTop: 14, paddingBottom: 24, paddingHorizontal: 18 }}>
-            <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                    <Image
-                        source={{ uri: 'https://samagrashiksha.nagaland.gov.in/assets/img/logo-removebg.png' }}
-                        style={{ width: 40, height: 40, marginRight: 10 }}
-                        resizeMode="contain"
-                    />
-                    <View>
-                        <AppText className="text-white text-[9px] font-medium opacity-90">समग्र शिक्षा</AppText>
-                        <AppText className="text-white text-[11px] font-bold tracking-wide">SAMAGRA SHIKSHA</AppText>
-                        <AppText className="text-white text-[8px] tracking-wider opacity-80">NAGALAND</AppText>
-                    </View>
-                </View>
-                <Image
-                    source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Emblem_of_Nagaland.svg/200px-Emblem_of_Nagaland.svg.png' }}
-                    style={{ width: 42, height: 42 }}
-                    resizeMode="contain"
-                />
-            </View>
-            <AppText className="text-white text-[28px] font-extrabold mb-1">KGBV</AppText>
-            <AppText className="text-white/80 text-xs">
+        <View className="px-5 pt-5 pb-4 bg-white">
+            <AppText className="text-2xl font-bold text-[#1a1a1a] mb-1">KGBV</AppText>
+            <AppText className="text-sm text-gray-500">
                 Please make sure all the required fields are properly filled.
             </AppText>
-            <TouchableOpacity
-                onPress={onBack}
-                style={{ position: 'absolute', top: 16, left: 14, zIndex: 10, padding: 4 }}
-            >
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-        </View>
-    );
-}
-
-
-
-// ─── Submission Table ──────────────────────────
-
-function KGBVFormDataTable({ submissions }: { submissions: KGBVFormSubmission[] }) {
-    if (!submissions.length) return null;
-
-    return (
-        <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your KGBV Submissions</AppText>
-            {submissions.map((sub, idx) => (
-                <View
-                    key={sub.id}
-                    className="bg-white rounded-2xl mb-3 p-4"
-                    style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
-                >
-                    <View className="flex-row items-center mb-2">
-                        <View className="w-8 h-8 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#22c55e' }}>
-                            <AppText className="text-white font-bold text-sm">{idx + 1}</AppText>
-                        </View>
-                        <View className="flex-1">
-                            <AppText className="text-base font-bold text-[#1a1a1a]">{sub.activity || 'KGBV Submission'}</AppText>
-                            <AppText className="text-xs text-gray-500">
-                                {new Date(sub.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </AppText>
-                        </View>
-                        <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
-                    </View>
-                    <View className="border-t border-gray-100 pt-2 mt-1">
-                        {sub.photo ? (
-                            <View className="mb-2">
-                                <AppText className="text-xs font-semibold text-gray-600 mb-1">Photo</AppText>
-                                <Image source={{ uri: sub.photo }} className="w-20 h-20 rounded-lg" />
-                            </View>
-                        ) : null}
-                        <DataRow label="Activity" value={sub.activity} />
-                        <DataRow label="Girl Participants" value={sub.girl_participants} />
-                        <DataRow label="Girls Benefited" value={sub.girls_benefited} />
-                        <DataRow label="Materials Used" value={sub.materials_used} />
-                        <DataRow label="Instructor" value={sub.instructor_name} />
-                        <DataRow label="Contact" value={sub.contact_number} />
-                        <DataRow label="Best Practices" value={sub.best_practices} />
-                        {sub.success_story ? <DataRow label="Success Story" value={sub.success_story} /> : null}
-                    </View>
-                </View>
-            ))}
-        </View>
-    );
-}
-
-function DataRow({ label, value }: { label: string; value: string }) {
-    return (
-        <View className="flex-row py-1.5">
-            <AppText className="text-xs text-gray-500 w-[45%]">{label}</AppText>
-            <AppText className="text-xs font-medium text-[#1a1a1a] flex-1">{value || '—'}</AppText>
         </View>
     );
 }
@@ -157,7 +72,6 @@ function DataRow({ label, value }: { label: string; value: string }) {
 
 export default function KGBVFormScreen() {
     const router = useRouter();
-    const queryClient = useQueryClient();
     const { user } = useAuthStore();
 
     // Authorization check — only KGBV_WARDEN can submit
@@ -193,12 +107,6 @@ export default function KGBVFormScreen() {
     const { control, watch, setValue, formState: { errors }, handleSubmit } = form;
     const photo = watch('photo');
 
-    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
-        queryKey: ['kgbv-form-submissions', user?.id],
-        queryFn: () => getKGBVFormSubmissions(user!.id),
-        enabled: !!user?.id && isAuthorized,
-    });
-
     const submitMutation = useMutation({
         mutationFn: async (data: KGBVFormData) => {
             return submitKGBVForm(data, {
@@ -212,16 +120,13 @@ export default function KGBVFormScreen() {
         },
         onSuccess: () => {
             Toast.show({ type: 'success', text1: 'KGBV form submitted successfully!' });
-            refetchSubmissions();
-            queryClient.invalidateQueries({ queryKey: ['kgbv-form-submissions'] });
-            setShowTable(true);
+            router.back();
         },
         onError: (error) => {
             Toast.show({ type: 'error', text1: 'Failed to submit', text2: error.message });
         },
     });
 
-    const [showTable, setShowTable] = React.useState(false);
     const [activityDropdownOpen, setActivityDropdownOpen] = useState(false);
 
     const pickPhoto = useCallback(async () => {
@@ -245,37 +150,9 @@ export default function KGBVFormScreen() {
     if (!isAuthorized) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
+                <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <FormHeader />
                 <NotAuthorizedDialog visible={true} onClose={() => router.back()} formName="KGBV" message="You don't have permission to access the KGBV Form, as only KGBV Wardens are authorized." />
-            </View>
-        );
-    }
-
-    // ── Success / table view ──
-    if (showTable) {
-        return (
-            <View className="flex-1 bg-[#f0f4f8]">
-                <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-                <FormHeader onBack={() => router.back()} />
-                <ScrollView className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
-                    <View className="bg-green-50 rounded-2xl p-4 flex-row items-center mb-2">
-                        <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                        <AppText className="text-green-700 font-semibold text-sm ml-3 flex-1">
-                            Your KGBV form has been submitted successfully.
-                        </AppText>
-                    </View>
-
-                    <KGBVFormDataTable submissions={submissions} />
-
-                    <TouchableOpacity
-                        className="rounded-xl py-4 items-center mt-2"
-                        style={{ backgroundColor: BLUE }}
-                        onPress={() => router.back()}
-                    >
-                        <AppText className="text-base font-bold text-white">Back to Activity Forms</AppText>
-                    </TouchableOpacity>
-                </ScrollView>
             </View>
         );
     }
@@ -336,6 +213,7 @@ export default function KGBVFormScreen() {
                                     fontSize: 15,
                                     color: value ? '#1a1a1a' : '#9ca3af',
                                     flex: 1,
+                                    fontFamily: 'Lato-Regular',
                                 }}
                                 numberOfLines={1}
                             >
@@ -393,6 +271,7 @@ export default function KGBVFormScreen() {
                                                         color: isSelected ? '#1565C0' : '#374151',
                                                         fontWeight: isSelected ? '600' : '400',
                                                         flex: 1,
+                                                        fontFamily: 'Lato-Regular',
                                                     }}
                                                 >
                                                     {opt}
@@ -421,8 +300,9 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Total Girl Participants"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="numeric"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -440,8 +320,9 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Total Girls Benifited"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="numeric"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -459,11 +340,11 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Enter Materials Used"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={3}
                         textAlignVertical="top"
-                        style={{ minHeight: 80 }}
+                        style={[INPUT_TEXT_STYLE, { minHeight: 80 }]}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -481,7 +362,8 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Enter Intructor`s Name"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -499,8 +381,9 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Enter Contact Number"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         keyboardType="phone-pad"
+                        style={INPUT_TEXT_STYLE}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -518,11 +401,11 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Enter Best Practices"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={3}
                         textAlignVertical="top"
-                        style={{ minHeight: 80 }}
+                        style={[INPUT_TEXT_STYLE, { minHeight: 80 }]}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -540,11 +423,11 @@ export default function KGBVFormScreen() {
                     <TextInput
                         className="bg-gray-50 rounded-xl px-4 py-3.5 text-[15px] text-[#1a1a1a] border border-gray-200 mb-1"
                         placeholder="Write Success Story"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
                         multiline
                         numberOfLines={4}
                         textAlignVertical="top"
-                        style={{ minHeight: 100 }}
+                        style={[INPUT_TEXT_STYLE, { minHeight: 100 }]}
                         value={value}
                         onChangeText={onChange}
                     />
@@ -570,14 +453,14 @@ export default function KGBVFormScreen() {
 
     return (
         <View className="flex-1 bg-[#f0f4f8]">
-            <StatusBar barStyle="light-content" backgroundColor={BLUE} />
-            <FormHeader onBack={() => router.back()} />
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <FormHeader />
 
             {Platform.OS === 'ios' ? (
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
                     <ScrollView
                         className="flex-1 bg-white"
-                        contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+                        contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                         keyboardShouldPersistTaps="handled"
                     >
                         {renderFormContent()}
@@ -586,7 +469,7 @@ export default function KGBVFormScreen() {
             ) : (
                 <ScrollView
                     className="flex-1 bg-white"
-                    contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
                     keyboardShouldPersistTaps="handled"
                 >
                     {renderFormContent()}

@@ -123,7 +123,7 @@ export default function HelpdeskScreen() {
                 animationType="fade"
                 onRequestClose={() => setShowSuccessModal(false)}
             >
-                <View className="flex-1 items-center justify-center px-6 bg-black/30">
+                <View className="flex-1 items-center justify-center px-6 bg-black/40">
                     <Pressable className="absolute inset-0" onPress={() => setShowSuccessModal(false)} />
                     <View className="w-full max-w-[360px] rounded-2xl bg-white px-5 py-6 items-center">
                         <Image
