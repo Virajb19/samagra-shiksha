@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,6 +14,7 @@ interface HomeActionCardProps {
     iconName: keyof typeof Ionicons.glyphMap;
     onPress: () => void;
     disabled?: boolean;
+    iconSource?: ImageSourcePropType;
 }
 
 export default function HomeActionCard({
@@ -21,18 +22,20 @@ export default function HomeActionCard({
     iconName,
     onPress,
     disabled = false,
+    iconSource,
 }: HomeActionCardProps) {
     const normalizedTitle = title.toLowerCase();
-    const iconSource =
+    const fallbackIconSource =
         normalizedTitle.includes('profile')
             ? PROFILE_ICON
             : normalizedTitle.includes('important notices')
                 ? NOTICES_ICON
                 : normalizedTitle.includes('colleague') || normalizedTitle.includes('staff')
                     ? TEAMWORK_ICON
-                    : normalizedTitle.includes('project')
+                    : normalizedTitle.includes('project') || normalizedTitle.includes('visit')
                         ? FORM_ICON
                         : null;
+    const resolvedIconSource = iconSource ?? fallbackIconSource;
 
     return (
         <TouchableOpacity
@@ -42,8 +45,8 @@ export default function HomeActionCard({
             activeOpacity={0.75}
         >
             <View className="w-16 h-16 rounded-full bg-[#e8f4fd] justify-center items-center mb-2">
-                {iconSource ? (
-                    <Image source={iconSource} style={{ width: 55, height: 55 }} resizeMode="contain" />
+                {resolvedIconSource ? (
+                    <Image source={resolvedIconSource} style={{ width: 55, height: 55 }} resizeMode="contain" />
                 ) : (
                     <Ionicons name={iconName} size={34} color={disabled ? '#9ca3af' : BLUE} />
                 )}

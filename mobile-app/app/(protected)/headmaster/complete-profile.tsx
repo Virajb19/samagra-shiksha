@@ -37,6 +37,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { HMTeacherProfileSchema, HMTeacherProfileFormData } from '../../../src/lib/zod';
 import SelectModal from '../../../src/components/SelectModal';
+import AnimatedTickOption from '../../../src/components/AnimatedTickOption';
 import Toast from 'react-native-toast-message';
 import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 
@@ -255,17 +256,16 @@ export default function CompleteProfileScreen() {
                         {RESPONSIBILITY_OPTIONS.map((item) => {
                             const isSelected = (selectedResponsibilities || []).includes(item);
                             return (
-                                <TouchableOpacity
+                                <AnimatedTickOption
                                     key={item}
-                                    style={styles.checkboxRow}
+                                    label={item}
+                                    selected={isSelected}
                                     onPress={() => toggleResponsibility(item)}
-                                    activeOpacity={0.7}
-                                >
-                                    <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-                                        {isSelected && <Ionicons name="checkmark" size={14} color="#fff" />}
-                                    </View>
-                                    <AppText style={styles.checkboxLabel}>{item}</AppText>
-                                </TouchableOpacity>
+                                    shape="square"
+                                    activeColor={BLUE}
+                                    containerStyle={styles.checkboxRow}
+                                    labelStyle={styles.checkboxLabel}
+                                />
                             );
                         })}
                     </View>
@@ -447,19 +447,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 10,
         gap: 12,
-    },
-    checkbox: {
-        width: 22,
-        height: 22,
-        borderRadius: 4,
-        borderWidth: 2,
-        borderColor: '#d1d5db',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkboxSelected: {
-        backgroundColor: BLUE,
-        borderColor: BLUE,
     },
     checkboxLabel: {
         fontSize: 15,

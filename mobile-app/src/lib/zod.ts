@@ -141,13 +141,23 @@ export type IEResourcePersonProfileFormData = z.infer<
 /**
  * KGBV Type enum
  */
-export const KGBVTypeEnum = z.enum(["TYPE_1", "TYPE_2", "TYPE_3", "TYPE_4"]);
+export const KGBVTypeEnum = z.enum([
+  "TYPE_1",
+  "TYPE_2",
+  "TYPE_3",
+  "TYPE_4",
+]);
 
 /**
  * KGBV Warden Complete Profile schema
  */
 export const KGBVProfileSchema = z.object({
-  kgbvType: KGBVTypeEnum.refine((v) => v.length > 0, "Please select KGBV Type"),
+  kgbvType: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    KGBVTypeEnum.optional()
+  ).refine((v) => v !== undefined, {
+    message: "Please select KGBV type",
+  }),
   kgbvLocation: z.string().min(1, "Please enter KGBV location"),
   districtId: z.string().min(1, "Please select a district"),
   dateOfJoining: z

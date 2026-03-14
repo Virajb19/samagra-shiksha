@@ -938,14 +938,22 @@ export default function UsersPage() {
                   <GraduationCap className="h-4 w-4 text-purple-500" />
                   Professional Information
                 </h3>
+                {(() => {
+                  const yearsOfExperience =
+                    selectedUserForDetail.years_of_experience ??
+                    selectedUserForDetail.faculty?.years_of_experience;
+
+                  return (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-slate-500">Years of Experience</label>
                     <p className="text-slate-900 dark:text-white font-medium">
-                      {selectedUserForDetail.faculty?.years_of_experience != null ? `${selectedUserForDetail.faculty.years_of_experience} Years` : '-'}
+                      {yearsOfExperience != null ? `${yearsOfExperience} Years` : '-'}
                     </p>
                   </div>
                 </div>
+                  );
+                })()}
               </div>
 
             </div>

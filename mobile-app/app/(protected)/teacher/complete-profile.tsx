@@ -36,6 +36,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { HMTeacherProfileSchema, HMTeacherProfileFormData } from '../../../src/lib/zod';
 import SelectModal from '../../../src/components/SelectModal';
+import AnimatedTickOption from '../../../src/components/AnimatedTickOption';
 import Toast from 'react-native-toast-message';
 import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 
@@ -254,17 +255,14 @@ export default function CompleteProfileScreen() {
                         {RESPONSIBILITY_OPTIONS.map((item) => {
                             const isSelected = (selectedResponsibilities || []).includes(item);
                             return (
-                                <TouchableOpacity
+                                <AnimatedTickOption
                                     key={item}
-                                    className="flex-row items-center py-[10px] gap-3"
+                                    label={item}
+                                    selected={isSelected}
                                     onPress={() => toggleResponsibility(item)}
-                                    activeOpacity={0.7}
-                                >
-                                    <View className={`w-[22px] h-[22px] rounded border-2 border-[#d1d5db] items-center justify-center ${isSelected ? 'bg-[#2c3e6b] border-[#2c3e6b]' : ''}`}>
-                                        {isSelected && <Ionicons name="checkmark" size={14} color="#fff" />}
-                                    </View>
-                                    <AppText className="text-[15px] text-[#374151]">{item}</AppText>
-                                </TouchableOpacity>
+                                    shape="square"
+                                    activeColor={BLUE}
+                                />
                             );
                         })}
                     </View>
