@@ -45,6 +45,7 @@ export default function EditPersonalDetailsScreen() {
     handleSubmit,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm<EditPersonalDetailsFormData>({
     resolver: zodResolver(EditPersonalDetailsSchema),
@@ -92,6 +93,7 @@ export default function EditPersonalDetailsScreen() {
     },
     onError: (error: any) => {
       setUploadingPhoto(false);
+      setError("phone", { type: "manual", message: error?.message || "Failed to update details" });
       Toast.show({
         type: "error",
         text2: error?.message || "Failed to update details",

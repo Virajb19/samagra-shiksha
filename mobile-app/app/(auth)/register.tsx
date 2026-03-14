@@ -27,7 +27,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -36,8 +36,7 @@ import {
   RegistrationRole,
   Gender,
 } from "../../src/lib/zod";
-import { register } from "../../src/services/auth.service";
-import { useAuthStore } from "../../src/lib/store";
+import { register, DuplicateFieldError } from "../../src/services/auth.service";
 import { X } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -66,9 +65,9 @@ const GENDER_OPTIONS: {
   value: Gender;
   icon: React.ComponentProps<typeof MaterialIcons>["name"];
 }[] = [
-  { label: "Male", value: "MALE", icon: "male" },
-  { label: "Female", value: "FEMALE", icon: "female" },
-];
+    { label: "Male", value: "MALE", icon: "male" },
+    { label: "Female", value: "FEMALE", icon: "female" },
+  ];
 
 const HOME_ROUTE_BY_ROLE: Record<RegistrationRole, string> = {
   TEACHER: "/(protected)/teacher/(tabs)/home",
@@ -81,7 +80,6 @@ const HOME_ROUTE_BY_ROLE: Record<RegistrationRole, string> = {
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
-  const { login } = useAuthStore();
 
   // const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
@@ -92,6 +90,7 @@ export default function RegisterScreen() {
     control,
     handleSubmit,
     setValue,
+    setError,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
@@ -159,63 +158,72 @@ export default function RegisterScreen() {
    * Handle form submission
    */
   const onSubmit = async (data: RegisterFormData) => {
+    // Prepare registration payload — image URI is passed to register()
+    // which uploads it AFTER creating the Firebase Auth account
+    // (so storage security rules pass).
+    const payload = {
+      name: data.fullName,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      role: data.role,
+      gender: data.gender,
+      profile_image_uri: data.profileImage || undefined,
+    };
+
+    console.log("[Register] Submitting registration...");
+
+    // Handled via mutateAsync onSuccess/onError.
+    // Wrapped in try-catch because mutateAsync re-throws after onError runs.
     try {
-      // Prepare registration payload — image URI is passed to register()
-      // which uploads it AFTER creating the Firebase Auth account
-      // (so storage security rules pass).
-      const payload = {
-        name: data.fullName,
-        email: data.email,
-        password: data.password,
-        phone: data.phone,
-        role: data.role,
-        gender: data.gender,
-        profile_image_uri: data.profileImage || undefined,
-      };
+      await registerMutation.mutateAsync(payload, {
+        onSuccess: () => {
+          // User is already authenticated from createUserWithEmailAndPassword
+          // and onAuthStateChanged has picked up the profile. Just navigate.
+          router.push(
+            HOME_ROUTE_BY_ROLE[data.role as RegistrationRole] as any,
+          );
+        },
+        onError: (error: any) => {
+          console.log("[Register] Error:", error);
 
-      console.log("[Register] Submitting registration...");
+          // Field-level duplicate checks from auth service
+          if (error instanceof DuplicateFieldError) {
+            const field = error.field as FieldPath<RegisterFormData>;
+            const errorMessage = error.message;
 
-      // Call registration service
-      await registerMutation.mutateAsync(payload);
+            setError(field, {
+              type: "manual",
+              message: errorMessage,
+            });
 
-      // Auto-login right after successful registration.
-      const loginResult = await login({
-        email: data.email,
-        password: data.password,
+            Toast.show({
+              type: "error",
+              text1: "Registration Failed",
+              text2: errorMessage,
+            });
+            return;
+          }
+
+          // Extract error message
+          let errorMessage = "Failed to submit registration. Please try again.";
+
+          if (error?.response?.data?.message) {
+            const msg = error.response.data.message;
+            errorMessage = Array.isArray(msg) ? msg[0] : msg;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+
+          Toast.show({
+            type: "error",
+            text1: "Registration Failed",
+            text2: errorMessage,
+          });
+        },
       });
-
-      if (!loginResult.success) {
-        Toast.show({
-          type: "error",
-          text2:
-            loginResult.error ||
-            "Registration succeeded, but auto login failed.",
-        });
-        router.replace("/(auth)/login");
-        return;
-      }
-
-      router.replace(HOME_ROUTE_BY_ROLE[data.role] as any);
-    } catch (error: any) {
-      console.log("[Register] Error:", error);
-
-      // Extract error message
-      let errorMessage = "Failed to submit registration. Please try again.";
-
-      if (error?.response?.data?.message) {
-        const msg = error.response.data.message;
-        errorMessage = Array.isArray(msg) ? msg[0] : msg;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      Toast.show({
-        type: "error",
-        text1: "Registration Failed",
-        text2: errorMessage,
-      });
-    } finally {
-      // setIsSubmitting(false);
+    } catch {
+      // Error already handled by onError callback above
     }
   };
 
