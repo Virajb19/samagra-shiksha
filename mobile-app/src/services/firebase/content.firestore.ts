@@ -184,6 +184,12 @@ export interface EventFilterParams {
     search?: string;
 }
 
+export interface EventAccessParams {
+    userId?: string;
+    userRole?: string;
+    userSchoolId?: string | null;
+}
+
 export interface PaginatedEventsResult {
     events: any[];
     nextCursor: string | null;
@@ -204,22 +210,48 @@ export async function getEventsPaginated(
     pageSize: number = EVENTS_PAGE_SIZE,
     cursor?: string | null,
     filters?: EventFilterParams,
+    access?: EventAccessParams,
 ): Promise<PaginatedEventsResult> {
     await devDelay('read', 'content.getEventsPaginated');
 
     const eventsRef = collection(db, 'events');
 
-    // ── Server-side search: exact match on title ──
-    if (filters?.search?.trim()) {
-        const s = filters.search.trim();
-        const snap = await getDocs(query(eventsRef, where('title', '==', s), orderBy('created_at', 'desc')));
-        const events = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        return { events, nextCursor: null, hasMore: false };
+    const constraints: QueryConstraint[] = [];
+    const normalizedRole = access?.userRole?.toUpperCase().replace(/-/g, '_') ?? '';
+
+    // Role-based server-side visibility
+    // HEADMASTER -> only events created by self
+    if (normalizedRole === 'HEADMASTER' && access?.userId) {
+        constraints.push(where('created_by', '==', access.userId));
     }
 
-    const constraints: QueryConstraint[] = [];
+    // TEACHER -> only events created by the headmaster of teacher's school
+    if (normalizedRole === 'TEACHER') {
+        if (!access?.userSchoolId) {
+            return { events: [], nextCursor: null, hasMore: false };
+        }
+
+        const hmSnap = await getDocs(
+            query(
+                collection(db, 'users'),
+                where('role', '==', 'HEADMASTER'),
+                where('school_id', '==', access.userSchoolId),
+                limit(1),
+            ),
+        );
+
+        if (hmSnap.empty) {
+            return { events: [], nextCursor: null, hasMore: false };
+        }
+
+        constraints.push(where('created_by', '==', hmSnap.docs[0].id));
+    }
 
     // Equality filter first (before range + orderBy)
+    if (filters?.search?.trim()) {
+        constraints.push(where('title', '==', filters.search.trim()));
+    }
+
     if (filters?.districtId) {
         constraints.push(where('district_id', '==', filters.districtId));
     }

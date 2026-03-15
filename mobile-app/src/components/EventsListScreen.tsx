@@ -16,6 +16,7 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getEventsPaginated, type EventFilterParams } from '../services/firebase/content.firestore';
 import { getDistricts } from '../services/firebase/master-data.firestore';
 import { District } from '../types';
+import { useAuthStore } from '../lib/store';
 import CalendarPickerModal from './CalendarPickerModal';
 import SelectModal from './SelectModal';
 
@@ -121,6 +122,7 @@ function EventCard({ event, districts, onPress }: { event: any; districts: Distr
     const districtName = event.district_id ? districts.find((d: District) => d.id === event.district_id)?.name : null;
     const loc = [event.location, districtName].filter(Boolean).join(', ');
     const dateLine = formatEventDate(event.event_date, event.event_end_date);
+   
     const colors = ['#1565C0', '#0277BD', '#00838F', '#00695C', '#2E7D32'];
     const bg = colors[(event.id || '').split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % colors.length];
     return (
@@ -153,6 +155,7 @@ export default function EventsListScreen({
     queryKey = 'shared-events',
     showHeader = false,
 }: EventsListScreenProps) {
+    const user = useAuthStore((s) => s.user);
     const [filterVisible, setFilterVisible] = useState(false);
     const [filters, setFilters] = useState<{ startDate: string; endDate: string; districtId: string }>({ startDate: '', endDate: '', districtId: '' });
 
@@ -163,8 +166,14 @@ export default function EventsListScreen({
     }), [filters]);
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isRefetching, refetch } = useInfiniteQuery({
-        queryKey: [queryKey, serverFilters],
-        queryFn: async ({ pageParam }) => getEventsPaginated(10, pageParam ?? null, serverFilters),
+        queryKey: [queryKey, serverFilters, user?.id ?? null, user?.role ?? null, user?.school_id ?? user?.faculty?.school_id ?? null],
+        queryFn: async ({ pageParam }) =>
+            getEventsPaginated(10, pageParam ?? null, serverFilters, {
+                userId: user?.id,
+                userRole: user?.role,
+                userSchoolId: user?.school_id ?? user?.faculty?.school_id ?? null,
+            }),
+        enabled: !!user?.id,
         initialPageParam: null as string | null,
         getNextPageParam: (lp) => lp.hasMore ? lp.nextCursor : undefined,
     });
@@ -236,9 +245,9 @@ export default function EventsListScreen({
                             </>
                         ) : (
                             <>
-                                <Ionicons name="calendar-outline" size={64} color="#d1d5db" />
-                                <AppText className="text-lg font-semibold text-gray-700 mt-4">No Events</AppText>
-                                <AppText className="text-sm text-gray-500 text-center mt-2 px-8">
+                                <Image source={require('../../assets/Empty.gif')} className='w-full' resizeMode="contain" />
+                                <AppText className="text-lg font-semibold text-gray-700">No Events</AppText>
+                                <AppText className="text-sm text-gray-500 text-center px-8">
                                     {onCreatePress ? 'No events scheduled yet. Tap "Create Event" to add one.' : 'No events scheduled yet.'}
                                 </AppText>
                             </>
