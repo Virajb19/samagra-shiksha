@@ -68,8 +68,9 @@ export type NoticeTypeFilter = 'GENERAL' | 'INVITATION' | 'PUSH_NOTIFICATION';
  * - All notice data (title, venue, event_date, etc.) is on the recipient doc.
  * - No need for a separate recipient map or notices collection lookup.
  *
- * Supports server-side type filter via Firestore where clause.
- * Title search is applied client-side after fetch (Firestore doesn't support substring search).
+ * Supports server-side filters via Firestore where clauses.
+ * Title search uses server-side prefix match on denormalized `notice_title`.
+ * Falls back to legacy `title` field prefix query when older rows do not have `notice_title`.
  * When filters are active the query key should change so React Query refetches from page 1.
  */
 export async function getUserNoticesPaginated(
@@ -80,6 +81,7 @@ export async function getUserNoticesPaginated(
     filters?: { titleSearch?: string; typeFilter?: NoticeTypeFilter | null; dateFrom?: Date | null; dateTo?: Date | null },
 ): Promise<PaginatedNoticesResult> {
     const recipientsRef = collection(db, 'notice_recipients');
+    const titlePrefix = filters?.titleSearch?.trim() ?? '';
 
     const constraints: QueryConstraint[] = [
         where('user_id', '==', userId),
@@ -102,23 +104,27 @@ export async function getUserNoticesPaginated(
         constraints.push(where('created_at', '<=', Timestamp.fromDate(toEnd)));
     }
 
+    if (titlePrefix) {
+        constraints.push(where('notice_title', '>=', titlePrefix));
+        constraints.push(where('notice_title', '<=', `${titlePrefix}\uf8ff`));
+        constraints.push(orderBy('notice_title', 'asc'));
+    }
+
     constraints.push(orderBy('created_at', 'desc'));
 
     if (lastDocSnapshot) {
         constraints.push(startAfter(lastDocSnapshot));
     }
 
-    // Fetch extra when title search is active to compensate for client-side filtering
-    const fetchSize = filters?.titleSearch ? pageSize * 3 : pageSize;
-    constraints.push(limit(fetchSize + 1));
+    constraints.push(limit(pageSize + 1));
 
     const snap = await getDocs(query(recipientsRef, ...constraints));
 
     let allDocs = snap.docs;
-    let hasMore = allDocs.length > fetchSize;
-    if (hasMore) allDocs = allDocs.slice(0, fetchSize);
+    const hasMore = allDocs.length > pageSize;
+    if (hasMore) allDocs = allDocs.slice(0, pageSize);
 
-    let notices = allDocs.map((d) => {
+    const notices = allDocs.map((d) => {
         const data = d.data();
         return {
             id: data.notice_id,
@@ -132,18 +138,6 @@ export async function getUserNoticesPaginated(
             _docRef: d, // keep doc ref for cursor
         };
     });
-
-    // Client-side title search (Firestore doesn't support substring match with orderBy on another field)
-    if (filters?.titleSearch) {
-        const q = filters.titleSearch.toLowerCase();
-        notices = notices.filter((n) => n.title.toLowerCase().includes(q));
-    }
-
-    // Trim to page size after filtering
-    if (notices.length > pageSize) {
-        notices = notices.slice(0, pageSize);
-        hasMore = true;
-    }
 
     // Last doc for cursor comes from the last doc we actually kept
     const lastDoc = allDocs.length > 0

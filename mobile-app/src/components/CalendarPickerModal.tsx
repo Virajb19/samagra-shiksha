@@ -67,18 +67,23 @@ export default function CalendarPickerModal({ visible, value, onSelect, onClose 
                             return (
                                 <TouchableOpacity
                                     key={i}
-                                    className={`justify-center items-center rounded-xl ${sel ? 'bg-[#1565C0]' : ''} ${tod ? 'bg-blue-100' : ''}`}
+                                    className="justify-center items-center"
                                     style={{ width: '14.28%', aspectRatio: 1 }}
                                     onPress={() => day && pick(day)}
                                     disabled={!day}
                                 >
                                     {day ? (
-                                        <AppText
-                                            className={`text-sm font-medium ${sel ? 'text-white font-bold' : tod ? 'text-[#1565C0] font-bold' : 'text-gray-700'}`}
-                                            style={{ textAlign: 'center', lineHeight: 18 }}
+                                        <View
+                                            className={`items-center justify-center ${sel ? 'bg-[#1565C0]' : tod ? 'bg-blue-100' : ''}`}
+                                            style={{ width: 34, height: 34, borderRadius: 17 }}
                                         >
-                                            {day}
-                                        </AppText>
+                                            <AppText
+                                                className={`text-sm font-medium ${sel ? 'text-white font-bold' : tod ? 'text-[#1565C0] font-bold' : 'text-gray-700'}`}
+                                                style={{ textAlign: 'center', lineHeight: 18 }}
+                                            >
+                                                {day}
+                                            </AppText>
+                                        </View>
                                     ) : null}
                                 </TouchableOpacity>
                             );

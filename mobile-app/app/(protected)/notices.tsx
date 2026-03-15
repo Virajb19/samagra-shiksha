@@ -12,7 +12,7 @@
  * - Waving-hand greeting in header
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
@@ -77,6 +77,14 @@ export default function NoticesScreen() {
     const [tempDateTo, setTempDateTo] = useState<Date | null>(null);
     const [showFromPicker, setShowFromPicker] = useState(false);
     const [showToPicker, setShowToPicker] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setAppliedSearch(searchQuery.trim());
+        }, 350);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Accept / Reject dialog state
     const [rejectModalVisible, setRejectModalVisible] = useState(false);
@@ -173,6 +181,7 @@ export default function NoticesScreen() {
     const isLoading = recipientMapLoading || noticesLoading;
     const isRefetching = noticesRefetching;
     const error = noticesError;
+    const hasSearchText = searchQuery.trim().length > 0 || appliedSearch.trim().length > 0;
 
     const hasActiveFilters = !!appliedSearch || !!typeFilter || !!dateFrom || !!dateTo;
 
@@ -209,10 +218,6 @@ export default function NoticesScreen() {
         return 'View File';
     };
 
-    const handleSearch = () => {
-        setAppliedSearch(searchQuery.trim());
-    };
-
     const openFilterDialog = () => {
         setTempTypeFilter(typeFilter);
         setTempDateFrom(dateFrom);
@@ -242,7 +247,10 @@ export default function NoticesScreen() {
 
     // ── Loading / Error states ──
 
-    if (isLoading) {
+    const showInitialLoading = isLoading && allNotices.length === 0 && !hasSearchText;
+    const showInPlaceRefetchLoader = hasSearchText && (noticesRefetching || noticesLoading);
+
+    if (showInitialLoading) {
         return (
             <View style={styles.centeredContainer}>
                 <ActivityIndicator size="large" color={NAVY} />
@@ -366,29 +374,40 @@ export default function NoticesScreen() {
         );
     };
 
-    const renderEmpty = () => (
-        <View style={styles.emptyContainer}>
-            <Image source={require('../../assets/Empty.gif')} style={styles.emptyGif} resizeMode="contain" />
-            <AppText style={styles.emptyTitle}>No Notices</AppText>
-            <AppText style={styles.emptyText}>
-                {hasActiveFilters
-                    ? 'No notices match your search or filter.'
-                    : 'There are no important notices at this time. Check back later for updates.'}
-            </AppText>
-            {hasActiveFilters && (
-                <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearAllFilters}>
-                    <AppText style={styles.clearFiltersBtnText}>Clear Filters</AppText>
-                </TouchableOpacity>
-            )}
-        </View>
-    );
+    const renderEmpty = () => {
+        if (showInPlaceRefetchLoader) {
+            return (
+                <View style={styles.refetchLoaderContainer}>
+                    <ActivityIndicator size="large" color={NAVY} />
+                    <AppText style={styles.loadingText}>Loading...</AppText>
+                </View>
+            );
+        }
+
+        return (
+            <View style={styles.emptyContainer}>
+                <Image source={require('../../assets/Empty.gif')} style={styles.emptyGif} resizeMode="contain" />
+                <AppText style={styles.emptyTitle}>No Notices</AppText>
+                <AppText style={styles.emptyText}>
+                    {hasActiveFilters
+                        ? 'No notices match your search or filter.'
+                        : 'There are no important notices at this time. Check back later for updates.'}
+                </AppText>
+                {hasActiveFilters && (
+                    <TouchableOpacity style={styles.clearFiltersBtn} onPress={clearAllFilters}>
+                        <AppText style={styles.clearFiltersBtnText}>Clear Filters</AppText>
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    };
 
     const renderFooter = () => {
         if (!isFetchingNextPage) return null;
         return (
-            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={NAVY} />
-                <AppText style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Loading more...</AppText>
+            <View style={{ paddingVertical: 22, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={NAVY} />
+                <AppText style={{ fontSize: 15, color: '#6b7280', marginTop: 8, fontFamily: 'Lato-Regular' }}>Loading more notices...</AppText>
             </View>
         );
     };
@@ -424,12 +443,11 @@ export default function NoticesScreen() {
                     <Ionicons name="search" size={20} color="#9ca3af" />
                     <TextInput
                         style={styles.searchTextInput}
-                        placeholder="Search"
+                        placeholder="Search notices..."
                         placeholderTextColor="#9ca3af"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
-                        onSubmitEditing={handleSearch}
-                        returnKeyType="search"
+                        returnKeyType="done"
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => { setSearchQuery(''); setAppliedSearch(''); }}>
@@ -484,7 +502,7 @@ export default function NoticesScreen() {
 
             {/* ── Notices List ── */}
             <FlatList
-                data={allNotices}
+                data={showInPlaceRefetchLoader ? [] : allNotices}
                 renderItem={renderNoticeItem}
                 keyExtractor={(item) => `${item.id}-${item.recipient_id}`}
                 ListEmptyComponent={renderEmpty}
@@ -601,7 +619,7 @@ export default function NoticesScreen() {
             </Modal>
 
             {/* ── Accept Confirmation Dialog ── */}
-            <Modal visible={acceptModalVisible} transparent animationType="fade">
+            <Modal visible={acceptModalVisible} transparent animationType="none">
                 <View style={styles.modalOverlay}>
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.dialogWrapper}>
                         <View style={styles.confirmDialog}>
@@ -649,7 +667,7 @@ export default function NoticesScreen() {
             </Modal>
 
             {/* ── Reject Reason Dialog ── */}
-            <Modal visible={rejectModalVisible} transparent animationType="fade">
+            <Modal visible={rejectModalVisible} transparent animationType="none">
                 <View style={styles.modalOverlay}>
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.dialogWrapper}>
                         <View style={styles.confirmDialog}>
@@ -788,6 +806,8 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         color: '#1f2937',
+        fontFamily: 'Lato-Regular',
+        fontWeight: '400',
     },
     filterIconBtn: {
         padding: 4,
@@ -831,6 +851,12 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: 16,
         flexGrow: 1,
+        paddingBottom: 110,
+    },
+    refetchLoaderContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 36,
     },
 
     /* Notice card */
@@ -913,7 +939,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f9fb',
         padding: 24,
     },
-    loadingText: { marginTop: 12, fontSize: 16, color: '#6b7280' },
+    loadingText: { marginTop: 14, fontSize: 18, color: '#6b7280', fontFamily: 'Lato-Regular' },
     errorText: { fontSize: 16, color: '#6b7280', marginTop: 12, marginBottom: 16 },
     retryButton: {
         backgroundColor: NAVY,
@@ -1106,6 +1132,7 @@ const styles = StyleSheet.create({
         padding: 12,
         fontSize: 16,
         color: '#1f2937',
+        fontFamily: 'Lato-Regular',
         minHeight: 100,
         textAlignVertical: 'top',
     },
