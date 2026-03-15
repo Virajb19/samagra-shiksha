@@ -44,7 +44,7 @@ import {
 } from '../../src/lib/zod';
 import {
     submitVocationalEducationForm,
-    getVocationalEducationFormSubmission,
+    getVocationalEducationFormSubmissions,
     type VocationalEducationFormSubmission,
 } from '../../src/services/firebase/vocational-education-form.firestore';
 import { getFacultyByUserId } from '../../src/services/firebase/faculty.firestore';
@@ -365,24 +365,31 @@ function PdfFilesSection({ submission }: { submission: Record<string, unknown> }
 }
 
 // ─── Submission Table ──────────────────────────
-function VocationalFormDataTable({ submission }: { submission: VocationalEducationFormSubmission }) {
+function VocationalFormDataCard({
+    submission,
+    serialNumber,
+}: {
+    submission: VocationalEducationFormSubmission;
+    serialNumber: number;
+}) {
 
     return (
-        <View className="mt-6 mb-4">
-            <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Recent Vocational Education Submission</AppText>
+        <View className="mb-3">
                 <View
                     key={submission.id}
                     className="bg-white rounded-2xl mb-3 p-4"
                     style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 }}
                 >
                     <View className="flex-row items-center mb-2">
+                        <View className="bg-green-600 rounded-full px-3 py-1 mr-3">
+                            <AppText className="text-lg font-bold text-white">{serialNumber}</AppText>
+                        </View>
                         <View className="flex-1">
                             <AppText className="text-base font-bold text-[#1a1a1a]">{submission.trade} - {submission.school_name || 'Submission'}</AppText>
                             <AppText className="text-xs text-gray-500">
                                 {new Date(submission.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </AppText>
                         </View>
-                        <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                     </View>
                     <View className="border-t border-gray-100 pt-2 mt-1">
                         <DataRow label="Trade" value={submission.trade} />
@@ -441,7 +448,7 @@ export default function VocationalEducationFormScreen() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
-    const [showTable, setShowTable] = useState(false);
+    const [showAllSubmissions, setShowAllSubmissions] = useState(false);
     const [showSubmitSuccessBanner, setShowSubmitSuccessBanner] = useState(false);
     const [showAddPhotoSourceModal, setShowAddPhotoSourceModal] = useState(false);
     const [pendingPhotoTarget, setPendingPhotoTarget] = useState<
@@ -497,10 +504,10 @@ export default function VocationalEducationFormScreen() {
     const bestPracticePhotos = watch('bestPracticePhotos');
     const successStoryPhotos = watch('successStoryPhotos');
 
-    // Fetch existing submissions
-    const { data: recentSubmission, refetch: refetchRecentSubmission } = useQuery({
-        queryKey: ['vocational-education-form-submission', user?.id],
-        queryFn: () => getVocationalEducationFormSubmission(user!.id),
+    // Fetch all submissions (latest first)
+    const { data: submissions = [], refetch: refetchSubmissions } = useQuery({
+        queryKey: ['vocational-education-form-submissions', user?.id],
+        queryFn: () => getVocationalEducationFormSubmissions(user!.id),
         enabled: !!user?.id,
     });
 
@@ -520,12 +527,11 @@ export default function VocationalEducationFormScreen() {
             });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['vocational-education-form-submission'] });
             queryClient.invalidateQueries({ queryKey: ['vocational-education-form-submissions'] });
             Toast.show({ type: 'success', text2: 'Vocational Education form submitted successfully!', visibilityTime: 2000 });
-            refetchRecentSubmission();
+            refetchSubmissions();
             setShowSubmitSuccessBanner(true);
-            setShowTable(true);
+            setShowAllSubmissions(true);
         },
         onError: (error: any) => {
             Toast.show({ type: 'error', text2: error?.message || 'Failed to submit form', visibilityTime: 3000 });
@@ -615,8 +621,8 @@ export default function VocationalEducationFormScreen() {
         openPhotoSourceModal(fieldName);
     }, [openPhotoSourceModal]);
 
-    // If showing table after successful submit
-    if (showTable && recentSubmission) {
+    // If showing submissions screen
+    if (showAllSubmissions) {
         return (
             <View className="flex-1 bg-[#f0f4f8]">
                 <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -632,7 +638,18 @@ export default function VocationalEducationFormScreen() {
                         </View>
                     )}
 
-                    <VocationalFormDataTable submission={recentSubmission} />
+                    <View className="mt-6 mb-4">
+                        <AppText className="text-lg font-bold text-[#1a1a1a] mb-3">Your Vocational Education Submissions</AppText>
+                        {submissions.length > 0 ? (
+                            submissions.map((submission, index) => (
+                                <VocationalFormDataCard key={submission.id} submission={submission} serialNumber={index + 1} />
+                            ))
+                        ) : (
+                            <View className="bg-white rounded-2xl p-5" style={{ elevation: 2 }}>
+                                <AppText className="text-sm text-gray-500">No submissions found.</AppText>
+                            </View>
+                        )}
+                    </View>
 
                     <BackToActivityFormsButton onPress={() => router.back()} />
                 </ScrollView>
@@ -1011,18 +1028,18 @@ export default function VocationalEducationFormScreen() {
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
             <FormHeader />
 
-            {recentSubmission && (
+            {submissions.length > 0 && (
                 <View className="px-5 py-3 bg-white border-b border-gray-100">
                     <TouchableOpacity
                         className="rounded-xl py-3 items-center flex-row justify-center"
                         style={{ backgroundColor: BLUE }}
                         onPress={() => {
                             setShowSubmitSuccessBanner(false);
-                            setShowTable(true);
+                            setShowAllSubmissions(true);
                         }}
                     >
                         <Ionicons name="eye-outline" size={20} color="#fff" />
-                        <AppText className="text-lg font-bold text-white ml-2">See Recent Submission</AppText>
+                        <AppText className="text-lg font-bold text-white ml-2">Show All Submissions</AppText>
                     </TouchableOpacity>
                 </View>
             )}

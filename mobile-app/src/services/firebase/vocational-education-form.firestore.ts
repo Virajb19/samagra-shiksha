@@ -6,14 +6,13 @@
  */
 
 import {
+    addDoc,
     collection,
-    doc,
-    getDoc,
-    setDoc,
     getDocs,
     query,
     where,
     orderBy,
+    limit,
     serverTimestamp,
 } from 'firebase/firestore';
 import { getFirebaseDb } from '../../lib/firebase';
@@ -156,10 +155,9 @@ export async function submitVocationalEducationForm(
         created_at: serverTimestamp(),
     };
 
-    const docId = `${userInfo.userId}_vocational_education`;
-    await setDoc(doc(db, 'vocational_education_form_data', docId), docData);
-    console.log('[Vocational Education Form] Submission saved/updated with ID:', docId);
-    return docId;
+    const createdDoc = await addDoc(collection(db, 'vocational_education_form_data'), docData);
+    console.log('[Vocational Education Form] Submission saved with ID:', createdDoc.id);
+    return createdDoc.id;
 }
 
 /**
@@ -183,11 +181,17 @@ export async function getVocationalEducationFormSubmissions(
 export async function getVocationalEducationFormSubmission(
     userId: string,
 ): Promise<VocationalEducationFormSubmission | null> {
-    const docId = `${userId}_vocational_education`;
-    const submissionDoc = await getDoc(doc(db, 'vocational_education_form_data', docId));
-    if (!submissionDoc.exists()) {
+    const q = query(
+        collection(db, 'vocational_education_form_data'),
+        where('submitted_by', '==', userId),
+        orderBy('created_at', 'desc'),
+        limit(1),
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
         return null;
     }
+    const submissionDoc = snap.docs[0];
     return mapVocationalSubmission(submissionDoc.id, submissionDoc.data());
 }
 

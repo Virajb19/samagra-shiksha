@@ -953,7 +953,7 @@ export const VocationalEducationFormSchema = z
     // Lab setup conditional validation
     if (data.isLabSetup === "Yes" && !data.labPhoto) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please upload a lab photo",
         path: ["labPhoto"],
       });
@@ -963,7 +963,7 @@ export const VocationalEducationFormSchema = z
       (!data.labNotSetupReason || !data.labNotSetupReason.trim())
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please enter reason why lab was not set up",
         path: ["labNotSetupReason"],
       });
@@ -971,7 +971,7 @@ export const VocationalEducationFormSchema = z
     // Guest lecture conditional validation
     if (data.isGuestLectureDone === "Yes" && !data.guestLecturePhoto) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please upload a guest lecture photo",
         path: ["guestLecturePhoto"],
       });
@@ -982,7 +982,7 @@ export const VocationalEducationFormSchema = z
         !data.guestLectureNotDoneReason.trim())
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please enter reason why guest lecture was not conducted",
         path: ["guestLectureNotDoneReason"],
       });
@@ -990,7 +990,7 @@ export const VocationalEducationFormSchema = z
     // Industrial visit conditional validation
     if (data.isIndustrialVisitDone === "Yes" && !data.industrialVisitPhoto) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please upload an industrial visit photo",
         path: ["industrialVisitPhoto"],
       });
@@ -1001,7 +1001,7 @@ export const VocationalEducationFormSchema = z
         !data.industrialVisitNotDoneReason.trim())
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please enter reason why industrial visit was not conducted",
         path: ["industrialVisitNotDoneReason"],
       });
@@ -1012,7 +1012,7 @@ export const VocationalEducationFormSchema = z
       (!data.internshipReport || !data.internshipReport.trim())
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please enter internship report",
         path: ["internshipReport"],
       });
@@ -1022,7 +1022,7 @@ export const VocationalEducationFormSchema = z
       (!data.internshipNotDoneReason || !data.internshipNotDoneReason.trim())
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Please enter reason why internship was not conducted",
         path: ["internshipNotDoneReason"],
       });
