@@ -108,6 +108,7 @@ export default function KGBVFormScreen() {
     const photo = watch('photo');
 
     const submitMutation = useMutation({
+        mutationKey: ['show-text', 'kgbv-form-submit'],
         mutationFn: async (data: KGBVFormData) => {
             return submitKGBVForm(data, {
                 userId: user!.id,

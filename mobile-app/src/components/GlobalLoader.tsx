@@ -13,12 +13,11 @@ import { AppText } from './AppText';
 
 export function GlobalLoader() {
     const isMutating = useIsMutating();
-    const isTeacherFormUploadMutating = useIsMutating({ mutationKey: ['teacher-form-upload'] });
-    const isSubmitProjectUpdateMutating = useIsMutating({ mutationKey: ['submit-project-update'] });
+    const showTextMutations = useIsMutating({ mutationKey: ['show-text'] });
 
     if (isMutating === 0) return null;
 
-    const showText = isTeacherFormUploadMutating > 0 || isSubmitProjectUpdateMutating > 0;
+    const showText = showTextMutations > 0;
 
     return (
         <View style={styles.overlay} pointerEvents="box-none">

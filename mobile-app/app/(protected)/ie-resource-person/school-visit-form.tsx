@@ -118,6 +118,7 @@ export default function IESchoolVisitFormScreen() {
     const [showSchoolModal, setShowSchoolModal] = useState(false);
 
     const submitMutation = useMutation({
+        mutationKey: ['show-text', 'ie-form-submit'],
         mutationFn: (data: IESchoolVisitFormData) => {
             const districtName = districts.find(d => d.id === data.districtId)?.name || '';
             const schoolName = schools.find(s => s.id === data.schoolId)?.name || '';

@@ -105,6 +105,7 @@ export default function NSCBAVFormScreen() {
     const photo = watch('photo');
 
     const submitMutation = useMutation({
+        mutationKey: ['show-text', 'nscbav-form-submit'],
         mutationFn: async (data: NSCBAVFormData) => {
             return submitNSCBAVForm(data, {
                 userId: user!.id,

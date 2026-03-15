@@ -26,14 +26,14 @@ SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
     error: (props: BaseToastProps) => (
-        <View style={{ marginHorizontal: 16, marginBottom: 4, borderRadius: 16, backgroundColor: '#ef4444', paddingHorizontal: 12, paddingVertical: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+        <View style={{ width: '92%', alignSelf: 'center', marginBottom: 4, borderRadius: 16, backgroundColor: '#ef4444', paddingHorizontal: 12, paddingVertical: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' }}>
                     <Ionicons name="alert-circle" size={22} color="#fff" />
                 </View>
                 <AppText
                     numberOfLines={3}
-                    style={{ color: '#ffffff', fontSize: 14, lineHeight: 20, marginLeft: 12, flex: 1 }}
+                    style={{ color: '#ffffff', fontSize: 14, lineHeight: 20, marginLeft: 12, flexShrink: 1 }}
                 >
                     {props.text2 || props.text1 || 'Something went wrong.'}
                 </AppText>
@@ -41,14 +41,14 @@ const toastConfig = {
         </View>
     ),
     success: (props: BaseToastProps) => (
-        <View style={{ marginHorizontal: 16, marginBottom: 4, borderRadius: 16, backgroundColor: '#22c55e', paddingHorizontal: 12, paddingVertical: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
+        <View style={{ width: '92%', alignSelf: 'center', marginBottom: 4, borderRadius: 16, backgroundColor: '#22c55e', paddingHorizontal: 12, paddingVertical: 12, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' }}>
                     <Ionicons name="checkmark-circle" size={22} color="#fff" />
                 </View>
                 <AppText
                     numberOfLines={3}
-                    style={{ color: '#ffffff', fontSize: 14, lineHeight: 20, marginLeft: 12, flex: 1 }}
+                    style={{ color: '#ffffff', fontSize: 14, lineHeight: 20, marginLeft: 12, flexShrink: 1 }}
                 >
                     {props.text2 || props.text1 || 'Done successfully.'}
                 </AppText>

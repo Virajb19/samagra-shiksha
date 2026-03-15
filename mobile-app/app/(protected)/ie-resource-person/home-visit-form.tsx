@@ -106,6 +106,7 @@ export default function IEHomeVisitFormScreen() {
     const { data: districts = [] } = useQuery({ queryKey: ['districts'], queryFn: getDistricts });
 
     const submitMutation = useMutation({
+        mutationKey: ['show-text', 'ie-form-submit'],
         mutationFn: (data: IEHomeVisitFormData) => {
             const districtName = districts.find(d => d.id === user?.district_id)?.name || '';
             return submitIEHomeVisitForm(data, {

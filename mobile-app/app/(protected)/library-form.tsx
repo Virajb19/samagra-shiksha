@@ -330,7 +330,7 @@ export default function LibraryFormScreen() {
 
     // ── Submit mutation ──
     const submitMutation = useMutation({
-        mutationKey: ['teacher-form-upload'],
+        mutationKey: ['show-text', 'teacher-form-upload'],
         mutationFn: async (data: LibraryFormData) => {
             const faculty = await getFacultyByUserId(user!.id);
             return submitLibraryForm(data, {

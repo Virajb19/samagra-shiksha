@@ -451,7 +451,7 @@ export default function ICTFormScreen() {
 
     // ── Submit mutation ──
     const submitMutation = useMutation({
-        mutationKey: ['teacher-form-upload'],
+        mutationKey: ['show-text', 'teacher-form-upload'],
         mutationFn: async (data: ICTFormData) => {
             // Fetch faculty + school data at submission time
             const faculty = await getFacultyByUserId(user!.id);

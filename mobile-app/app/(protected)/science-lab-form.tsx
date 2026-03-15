@@ -263,7 +263,7 @@ export default function ScienceLabFormScreen() {
     });
 
     const submitMutation = useMutation({
-        mutationKey: ['teacher-form-upload'],
+        mutationKey: ['show-text', 'teacher-form-upload'],
         mutationFn: async (data: ScienceLabFormData) => {
             const faculty = await getFacultyByUserId(user!.id);
             return submitScienceLabForm(data, {
