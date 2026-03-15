@@ -366,6 +366,10 @@ export interface PaginatedCircularsResult {
     hasMore: boolean;
 }
 
+export interface CircularFilterParams {
+    searchPrefix?: string;
+}
+
 /**
  * Fetch circulars visible to a specific user based on visibility rules:
  *
@@ -382,10 +386,13 @@ export async function getCircularsPaginated(
     userSchoolId: string | null,
     pageSize: number = CIRCULARS_PAGE_SIZE,
     cursor?: string | null,
+    filters?: CircularFilterParams,
 ): Promise<PaginatedCircularsResult> {
     await devDelay('read', 'content.getCircularsPaginated');
 
     const circularsRef = collection(db, 'circulars');
+
+    const normalizedPrefix = filters?.searchPrefix?.trim() ?? '';
 
     // Build parallel queries based on user's role and location
     const queryPromises: Promise<any[]>[] = [];
@@ -396,7 +403,9 @@ export async function getCircularsPaginated(
             circularsRef,
             where('is_active', '==', true),
             where('visibility_level', '==', 'GLOBAL'),
-            orderBy('created_at', 'desc'),
+            ...(normalizedPrefix
+                ? [where('title', '>=', normalizedPrefix), where('title', '<=', `${normalizedPrefix}\uf8ff`), orderBy('title')]
+                : [orderBy('created_at', 'desc')]),
             limit(100),
         )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
     );
@@ -409,7 +418,9 @@ export async function getCircularsPaginated(
                 where('is_active', '==', true),
                 where('visibility_level', '==', 'DISTRICT'),
                 where('district_id', '==', userDistrictId),
-                orderBy('created_at', 'desc'),
+                ...(normalizedPrefix
+                    ? [where('title', '>=', normalizedPrefix), where('title', '<=', `${normalizedPrefix}\uf8ff`), orderBy('title')]
+                    : [orderBy('created_at', 'desc')]),
                 limit(100),
             )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
         );
@@ -423,7 +434,9 @@ export async function getCircularsPaginated(
                 circularsRef,
                 where('is_active', '==', true),
                 where('school_ids', 'array-contains', userSchoolId),
-                orderBy('created_at', 'desc'),
+                ...(normalizedPrefix
+                    ? [where('title', '>=', normalizedPrefix), where('title', '<=', `${normalizedPrefix}\uf8ff`), orderBy('title')]
+                    : [orderBy('created_at', 'desc')]),
                 limit(100),
             )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() })))
         );

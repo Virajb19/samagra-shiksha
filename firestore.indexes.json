@@ -172,6 +172,14 @@
       ]
     },
     {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "title", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "circulars",
       "queryScope": "COLLECTION",
       "fields": [
@@ -224,6 +232,34 @@
         { "fieldPath": "is_active", "order": "ASCENDING" },
         { "fieldPath": "circular_no", "order": "ASCENDING" },
         { "fieldPath": "issued_date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "circulars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "visibility_level", "order": "ASCENDING" },
+        { "fieldPath": "title", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "circulars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "visibility_level", "order": "ASCENDING" },
+        { "fieldPath": "district_id", "order": "ASCENDING" },
+        { "fieldPath": "title", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "circulars",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "school_ids", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "title", "order": "ASCENDING" }
       ]
     },
     {

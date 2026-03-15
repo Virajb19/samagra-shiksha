@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppText } from '@/components/AppText';
 import {
     View,
@@ -9,6 +9,7 @@ import {
     RefreshControl,
     Linking,
     Share,
+    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -16,7 +17,11 @@ import { useFocusEffect } from 'expo-router';
 import { User } from '../types';
 import { useAuthStore } from '../lib/store';
 import { getProfileStatus } from '../services/firebase/users.firestore';
-import { getCircularsPaginated as defaultGetCircularsPaginated, type PaginatedCircularsResult } from '../services/firebase/content.firestore';
+import {
+    getCircularsPaginated as defaultGetCircularsPaginated,
+    type CircularFilterParams,
+    type PaginatedCircularsResult,
+} from '../services/firebase/content.firestore';
 
 import StatusBanner from './StatusBanner';
 
@@ -54,7 +59,14 @@ export interface CircularsScreenProps {
     queryKey?: readonly unknown[];
     searchPlaceholder?: string;
     emptyText?: string;
-    getCircularsPaginatedFn?: (userRole: string, userDistrictId: string | null, userSchoolId: string | null, pageSize?: number, cursor?: string | null) => Promise<PaginatedCircularsResult>;
+    getCircularsPaginatedFn?: (
+        userRole: string,
+        userDistrictId: string | null,
+        userSchoolId: string | null,
+        pageSize?: number,
+        cursor?: string | null,
+        filters?: CircularFilterParams,
+    ) => Promise<PaginatedCircularsResult>;
     roleFilter?: (item: CircularItem, role: string) => boolean;
     canAccessOverride?: (args: AccessOverrideArgs) => boolean;
     onDownloadPress?: (url: string, item: CircularItem, role: string) => void | Promise<void>;
@@ -72,6 +84,16 @@ export default function CircularsScreen({
 }: CircularsScreenProps) {
     const { user } = useAuthStore();
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const trimmedSearch = searchQuery.trim();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery.trim());
+        }, 1000); // 1 second debounce
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Derive user location info for circular visibility filtering
     const userRole = user?.role || role.toUpperCase().replace(/-/g, '_');
@@ -91,8 +113,8 @@ export default function CircularsScreen({
         : hasCompletedProfile && isActive;
 
     const circularsQueryKey = useMemo<readonly unknown[]>(
-        () => [...(queryKey ?? ['circulars', role]), 'paginated'],
-        [queryKey, role],
+        () => [...(queryKey ?? ['circulars', role]), 'paginated', debouncedSearch],
+        [queryKey, role, debouncedSearch],
     );
 
     const {
@@ -105,7 +127,10 @@ export default function CircularsScreen({
         isRefetching,
     } = useInfiniteQuery({
         queryKey: circularsQueryKey,
-        queryFn: ({ pageParam }) => getCircularsPaginatedFn(userRole, userDistrictId, userSchoolId, CIRCULARS_PAGE_SIZE, pageParam ?? null),
+        queryFn: ({ pageParam }) =>
+            getCircularsPaginatedFn(userRole, userDistrictId, userSchoolId, CIRCULARS_PAGE_SIZE, pageParam ?? null, {
+                searchPrefix: debouncedSearch || undefined,
+            }),
         initialPageParam: null as string | null,
         getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
         enabled: canAccess,
@@ -126,14 +151,8 @@ export default function CircularsScreen({
     // Moving useCallback / useMemo above the canAccess guard prevents the
     // "Rendered fewer hooks than expected" crash when is_active toggles.
     const filteredCirculars = useMemo(
-        () =>
-            allCirculars?.filter((c) => {
-                const title = typeof c.title === 'string' ? c.title : '';
-                const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
-                const matchesRole = roleFilter ? roleFilter(c, role) : true;
-                return matchesSearch && matchesRole;
-            }) ?? [],
-        [allCirculars, searchQuery, roleFilter, role],
+        () => allCirculars?.filter((c) => (roleFilter ? roleFilter(c, role) : true)) ?? [],
+        [allCirculars, roleFilter, role],
     );
 
     const handleEndReached = useCallback(() => {
@@ -154,7 +173,11 @@ export default function CircularsScreen({
         );
     }
 
-    if (isLoading && allCirculars.length === 0) {
+    const isSearchInProgress =
+        (trimmedSearch.length > 0 || debouncedSearch.length > 0) &&
+        (isLoading || isRefetching);
+
+    if (isLoading && allCirculars.length === 0 && !isSearchInProgress) {
         return (
             <View className="flex-1 bg-[#f0f4f8] items-center justify-center">
                 <ActivityIndicator size="large" color={BLUE} />
@@ -200,7 +223,7 @@ export default function CircularsScreen({
     return (
         <FlatList
             className="flex-1 bg-[#f0f4f8]"
-            data={filteredCirculars}
+            data={isSearchInProgress ? [] : filteredCirculars}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
             refreshControl={<RefreshControl refreshing={isRefetching && !isFetchingNextPage} onRefresh={refetch} />}
@@ -217,6 +240,19 @@ export default function CircularsScreen({
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
+                        {searchQuery.length > 0 ? (
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setSearchQuery('');
+                                    setDebouncedSearch('');
+                                }}
+                                className="p-1"
+                                accessibilityRole="button"
+                                accessibilityLabel="Clear search"
+                            >
+                                <Ionicons name="close-circle" size={20} color="#9ca3af" />
+                            </TouchableOpacity>
+                        ) : null}
                     </View>
                 </View>
             }
@@ -276,10 +312,20 @@ export default function CircularsScreen({
                 </View>
             )}
             ListEmptyComponent={
-                <View className="items-center mt-10">
-                    <Ionicons name="document-text-outline" size={48} color="#d1d5db" />
-                    <AppText weight='bold' className="text-gray-400 mt-3">{emptyText}</AppText>
-                </View>
+                isSearchInProgress ? (
+                    <View className="items-center py-10">
+                        <ActivityIndicator size="large" color={BLUE} />
+                        <AppText className="text-sm text-gray-500 mt-3 font-lato">Loading...</AppText>
+                    </View>
+                ) : (
+                    <View className="items-center pt-1">
+                        <Image source={require('../../assets/Empty.gif')} className="w-full" resizeMode="contain" />
+                        <AppText className="text-lg font-semibold text-gray-700">No Circulars</AppText>
+                        <AppText className="text-sm text-gray-500 text-center px-8">
+                            {debouncedSearch ? 'No circulars found for this search.' : emptyText}
+                        </AppText>
+                    </View>
+                )
             }
             ListFooterComponent={
                 isFetchingNextPage ? (
