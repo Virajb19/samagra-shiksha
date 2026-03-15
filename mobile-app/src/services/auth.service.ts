@@ -148,7 +148,7 @@ export async function login(
       code === "auth/wrong-password" ||
       code === "auth/invalid-credential"
     ) {
-      return { success: false, error: "Incorrect  email or password." };
+      return { success: false, error: "Incorrect email or password." };
     }
     if (code === "auth/too-many-requests") {
       return {

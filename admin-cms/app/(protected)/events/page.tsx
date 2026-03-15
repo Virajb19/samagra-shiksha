@@ -669,7 +669,7 @@ export default function EventsPage() {
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
-                    unoptimized={process.env.NODE_ENV != "production"}
+                    unoptimized={process.env.NODE_ENV === "development"}
                   />
                 </div>
               )}

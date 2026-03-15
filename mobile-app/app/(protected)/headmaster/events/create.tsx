@@ -114,7 +114,7 @@ export default function CreateEventScreen() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['school-events'] });
             Toast.show({ type: 'success', text2: 'Event created successfully!', visibilityTime: 2000 });
-            setTimeout(() => router.back(), 1500);
+            setTimeout(() => router.back(), 1000);
         },
         onError: (error: any) => {
             Toast.show({ type: 'error', text2: error?.message || 'Failed to create event', visibilityTime: 3000 });

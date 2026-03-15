@@ -77,7 +77,11 @@ export default function LoginScreen() {
      */
     const onSubmit = async (data: LoginFormData) => {
         setError(null);
-        await loginMutation.mutateAsync(data);
+        try {
+            await loginMutation.mutateAsync(data);
+        } catch {
+            // Error state is already handled in mutation onError.
+        }
         // try {
         //     const result = await login({ email: data.email, password: data.password });
 
