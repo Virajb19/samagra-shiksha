@@ -77,6 +77,20 @@ type EditableRow = {
 
 const PAGE_SIZE = 20;
 
+function formatDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
 // ─── Photo slide — one entry per photo, linked back to its update ─────────
 type PhotoSlide = {
   url: string;
@@ -112,7 +126,7 @@ function ProjectPhotoDialog({ projectId, open, onOpenChange }: { projectId: stri
                     progress: update.completion_status,
                     comment: update.comment ?? null,
                     userName: update.user_name,
-                    date: new Date(update.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    date: formatDateTime(update.created_at),
                     locationAddress: update.location_address ?? null,
                 });
             }

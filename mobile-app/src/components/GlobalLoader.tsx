@@ -14,15 +14,18 @@ import { AppText } from './AppText';
 export function GlobalLoader() {
     const isMutating = useIsMutating();
     const isTeacherFormUploadMutating = useIsMutating({ mutationKey: ['teacher-form-upload'] });
+    const isSubmitProjectUpdateMutating = useIsMutating({ mutationKey: ['submit-project-update'] });
 
     if (isMutating === 0) return null;
+
+    const showText = isTeacherFormUploadMutating > 0 || isSubmitProjectUpdateMutating > 0;
 
     return (
         <View style={styles.overlay} pointerEvents="box-none">
             <View style={styles.backdrop} pointerEvents="auto" />
             <View style={styles.content}>
                 <Circle size={100} color="#ffffff" />
-                {isTeacherFormUploadMutating > 0 && (
+                {showText && (
                     <AppText style={styles.message}>Please wait, this might take some time.</AppText>
                 )}
             </View>

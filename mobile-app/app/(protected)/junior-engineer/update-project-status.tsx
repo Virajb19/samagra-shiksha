@@ -176,6 +176,7 @@ export default function UpdateProjectStatusScreen() {
     // ── Submit ──
 
     const submitMutation = useMutation({
+        mutationKey: ['submit-project-update', projectId],
         mutationFn: async (data: ProjectStatusUpdateFormData) => {
             // Check location permission
             if (!locationGranted) {

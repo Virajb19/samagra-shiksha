@@ -24,14 +24,20 @@ import { getProjectById } from "../../../src/services/project.service";
 import type { Project, ProjectUpdate } from "../../../src/types";
 
 const BLUE = "#1565C0";
+const NO_UPDATES_IMAGE = require('../../../assets/no_updates.png');
 
 function formatDate(iso: string): string {
   try {
     const d = new Date(iso);
-    return d.toLocaleDateString("en-GB", {
+    if (Number.isNaN(d.getTime())) return iso;
+
+    return d.toLocaleString("en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   } catch {
     return iso;
@@ -43,10 +49,7 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <TouchableOpacity
-      onPress={() => setExpanded(!expanded)}
-      disabled={expanded}
-      activeOpacity={0.9}
+    <View
       className="bg-white rounded-xl mb-3 overflow-hidden"
       style={{
         elevation: 2,
@@ -57,7 +60,11 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
       }}
     >
       <View className="p-4">
-        <View className="flex-row justify-between items-center">
+        <TouchableOpacity
+          onPress={() => setExpanded((prev) => !prev)}
+          activeOpacity={0.8}
+          className="flex-row justify-between items-center"
+        >
           <View className="flex-1">
             <AppText className="text-base font-bold text-gray-800">
               {update.completion_status === 100
@@ -73,7 +80,7 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
             size={22}
             color="#6b7280"
           />
-        </View>
+        </TouchableOpacity>
 
         {expanded && (
           <View className="mt-3 pt-3 border-t border-gray-100">
@@ -126,7 +133,7 @@ function UpdateCard({ update }: { update: ProjectUpdate }) {
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -265,9 +272,7 @@ export default function ProjectDetailScreen() {
         ) : updates.length === 0 ? (
           <View className="items-center py-12">
             <Image
-              source={{
-                uri: "https://cdn-icons-png.flaticon.com/512/4076/4076549.png",
-              }}
+              source={NO_UPDATES_IMAGE}
               style={{ width: 100, height: 100, opacity: 0.5 }}
               resizeMode="contain"
             />
