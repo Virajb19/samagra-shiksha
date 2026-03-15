@@ -284,9 +284,10 @@ export const projectManagementFirestore = {
       countConstraints.push(where("status", "==", statusFilter));
     }
     const trimmedSearch = searchPrefix?.trim();
+    const searchField = trimmedSearch && /^\d+$/.test(trimmedSearch) ? "udise_code" : "school_name";
     if (trimmedSearch) {
-      countConstraints.push(where("school_name", ">=", trimmedSearch));
-      countConstraints.push(where("school_name", "<=", `${trimmedSearch}\uf8ff`));
+      countConstraints.push(where(searchField, ">=", trimmedSearch));
+      countConstraints.push(where(searchField, "<=", `${trimmedSearch}\uf8ff`));
     }
     const countQ = query(col, ...countConstraints);
     const countSnap = await getCountFromServer(countQ);
@@ -295,7 +296,7 @@ export const projectManagementFirestore = {
     const constraints: QueryConstraint[] = [...countConstraints];
 
     if (trimmedSearch) {
-      constraints.push(orderBy("school_name", "asc"));
+      constraints.push(orderBy(searchField, "asc"));
     } else {
       constraints.push(orderBy("created_at", "desc"));
     }

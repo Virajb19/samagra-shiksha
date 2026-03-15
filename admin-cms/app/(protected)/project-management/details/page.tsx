@@ -433,7 +433,7 @@ export default function ProjectDetailsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by school name prefix..."
+                placeholder="Search by school or UDISE prefix..."
                 value={searchInput}
                 onChange={(e) => {
                   const value = e.target.value;
