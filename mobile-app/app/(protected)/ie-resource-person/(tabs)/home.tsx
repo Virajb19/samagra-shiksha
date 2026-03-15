@@ -73,7 +73,7 @@ export default function IEResourcePersonHomeTabScreen() {
                 />
             )}
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <StatusBanner message="Your account is under verification. Contact Admin or your headmaster" />
+                <StatusBanner message="Your account is under verification. Contact Admin." />
             )}
 
             <Modal

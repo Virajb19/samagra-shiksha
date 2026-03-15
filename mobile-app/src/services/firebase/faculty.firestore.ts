@@ -79,6 +79,35 @@ export async function getSchoolStaffs(schoolId: string): Promise<any[]> {
         const uSnap = await getDoc(doc(db, 'users', fData.user_id));
         if (!uSnap.exists()) continue;
         const uData = uSnap.data();
+        if (uData.role !== 'TEACHER') continue;
+        if (uData.school_id && uData.school_id !== schoolId) continue;
+        const user = {
+            id: uSnap.id,
+            name: uData.name ?? '',
+            role: uData.role ?? 'TEACHER',
+            phone: uData.phone ?? '',
+            email: uData.email ?? '',
+            gender: uData.gender ?? '',
+            profile_image_url: uData.profile_image_url ?? null,
+            is_active: uData.is_active ?? false,
+        };
+        results.push({ id: fDoc.id, ...fData, user });
+    }
+    return results;
+}
+
+/** Get teacher colleagues at a school (teachers + headmaster only). */
+export async function getTeacherColleaguesAtSchool(schoolId: string): Promise<any[]> {
+    const facSnap = await getDocs(query(collection(db, 'faculties'), where('school_id', '==', schoolId)));
+    const results: any[] = [];
+    for (const fDoc of facSnap.docs) {
+        const fData = fDoc.data();
+        const uSnap = await getDoc(doc(db, 'users', fData.user_id));
+        if (!uSnap.exists()) continue;
+        const uData = uSnap.data();
+        if (uData.role !== 'TEACHER' && uData.role !== 'HEADMASTER') continue;
+        if (uData.school_id && uData.school_id !== schoolId) continue;
+
         const user = {
             id: uSnap.id,
             name: uData.name ?? '',

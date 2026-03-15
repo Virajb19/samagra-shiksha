@@ -3,7 +3,7 @@
  *
  * 3-state profile flow:
  * 1. Profile incomplete → dashed "Kindly complete your profile" banner + shows modal popup for locked actions
- * 2. Profile complete, not active → "Your account is under verification. Contact Admin or your headmaster" note
+ * 2. Profile complete, not active → "Your account is under verification. Contact Admin." note
  * 3. Active → full access
  */
 
@@ -22,6 +22,8 @@ import { ProfileHeaderCard } from '@/components/ProfileHeaderCard';
 import AccessBlockedModal from '@/components/AccessBlockedModal';
 import HomeActionCard from '@/components/HomeActionCard';
 import StatusBanner from '@/components/StatusBanner';
+
+const FORM_ICON = require('../../../../assets/assets_form.png');
 
 export default function HeadmasterHomeScreen() {
     const { user } = useAuthStore();
@@ -99,6 +101,7 @@ export default function HeadmasterHomeScreen() {
                     <HomeActionCard
                         title="Activities Forms"
                         iconName="document-text-outline"
+                        iconSource={FORM_ICON}
                         onPress={() => {
                             if (!hasCompletedProfile || !isActive) { handleLockedAction(); return; }
                             router.push('/(protected)/activity-forms' as any);
@@ -117,7 +120,7 @@ export default function HeadmasterHomeScreen() {
             )}
 
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <StatusBanner message="Your account is under verification. Contact Admin or your headmaster" />
+                <StatusBanner message="Your account is under verification. Contact Admin." />
             )}
 
             {/* Access Blocked Modal */}

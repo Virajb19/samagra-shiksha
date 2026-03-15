@@ -3,7 +3,7 @@
  *
  * 3-state profile flow:
  * 1. Profile incomplete → "Kindly complete your profile" banner + AccessBlockedModal
- * 2. Profile complete, not active → "Your account is under verification. Contact Admin or your headmaster"
+ * 2. Profile complete, not active → "Your account is under verification. Contact Admin."
  * 3. Active → full access
  */
 
@@ -106,7 +106,7 @@ export default function KGBVWardenHomeTabScreen() {
             )}
 
             {!loadingProfile && hasCompletedProfile && !isActive && (
-                <StatusBanner message="Your account is under verification. Contact Admin or your headmaster" />
+                <StatusBanner message="Your account is under verification. Contact Admin." />
             )}
 
             {/* Access Blocked Modal */}

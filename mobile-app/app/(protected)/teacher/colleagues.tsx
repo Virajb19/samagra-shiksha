@@ -20,7 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { getSchoolStaffs, getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
+import { getTeacherColleaguesAtSchool, getFacultyByUserId } from '../../../src/services/firebase/faculty.firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/lib/store';
 
@@ -156,11 +156,11 @@ export default function ColleaguesScreen() {
         enabled: !!currentUser?.id,
     });
 
-    // Fetch all staff at the teacher's school (same data source as headmaster)
+    // Fetch colleagues at teacher's school (teachers + headmaster only)
     const { data: staffList, isLoading, refetch, isRefetching } = useQuery<Staff[]>({
-        queryKey: ['school-staffs', profile?.school_id],
+        queryKey: ['teacher-colleagues', profile?.school_id],
         queryFn: async () => {
-            const data = await getSchoolStaffs(profile!.school_id);
+            const data = await getTeacherColleaguesAtSchool(profile!.school_id);
             return data;
         },
         enabled: !!profile?.school_id,
@@ -176,8 +176,9 @@ export default function ColleaguesScreen() {
         }, [refetch])
     );
 
-    // Filter staff by search query and exclude the current user
+    // Show only teachers/headmaster from same-school query, exclude current user, and apply search
     const filteredStaff = staffList?.filter(staff =>
+        (staff.user.role === 'TEACHER' || staff.user.role === 'HEADMASTER') &&
         staff.user.id !== currentUser?.id &&
         staff.user.name.toLowerCase().includes(searchQuery.toLowerCase())
     ) || [];

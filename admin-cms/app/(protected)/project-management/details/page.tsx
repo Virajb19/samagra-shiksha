@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { RefreshTableButton } from '@/components/RefreshTableButton';
 import { GoToTopButton } from '@/components/GoToTopButton';
+import { useDebounceValue } from 'usehooks-ts'
 import {
   useGetAllProjectSchools,
   useUpdateProject,
@@ -244,6 +245,7 @@ export default function ProjectDetailsPage() {
   const [pabYearFilter, setPabYearFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearchInput, setDebouncedSearchInput] = useDebounceValue('', 500);
 
   // Editable state: Map of project id -> edited fields
   const [edits, setEdits] = useState<Map<string, Partial<EditableRow>>>(new Map());
@@ -253,7 +255,7 @@ export default function ProjectDetailsPage() {
   const {
     data, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage,
   } = useInfiniteQuery<ProjectsResponse>({
-    queryKey: ['projects', PAGE_SIZE, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter],
+    queryKey: ['projects', PAGE_SIZE, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter, debouncedSearchInput],
     queryFn: ({ pageParam }) =>
       projectManagementFirestore.getProjects(
         PAGE_SIZE,
@@ -263,6 +265,7 @@ export default function ProjectDetailsPage() {
         districtFilter !== 'all' ? districtFilter : undefined,
         categoryFilter !== 'all' ? categoryFilter : undefined,
         statusFilter !== 'all' ? statusFilter : undefined,
+        debouncedSearchInput || undefined,
       ),
     getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
     initialPageParam: null as string | null,
@@ -288,18 +291,6 @@ export default function ProjectDetailsPage() {
     projectSchools.forEach((s) => set.add(s.district_name));
     return Array.from(set).sort();
   }, [projectSchools]);
-
-  // Client-side text search only (Firestore cannot do substring search)
-  const filteredProjects = useMemo(() => {
-    if (!searchInput.trim()) return allProjects;
-    const q = searchInput.toLowerCase();
-    return allProjects.filter(
-      (p) =>
-        p.school_name.toLowerCase().includes(q) ||
-        p.udise_code.includes(q) ||
-        p.activity.toLowerCase().includes(q),
-    );
-  }, [allProjects, searchInput]);
 
   // Infinite scroll: observe sentinel element
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -425,7 +416,7 @@ export default function ProjectDetailsPage() {
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {isSaving ? 'Updating...' : <>Submit &amp; Update {hasEdits && `(${edits.size})`}</>}
             </motion.button>
-            <RefreshTableButton queryKey={['projects', PAGE_SIZE, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter]} isFetching={isFetching && !isFetchingNextPage} />
+            <RefreshTableButton queryKey={['projects', PAGE_SIZE, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter, debouncedSearchInput]} isFetching={isFetching && !isFetchingNextPage} />
           </div>
         </div>
       </motion.div>
@@ -442,9 +433,13 @@ export default function ProjectDetailsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by school, UDISE, or activity..."
+                placeholder="Search by school name prefix..."
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchInput(value);
+                  setDebouncedSearchInput(value);
+                }}
                 className="w-full pl-10 pr-4 py-3 h-12 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
               />
             </div>
@@ -528,6 +523,7 @@ export default function ProjectDetailsPage() {
               setPabYearFilter('all');
               setStatusFilter('all');
               setSearchInput('');
+              setDebouncedSearchInput('');
             }}
             className="flex items-center gap-2 px-5 py-3 h-12 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all text-sm"
             whileHover={{ scale: 1.02 }}
@@ -543,7 +539,7 @@ export default function ProjectDetailsPage() {
       <motion.div variants={itemVariants}>
         <div className="flex items-center gap-3">
           <Badge className="bg-blue-600/90 text-white hover:bg-blue-600/90 px-3 py-1">
-            {filteredProjects.length}{total > allProjects.length ? ` of ${total}` : ''} Projects
+            {allProjects.length}{total > allProjects.length ? ` of ${total}` : ''} Projects
           </Badge>
           {hasEdits && (
             <Badge className="bg-amber-500/90 text-white hover:bg-amber-500/90 px-3 py-1 animate-pulse">
@@ -563,7 +559,7 @@ export default function ProjectDetailsPage() {
             <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
             <span className="text-slate-400">Loading project details...</span>
           </div>
-        ) : filteredProjects.length > 0 ? (
+        ) : allProjects.length > 0 ? (
           <div className="relative">
             {/* Refreshing overlay - centered in visible area, above blurred rows but below header */}
             {isFetching && !isFetchingNextPage && (
@@ -605,7 +601,7 @@ export default function ProjectDetailsPage() {
                   </tr>
                 </thead>
                 <tbody className={isFetching && !isFetchingNextPage ? 'blur-[2px] opacity-50 pointer-events-none transition-all duration-300' : 'transition-all duration-300'}>
-                  {filteredProjects.map((project, index) => {
+                  {allProjects.map((project, index) => {
                     const isEdited = edits.has(project.id);
                     const pct = getPercentUtilized(project);
                     const colors = getProgressColor(pct);
@@ -802,7 +798,7 @@ export default function ProjectDetailsPage() {
             <FileText className="h-16 w-16 text-slate-400 dark:text-slate-700 mx-auto mb-4" />
             <div className="text-slate-600 dark:text-slate-400 text-lg">No project details found</div>
             <p className="text-slate-500 text-sm mt-2">
-              {searchInput ? 'Try adjusting your search criteria' : 'Create some projects first'}
+              {debouncedSearchInput ? 'No project found with this school prefix' : 'Create some projects first'}
             </p>
           </div>
         )}

@@ -248,8 +248,9 @@ export default function ViewStaffsScreen() {
         }, [refetch])
     );
 
-    // Filter staff by search query and exclude the current user
+    // Filter to teachers from same-school result, exclude current user, and apply name search
     const filteredStaff = staffList?.filter(staff =>
+        staff.user.role === 'TEACHER' &&
         staff.user.id !== currentUser?.id &&
         staff.user.name.toLowerCase().includes(searchQuery.toLowerCase())
     ) || [];
@@ -340,7 +341,7 @@ export default function ViewStaffsScreen() {
                 animationType="fade"
                 onRequestClose={() => setToggleConfirmation(null)}
             >
-                <View className="flex-1 bg-black/20 items-center justify-center px-6">
+                <View className="flex-1 bg-black/40 items-center justify-center px-6">
                     <Pressable className="absolute inset-0" onPress={() => setToggleConfirmation(null)} />
 
                     <View className="w-full max-w-[360px] bg-white rounded-2xl p-6">

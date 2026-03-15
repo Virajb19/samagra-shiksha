@@ -260,6 +260,7 @@ export const projectManagementFirestore = {
     districtFilter?: string,
     categoryFilter?: string,
     statusFilter?: string,
+    searchPrefix?: string,
   ): Promise<ProjectsResponse> {
     await waitForAuthReady();
     await devDelay("read", "projects.getAll");
@@ -282,15 +283,24 @@ export const projectManagementFirestore = {
     if (statusFilter && statusFilter !== "all") {
       countConstraints.push(where("status", "==", statusFilter));
     }
+    const trimmedSearch = searchPrefix?.trim();
+    if (trimmedSearch) {
+      countConstraints.push(where("school_name", ">=", trimmedSearch));
+      countConstraints.push(where("school_name", "<=", `${trimmedSearch}\uf8ff`));
+    }
     const countQ = query(col, ...countConstraints);
     const countSnap = await getCountFromServer(countQ);
     const total = countSnap.data().count;
 
-    const constraints: QueryConstraint[] = [
-      ...countConstraints,
-      orderBy("created_at", "desc"),
-      queryLimit(limit + 1),
-    ];
+    const constraints: QueryConstraint[] = [...countConstraints];
+
+    if (trimmedSearch) {
+      constraints.push(orderBy("school_name", "asc"));
+    } else {
+      constraints.push(orderBy("created_at", "desc"));
+    }
+
+    constraints.push(queryLimit(limit + 1));
 
     if (cursor) {
       const cursorDoc = await getDoc(doc(db, "projects", cursor));

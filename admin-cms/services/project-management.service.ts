@@ -85,11 +85,12 @@ export const useGetProjects = (
   districtFilter?: string,
   categoryFilter?: string,
   statusFilter?: string,
+  searchPrefix?: string,
 ) => {
   return useQuery<ProjectsResponse>({
-    queryKey: ['projects', limit, cursor, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter],
+    queryKey: ['projects', limit, cursor, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter, searchPrefix],
     queryFn: () =>
-      projectManagementFirestore.getProjects(limit, cursor, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter),
+      projectManagementFirestore.getProjects(limit, cursor, pabYearFilter, activityFilter, districtFilter, categoryFilter, statusFilter, searchPrefix),
   });
 };
 

@@ -205,16 +205,6 @@ export default function ViewProfileScreen() {
                         </View>
                         <View className="h-px bg-[#f0f2f8] my-3" />
                         <View className="flex-row items-start gap-3">
-                            <Ionicons name="ribbon-outline" size={20} color="#6b7280" />
-                            <View className="flex-1">
-                                <AppText className="text-xs text-gray-400 mb-0.5">Highest Qualification</AppText>
-                                <AppText className="text-[15px] text-[#1a1a2e] font-medium">
-                                    {profile.highest_qualification}
-                                </AppText>
-                            </View>
-                        </View>
-                        <View className="h-px bg-[#f0f2f8] my-3" />
-                        <View className="flex-row items-start gap-3">
                             <Ionicons name="time-outline" size={20} color="#6b7280" />
                             <View className="flex-1">
                                 <AppText className="text-xs text-gray-400 mb-0.5">Years of Experience</AppText>
